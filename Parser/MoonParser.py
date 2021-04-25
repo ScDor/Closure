@@ -147,8 +147,7 @@ def _compose_moon_url(track_id: int,
            f'&maslulId={track_id}'
 
 
-def parse_course_details(df: pd.DataFrame) -> \
-        List[Course]:
+def parse_course_details(df: pd.DataFrame) -> List[Course]:
     """
     parses a table of course details, given previously-parsed Year and CourseType
     :param df: dataframe of course details
@@ -162,17 +161,11 @@ def parse_course_details(df: pd.DataFrame) -> \
     df[COURSE_ID] = df[COURSE_ID].astype(int)
     df[HUG_ID] = df[HUG_ID].astype(int)
     df[POINTS] = df[POINTS].astype(float)
-    if MAX_YEAR in df:
-        df[MAX_YEAR] = df[MAX_YEAR].astype(int)
-    if IS_ELEMENTARY in df:
-        df[IS_ELEMENTARY] = df[IS_ELEMENTARY].apply(lambda x: None if pd.isna(x) else x)
-
+    # NOTE fields MAX_YEAR and IS_ELEMENTARY can be parsed as well, heads up for duplicates
     for row in df.T.to_dict().values():
         parsed_courses.append(
-            Course(course_id=row[COURSE_ID], name=row[COURSE_NAME],
-                   semester=row[SEMESTER], points=row[POINTS], hug_id=row[HUG_ID],
-                   max_year=row[MAX_YEAR] if MAX_YEAR in df else None,
-                   is_elementary=row[IS_ELEMENTARY] if IS_ELEMENTARY in df else None))
+            Course(course_id=row[COURSE_ID], name=row[COURSE_NAME], semester=row[SEMESTER],
+                   points=row[POINTS], hug_id=row[HUG_ID]))
 
     return parsed_courses
 
