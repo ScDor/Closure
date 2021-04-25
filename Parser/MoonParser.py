@@ -1,13 +1,16 @@
-import logging
 import re
-from typing import List
+from datetime import datetime
+from typing import List, Tuple
 
 import pandas as pd
-import requests
 
-from Parser.Types import Year, Semester, CourseType, Course
+from Parser.Types import Year, Semester, CourseType, Course, CourseGroup
 
 # hebrew titles as they appear on http://bit.ly/course_details_3010
+MIN_POINTS_PATTERN = re.compile(r'לפחות\s*(\d+)\s*נ')
+MIN_COURSES_PATTERN = re.compile(r'יש ללמוד.*(\d+) מתוך רשימת קורסים')
+MIN_COURSES_ONE_PATTERN = re.compile(r'לפחות קורס 1\s|את אחד')
+MAX_COURSES_ONE_PATTERN = re.compile(r'אחד לכל היותר|רק קורס 1')
 COURSE_ID_HEB = 'מספר הקורס'
 COURSE_NAME_HEB = 'שם הקורס'
 POINTS_HEB = 'נקודות זכות'
@@ -52,7 +55,7 @@ SEMESTER_STRINGS = {
     'ב\'': Semester.B,
     'א\' או ב\'': Semester.EITHER,
     'קורס שנתי': Semester.ANNUAL,
-    'קיץ': Semester.SUMMER
+    'קורס קיץ': Semester.SUMMER
 }
 
 COURSE_TYPE_STRINGS = {
@@ -61,7 +64,11 @@ COURSE_TYPE_STRINGS = {
     'קורסי בחירה': CourseType.CHOICE
 }
 
-IGNORABLE_TITLES = {'סה\"כ נקודות חובה', 'תוכנית הלימודים'} | {y[:-1] for y in YEAR_STRINGS}
+IGNORABLE_TITLES = {
+    'סה\"כ נקודות חובה',
+    'תוכנית הלימודים',
+    'וגם'
+}
 
 # column names on tables representing course details
 COURSE_DETAILS_TITLES = {COURSE_NAME_HEB, COURSE_ID_HEB, POINTS_HEB, SEMESTER_HEB}
@@ -75,7 +82,7 @@ def parse_year(string: str) -> Year:
     try:
         return YEAR_STRINGS[string.strip()]
     except KeyError:
-        raise NotImplementedError(f"can not parse year from {string}")
+        raise ValueError(f"can not parse year from {string}")
 
 
 def parse_semester(string: str) -> Semester:
@@ -86,7 +93,7 @@ def parse_semester(string: str) -> Semester:
     try:
         return SEMESTER_STRINGS[string.strip()]
     except KeyError:
-        raise NotImplementedError(f"can not parse semester from {string}")
+        raise ValueError(f"can not parse semester from {string}")
 
 
 def parse_course_type(string: str) -> CourseType:
@@ -97,52 +104,29 @@ def parse_course_type(string: str) -> CourseType:
     try:
         return COURSE_TYPE_STRINGS[string.strip()]
     except KeyError:
-        raise NotImplementedError(f"can not parse course course_type from {string}")
+        raise ValueError(f"can not parse course course_type from {string}")
 
 
-def parse_min_points(string: str) -> int:
+def _get_relevant_year():
     """
-    :param string: of format "must take at least x points" (see regex)
-    :return: number of points parsed, else ValueError
-    """
-    match = re.match(r'יש לבחור לפחות (\d+) נ\"?(?:ז|נקודות)', string)
-    if match:
-        min_points = int(match.group(1))
-        logging.info(f'parsed min_points={min_points}')
-        return min_points
-    raise ValueError(f"string does not match minimum point regex: {string}")
-
-
-def parse_min_courses(string: str) -> int:
-    """
-    :param string: of format "must take at least x courses" (see regex)
-    :return: number of courses parsed, else ValueError
-    """
-    min_courses = None
-
-    if "לפחות קורס 1" in string:
-        min_courses = 1
-
+    if run before august, fetch data for the current year.
+     else, fetch next year's data
+     """
+    now = datetime.now()
+    if now.month < 8:
+        return now.year
     else:
-        match = re.match(r'יש לבחור לפחות (\d+) קורסים.*', string)
-        if match:
-            logging.info(f'parsed min_courses=1')
-            min_courses = match.group(1)
-
-    if min_courses:
-        return min_courses
-    raise ValueError(f"string does not match minimum course regex: {string}")
+        return now.year + 1  # next year
 
 
 def _compose_moon_url(track_id: int,
-                      year: int = 2021,
-                      faculty: int = 2,
-                      entity_id: int = 521,
-                      chug_id: int = 521,
-                      degree_code: int = 71
+                      year: int = _get_relevant_year(),
+                      faculty: int = 2,  # todo figure out if used
+                      entity_id: int = 521,  # todo figure out if used
+                      chug_id: int = 521,  # todo figure out if used
+                      degree_code: int = 71  # todo figure out if used
                       ):
     """
-
     :param faculty: Faculty code #todo list known codes
     :param entity_id: seems to be tied with chug_id
     :param track_id: the important part, seemingly the only one that matters.
@@ -163,13 +147,11 @@ def _compose_moon_url(track_id: int,
            f'&maslulId={track_id}'
 
 
-def parse_course_details(df: pd.DataFrame, year: Year, course_type: CourseType) -> \
+def parse_course_details(df: pd.DataFrame) -> \
         List[Course]:
     """
     parses a table of course details, given previously-parsed Year and CourseType
     :param df: dataframe of course details
-    :param year: year in studies, parsed from a previous table
-    :param course_type: CourseType, parsed from a previous table
     :return: dataframe of courses
     """
     df.columns = [HEB_ENG_TITLES[title] for title in df.loc[0]]
@@ -185,74 +167,99 @@ def parse_course_details(df: pd.DataFrame, year: Year, course_type: CourseType) 
     if IS_ELEMENTARY in df:
         df[IS_ELEMENTARY] = df[IS_ELEMENTARY].apply(lambda x: None if pd.isna(x) else x)
 
-    to_dict = df.T.to_dict().values()
-
-    for row in to_dict:
+    for row in df.T.to_dict().values():
         parsed_courses.append(
-            Course(course_id=row[COURSE_ID],
-                   course_type=course_type,
-                   name=row[COURSE_NAME],
-                   hug_id=row[HUG_ID],
-                   points=row[POINTS],
-                   semester=row[SEMESTER],
-                   year=year,
+            Course(course_id=row[COURSE_ID], name=row[COURSE_NAME],
+                   semester=row[SEMESTER], points=row[POINTS], hug_id=row[HUG_ID],
                    max_year=row[MAX_YEAR] if MAX_YEAR in df else None,
                    is_elementary=row[IS_ELEMENTARY] if IS_ELEMENTARY in df else None))
 
     return parsed_courses
 
 
-def parse_moon(url: str):
+def parse_moon(html_body: str, track: int = None) -> Tuple[List[Course], List[CourseGroup]]:
     """ parses a page from HUJI-MOON, see _compose_moon_url() """
-    df_list = pd.read_html(requests.get(url).text)
+    try:
+        df_list = pd.read_html(html_body)
+    except ValueError as e:
+        if str(e) == 'No tables found':
+            return tuple()
+        else:
+            raise e
 
     current_year = None
     current_type = None
 
-    parsed_courses = []
+    min_points = None
+    min_courses = None
+
+    max_courses = None
+
+    courses = []
+    groups = []
+
+    previous_type = None  # becomes current_type on 'וגם'
 
     for i, table in enumerate(df_list):
         titles = table.loc[0]
+        txt = str(table.iloc[0, 0]).strip()
 
-        first_value = table.iloc[0, 0].strip()
-        logging.debug(f'read a {table.shape} table, first vale={first_value}')
+        if table.shape == (1, 1):  # one-cell table
+            if txt in IGNORABLE_TITLES:
+                if txt == 'וגם':
+                    current_type = previous_type
+                continue
 
-        if first_value in IGNORABLE_TITLES:
-            logging.info(f'ignoring {first_value}')
+            # parse year
+            if txt in YEAR_STRINGS:
+                current_year = parse_year(txt)
+                continue
 
-        elif table.shape == (1, 1):  # only one cell
-            if first_value in YEAR_STRINGS:
-                current_year = parse_year(first_value)
-                logging.debug(f'year={current_year}')
+            # parse course type
+            elif txt in COURSE_TYPE_STRINGS:
+                current_type = parse_course_type(txt)
+                continue
 
-            elif first_value in COURSE_TYPE_STRINGS:
-                current_type = parse_course_type(first_value)
-                logging.debug(f'course_type={current_type}')
+            # parse min points
+            min_points_match = MIN_POINTS_PATTERN.search(txt)
+            if min_points_match:
+                min_points = int(min_points_match.group(1))
+                continue
 
-            elif 'לפחות' in first_value:
-                if any(s in first_value for s in {'נ\"ז', ' נקודות '}):
-                    logging.debug(f'min_points={parse_min_points(first_value)}')
+            # parse min courses
+            min_course_match = MIN_COURSES_PATTERN.search(txt)
+            if min_course_match:
+                min_courses = int(min_course_match.group(1))
+                continue
 
-                elif 'קורס' in first_value:
-                    logging.debug(f'min_courses={parse_min_courses(first_value)}')
+            min_one_course_match = MIN_COURSES_ONE_PATTERN.search(txt)
+            if min_one_course_match:
+                min_courses = 1
+                continue
 
-                else:
-                    raise ValueError(
-                        f'failed parsing min_courses or min_points from {first_value}')
+            # parse max group courses
+            if MAX_COURSES_ONE_PATTERN.search(txt):
+                max_courses = 1
+                continue
+            # todo reaching here means txt could not be parsed, could be ok, or a bug
 
-        elif COURSE_DETAILS_TITLES.issubset(titles):
-            if current_year is None or current_type is None:
-                raise NotImplementedError("reached course details before parsing"
-                                          " current year/course course_type")
+        if COURSE_DETAILS_TITLES.issubset(titles):
+            if not all((current_year, current_type)):
+                raise ValueError("reached course details before parsing "
+                                 "current year/course course_type")
             # noinspection PyTypeChecker
-            newly_parsed_courses = parse_course_details(table, current_year, current_type)
+            temp_courses = parse_course_details(table)
+            courses.extend(temp_courses)
 
-            logging.debug(f'parsed {len(newly_parsed_courses)} courses')
-            parsed_courses.extend(newly_parsed_courses)
+            ids = [c.id for c in temp_courses]
+            temp_group = CourseGroup(track, ids, current_type, min_courses, min_points)
+            groups.append(temp_group)
+            print(temp_group)
 
+            previous_type = current_type
+            min_courses = min_points = current_type = None
         else:
-            logging.info(f'Could not parse anything from table #{i} of size {table.shape}'
-                         f'on {url}, starting with {table.iloc[0, 0]}.'
-                         f' This is not necessarily a bad thing.')
+            if 'לכל היותר' in txt and not max_courses:
+                raise NotImplementedError("todo implement parsing of max_courses>1")
 
-    return parsed_courses
+    return courses, groups
