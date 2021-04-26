@@ -3,8 +3,7 @@ from datetime import datetime
 from typing import List, Tuple
 
 import pandas as pd
-
-from Parser.Types import Year, Semester, CourseType, Course, CourseGroup
+from Types import Year, Semester, CourseType, Course, CourseGroup
 
 # hebrew titles as they appear on http://bit.ly/course_details_3010
 MIN_POINTS_PATTERN = re.compile(r'לפחות\s*(\d+)\s*נ')
