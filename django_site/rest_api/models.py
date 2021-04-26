@@ -18,33 +18,33 @@ class Year(models.IntegerChoices):
         return f'Year {self.name}'
 
 
-class Semester(models.TextChoices):
+class Semester(models.IntegerChoices):
     """ semester when the course is given """
-    A = 'A'
-    B = 'B'
-    SUMMER = 'Summer'
-    EITHER = 'Either'
-    ANNUAL = 'Annual'
+    A = 1
+    B = 2
+    SUMMER = 3
+    EITHER = 4
+    ANNUAL = 5
 
     def __str__(self):
         return f'Semester {self.name}'
 
 
-class CourseType(models.TextChoices):
+class CourseType(models.IntegerChoices):
     """ course course_type: must take, must choose from a list or free choice """
-    MUST = 'Must'
-    CHOICE = 'Choice'
-    FROM_LIST = 'Choose From List'
+    MUST = 1
+    CHOICE = 2
+    FROM_LIST = 3
 
 
 class Course(models.Model):
-    id = models.DecimalField(primary_key=True)
+    id = models.IntegerField(primary_key=True)
     track = models.ForeignKey('CourseGroup', on_delete=models.CASCADE)
-    name = models.CharField()
-    semester = models.CharField(choices=Semester.choices)
-    year = models.IntegerField(choices=Year)
-    type = models.CharField(choices=CourseType)
-    points = models.FloatField()
+    name = models.CharField(max_length=20)
+    semester = models.IntegerField(choices=Semester.choices)
+    year = models.IntegerField(choices=Year.choices)
+    type = models.IntegerField(choices=CourseType.choices)
+    points = models.IntegerField()
     hug_id = models.IntegerField()
 
     def __repr__(self):
@@ -55,7 +55,7 @@ class Course(models.Model):
 
 class CourseGroup(models.Model):
     track = models.IntegerField(primary_key=True)
-    type = models.CharField(choices=CourseType.choices)
+    type = models.IntegerField(choices=CourseType.choices)
     required_course_count = models.IntegerField()
     required_points = models.IntegerField()
     courses = models.ManyToManyField(Course)
@@ -63,7 +63,7 @@ class CourseGroup(models.Model):
 
 class Student(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField()
+    name = models.CharField(max_length=20)
     group = models.ForeignKey(CourseGroup, on_delete=models.CASCADE)
     courses = models.ManyToManyField(Course)
 
