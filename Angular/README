@@ -1,0 +1,5 @@
+although angular is very well known, and although its gallery offered many components who (allegedly) did what we expected of them,
+it was very hard to get it working, we didn't manage doing it in our codepen, and also in the webstorm IDE.
+we eventually found some examples that did work, but they are not very impressive.
+
+it also requires us to learn typescript, which is an extension of javascript we simply dont have the time to study
