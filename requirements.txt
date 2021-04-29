@@ -1,3 +1,4 @@
 pandas~=1.2.4
 requests~=2.25.1
 lxml~=4.6.3
+Django~=3.2
