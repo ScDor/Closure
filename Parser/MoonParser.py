@@ -4,7 +4,7 @@ from typing import List, Tuple
 
 import pandas as pd
 
-from Parser.Types import Year, Semester, CourseType, Course, CourseGroup
+from Parser.Types import Year, Semester, CourseType, Course, CourseGroup, Track
 
 # hebrew titles as they appear on http://bit.ly/course_details_3010
 MIN_POINTS_PATTERN = re.compile(r'לפחות\s*(\d+)\s*נ')
@@ -67,11 +67,24 @@ COURSE_TYPE_STRINGS = {
 IGNORABLE_TITLES = {
     'סה\"כ נקודות חובה',
     'תוכנית הלימודים',
-    'וגם'
+    'וגם',
+    'או'  # todo handle alternatives
 }
 
 # column names on tables representing course details
 COURSE_DETAILS_TITLES = {COURSE_NAME_HEB, COURSE_ID_HEB, POINTS_HEB, SEMESTER_HEB}
+
+MUST = 'חובה'
+MUST_IN_HUG = 'חובה בחוג'
+MUST_PROGRAMMING = 'לימודי תכנות'
+MUST_SAFETY_LIBRARY = 'קורס ספרייה ובטיחות'
+
+CHOICE_FROM_LIST = 'חובת בחירה'
+CHOICE_IN_HUG = 'בחירה בחוג'
+CORNER_STONES = 'אבני פינה'
+COMPLEMENTARY = 'לימודים משלימים'
+ADDITIONAL_HUG = 'חוג נוסף'
+HATIVA = 'חטיבה'
 
 
 def parse_year(string: str) -> Year:
@@ -170,23 +183,70 @@ def parse_course_details(df: pd.DataFrame) -> List[Course]:
     return parsed_courses
 
 
-def parse_moon(html_body: str, track: int = None) -> Tuple[List[Course], List[CourseGroup]]:
+RE_RANGE = re.compile(r'(\d+(?:\.\d+)?)-(?:\.\d+)?')
+RE_MIN = re.compile(r'לפחות\s*(\d+)|(\d+)\s*לפחות')
+
+
+def parse_track(df: pd.DataFrame) -> Track:
+    must = from_list = choice = corner_stones = complementary = hativa = additional_hug = 0
+    point_columns = [i for i, c in enumerate(df.columns) if 'כ נקודות' in c]
+
+    for i, r in df.iterrows():
+        category = r[0]
+
+        if 'סה\"כ' in category:
+            continue
+
+        raw_points = [r[i] for i in point_columns]
+
+        for raw_point in raw_points:
+            if not raw_point or pd.isnull(raw_point):  # no need to take Nan or 0 value
+                continue
+
+            try:
+                points = float(raw_point)
+
+            except ValueError:
+                match = RE_RANGE.match(raw_point) or RE_MIN.match(raw_point)
+                if match:
+                    points = float(match[1] or match[2])  # todo is lower bound the right way?
+                else:
+                    print(f'could not parse points for category {category}={raw_point}')
+                    # todo should we just leave it as is?
+                    continue
+
+            if category in (MUST, MUST_IN_HUG, MUST_PROGRAMMING, MUST_SAFETY_LIBRARY) \
+                    or MUST in category:
+                must += points
+            elif category in CHOICE_FROM_LIST or 'במסגרת האשכול' in category:
+                from_list += points
+            elif category == CHOICE_IN_HUG:
+                choice += points
+            elif CORNER_STONES in category:
+                corner_stones += points
+            elif category == COMPLEMENTARY:
+                complementary += points
+            elif category == HATIVA:
+                hativa += points
+            elif category == ADDITIONAL_HUG:
+                additional_hug += points
+            else:
+                # print(f'Could not identify {category}={raw_point}, defaulting to MUST')
+                must += points
+
+    return Track(must, from_list, choice, complementary, corner_stones, hativa)
+
+
+def parse_moon(html_body: str, track_number: int = None) -> Tuple[Track,
+                                                                  List[Course],
+                                                                  List[CourseGroup]]:
     """ parses a page from HUJI-MOON, see _compose_moon_url() """
-    try:
-        df_list = pd.read_html(html_body)
-    except ValueError as e:
-        if str(e) == 'No tables found':
-            return tuple()
-        else:
-            raise e
+    df_list = pd.read_html(html_body)
 
-    current_year = None
-    current_type = None
-
-    min_points = None
-    min_courses = None
-
+    current_year = current_type = None
+    min_points = min_courses = None
     max_courses = None
+    track = None
 
     courses = []
     groups = []
@@ -198,8 +258,8 @@ def parse_moon(html_body: str, track: int = None) -> Tuple[List[Course], List[Co
         txt = str(table.iloc[0, 0]).strip()
 
         if table.shape == (1, 1):  # one-cell table
-            if txt in IGNORABLE_TITLES:
-                if txt == 'וגם':
+            if txt in IGNORABLE_TITLES or 'סה"כ' in txt:
+                if txt in {'וגם', 'או'}:
                     current_type = previous_type
                 continue
 
@@ -234,25 +294,39 @@ def parse_moon(html_body: str, track: int = None) -> Tuple[List[Course], List[Co
             if MAX_COURSES_ONE_PATTERN.search(txt):
                 max_courses = 1
                 continue
-            # todo reaching here means txt could not be parsed, could be ok, or a bug
+
+            # reaching here means txt could not be parsed, could be ok, or a bug
+
+        if any('כ נקודות בחוג' in str(c) for c in table.columns):
+            if track is not None:
+                raise ValueError("found two track_number-detail tables on the same page")
+            try:
+                track = parse_track(table)
+            except NotImplementedError as e:
+                print(f'#{track_number}')
+                raise e
 
         if COURSE_DETAILS_TITLES.issubset(titles):
             if not all((current_year, current_type)):
                 raise ValueError("reached course details before parsing "
-                                 "current year/course course_type")
+                                 f"current year/course course_type, track#={track_number}")
             # noinspection PyTypeChecker
             temp_courses = parse_course_details(table)
+            if not temp_courses:
+                continue
+
             courses.extend(temp_courses)
 
             ids = [c.id for c in temp_courses]
-            temp_group = CourseGroup(track, ids, current_type, min_courses, min_points)
+            temp_group = CourseGroup(track_number, ids, current_type, min_courses, min_points)
             groups.append(temp_group)
-            print(temp_group)
 
             previous_type = current_type
             min_courses = min_points = current_type = None
         else:
             if 'לכל היותר' in txt and not max_courses:
                 raise NotImplementedError("todo implement parsing of max_courses>1")
+    if track:
+        track.groups = groups
 
-    return courses, groups
+    return track, courses, groups
