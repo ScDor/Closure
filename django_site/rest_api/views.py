@@ -2,7 +2,7 @@
 
 from rest_framework import viewsets
 
-from .models import Course, Student, CourseGroup
+from .models import Course, Student, CourseGroup, Track
 from .serializers import CourseSerializer, CourseGroupSerializer, StudentSerializer
 
 
