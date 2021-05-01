@@ -24,7 +24,7 @@ class Year(Enum):
     SEVENTH = 7
 
     def __str__(self):
-        return f'Year {self.name}'
+        return f'{self.name.title()} Year'
 
 
 class Semester(Enum):
