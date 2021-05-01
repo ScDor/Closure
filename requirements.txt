@@ -4,3 +4,4 @@ Django~=3.2
 bs4~=0.0.1
 beautifulsoup4~=4.9.3
 urllib3~=1.26.4
+jsonpickle~=2.0.0
