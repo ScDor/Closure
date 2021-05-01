@@ -1,4 +1,6 @@
 pandas~=1.2.4
 requests~=2.25.1
-lxml~=4.6.3
 Django~=3.2
+bs4~=0.0.1
+beautifulsoup4~=4.9.3
+urllib3~=1.26.4

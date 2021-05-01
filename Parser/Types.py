@@ -2,6 +2,17 @@ from enum import Enum
 from typing import Union, List
 
 
+class Faculty(Enum):
+    SOCIAL = 1
+    SCIENCE = 2
+    LAW = 3
+    BUSINESS_MANAGEMENT = 6
+    SPIRIT = 7
+    CSE = 12
+    AGRICULTURE = 30
+    MEDICINE = 99
+
+
 class Year(Enum):
     """ year in studies """
     A = 1
