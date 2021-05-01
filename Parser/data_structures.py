@@ -48,12 +48,13 @@ class CourseType(Enum):
 
 class Course:
     def __init__(self, course_id: int, name: str, semester: Semester, points: float,
-                 hug_id: int):
+                 hug_id: int, is_given_this_year: bool):
         self.id = course_id
         self.name = name
         self.semester = semester
         self.points = points
         self.hug_id = hug_id
+        self.is_given_this_year = is_given_this_year
 
     def __repr__(self):
         return ', '.join((str(self.id),

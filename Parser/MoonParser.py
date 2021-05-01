@@ -160,6 +160,9 @@ def _compose_moon_url(track_id: int,
            f'&maslulId={track_id}'
 
 
+NOT_GIVEN_THIS_YEAR = '(לא נלמד השנה)'
+
+
 def parse_course_details(df: pd.DataFrame) -> List[Course]:
     """
     parses a table of course details, given previously-parsed Year and CourseType
@@ -176,9 +179,12 @@ def parse_course_details(df: pd.DataFrame) -> List[Course]:
     df[POINTS] = df[POINTS].astype(float)
     # NOTE fields MAX_YEAR and IS_ELEMENTARY can be parsed as well, heads up for duplicates
     for row in df.T.to_dict().values():
+        is_given = NOT_GIVEN_THIS_YEAR not in row[COURSE_NAME]
+        name = row[COURSE_NAME].replace(NOT_GIVEN_THIS_YEAR, "")
+
         parsed_courses.append(
-            Course(course_id=row[COURSE_ID], name=row[COURSE_NAME], semester=row[SEMESTER],
-                   points=row[POINTS], hug_id=row[HUG_ID]))
+            Course(course_id=row[COURSE_ID], name=name, semester=row[SEMESTER],
+                   points=row[POINTS], hug_id=row[HUG_ID], is_given_this_year=is_given))
 
     return parsed_courses
 
