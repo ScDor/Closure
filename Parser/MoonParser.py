@@ -84,7 +84,7 @@ CHOICE_IN_HUG = 'בחירה בחוג'
 CORNER_STONES = 'אבני פינה'
 COMPLEMENTARY = 'לימודים משלימים'
 ADDITIONAL_HUG = 'חוג נוסף'
-HATIVA = 'חטיבה'
+MINOR = 'חטיבה'
 
 
 def parse_year(string: str) -> Year:
@@ -188,7 +188,7 @@ RE_MIN = re.compile(r'לפחות\s*(\d+)|(\d+)\s*לפחות')
 
 
 def parse_track(df: pd.DataFrame) -> Track:
-    must = from_list = choice = corner_stones = complementary = hativa = additional_hug = 0
+    must = from_list = choice = corner_stones = complementary = minor = additional_hug = 0
     point_columns = [i for i, c in enumerate(df.columns) if 'כ נקודות' in c]
 
     for i, r in df.iterrows():
@@ -226,15 +226,15 @@ def parse_track(df: pd.DataFrame) -> Track:
                 corner_stones += points
             elif category == COMPLEMENTARY:
                 complementary += points
-            elif category == HATIVA:
-                hativa += points
+            elif category == MINOR:
+                minor += points
             elif category == ADDITIONAL_HUG:
                 additional_hug += points
             else:
                 # print(f'Could not identify {category}={raw_point}, defaulting to MUST')
                 must += points
 
-    return Track(must, from_list, choice, complementary, corner_stones, hativa)
+    return Track(must, from_list, choice, complementary, corner_stones, minor)
 
 
 def parse_moon(html_body: str, track_number: int = None) -> Tuple[Track,

@@ -99,17 +99,8 @@ class CourseGroup:
 
 
 class Track:
-    points_must: int
-    points_from_list: int
-    points_choice: int
-    complementary: int
-    corner_stones: int
-    points_hativa: int
-    points_additional_hug: int
-    groups: List[CourseGroup]
-
     def __init__(self, must: int = 0, from_list: int = 0, points_choice: int = 0,
-                 complementary: int = 0, corner_stones: int = 0, points_hativa: int = 0,
+                 complementary: int = 0, corner_stones: int = 0, points_minor: int = 0,
                  additional_hug: int = 0, groups: List[CourseGroup] = None):
 
         self.points_must = must
@@ -117,7 +108,7 @@ class Track:
         self.points_choice = points_choice
         self.complementary = complementary
         self.corner_stones = corner_stones
-        self.points_hativa = points_hativa
+        self.points_minor = points_minor
         self.points_additional_hug = additional_hug
 
         self.groups = groups
@@ -130,7 +121,7 @@ class Track:
                               ('choice', self.points_choice),
                               ('complementary', self.complementary),
                               ('corner_stones', self.corner_stones),
-                              ('points_hativa', self.points_hativa),
+                              ('points_minor', self.points_minor),
                               ('additional_hug', self.points_additional_hug),
                               ('groups', self.groups)):
             if value:
