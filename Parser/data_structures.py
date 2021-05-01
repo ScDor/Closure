@@ -66,6 +66,7 @@ class CourseGroup:
                  track: int,
                  courses: List[int],
                  course_type: CourseType,
+                 year: Year,
                  required_course_count: Union[int, None],
                  required_points: Union[int, None]
                  ):
@@ -76,6 +77,7 @@ class CourseGroup:
                 required_course_count is None and required_points is None:
             required_course_count = len(courses)
 
+        self.year = year
         self.required_course_count = required_course_count
         self.required_points = required_points
 
