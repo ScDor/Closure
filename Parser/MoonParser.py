@@ -318,7 +318,8 @@ def parse_moon(html_body: str, track_number: int = None) -> Tuple[Track,
             courses.extend(temp_courses)
 
             ids = [c.id for c in temp_courses]
-            temp_group = CourseGroup(track_number, ids, current_type, min_courses, min_points)
+            temp_group = CourseGroup(track_number, ids, current_type, current_year,
+                                     min_courses, min_points)
             groups.append(temp_group)
 
             previous_type = current_type
