@@ -15,13 +15,13 @@ class Faculty(Enum):
 
 class Year(Enum):
     """ year in studies """
-    A = 1
-    B = 2
-    C = 3
-    D = 4
-    E = 5
-    F = 6
-    G = 7
+    FIRST = 1
+    SECOND = 2
+    THIRD = 3
+    FOURTH = 4
+    FIFTH = 5
+    SIXTH = 6
+    SEVENTH = 7
 
     def __str__(self):
         return f'Year {self.name}'
@@ -29,8 +29,8 @@ class Year(Enum):
 
 class Semester(Enum):
     """ semester when the course is given """
-    A = 'A'
-    B = 'B'
+    A = 'FIRST'
+    B = 'SECOND'
     SUMMER = 'Summer'
     EITHER = 'Either'
     ANNUAL = 'Annual'

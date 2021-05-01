@@ -41,13 +41,13 @@ HEB_ENG_TITLES = {
 }
 
 YEAR_STRINGS = {
-    'שנה א\'': Year.A,
-    'שנה ב\'': Year.B,
-    'שנה ג\'': Year.C,
-    'שנה ד\'': Year.D,
-    'שנה ה\'': Year.E,
-    'שנה ו\'': Year.F,
-    'שנה ז\'': Year.G
+    'שנה א\'': Year.FIRST,
+    'שנה ב\'': Year.SECOND,
+    'שנה ג\'': Year.THIRD,
+    'שנה ד\'': Year.FOURTH,
+    'שנה ה\'': Year.FIFTH,
+    'שנה ו\'': Year.SIXTH,
+    'שנה ז\'': Year.SEVENTH
 }
 
 SEMESTER_STRINGS = {
