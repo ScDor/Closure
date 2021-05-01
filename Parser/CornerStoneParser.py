@@ -5,45 +5,70 @@ import requests
 from bs4 import BeautifulSoup
 from urllib3.exceptions import NewConnectionError
 
-from Types import Faculty
+from data_structures import Faculty
 
 
 def _parse_side_menu_urls(url: str):
-    soup = BeautifulSoup(requests.get(url).content)
-    urls = []
+    """
+    Parses the side menu, that represent different campuses where the courses are given
+    :param url: url of a page (say, page representing Experimental-field courses
+    :return: urls of the pages including the course details (one for each campus/online)
+    """
+    soup = BeautifulSoup(requests.get(url).content, 'html.parser')
+    base_urls = []
 
     for title in soup.find_all('li'):
         if 'קמפוס' in title.text or 'קורס מקוון' in title.text:
             try:
                 # possible addon: parse campus where each course takes place / online
-                urls.append(title.contents[0]['href'])
+                base_urls.append(title.contents[0]['href'])
             except KeyError:
                 pass
-    return urls
+    return base_urls
 
 
-def _get_courses(base_url: str, page_num: int = 0) -> List[str]:
+def _parse_corner_stone_page(base_url: str, page_num: int = 0) -> List[int]:
+    """
+    :param base_url: url of a page showing corner stone course details,
+     excluding its (optional) postfix of the format "?page=(number)"
+    :param page_num: the zero-indexed page postfix to be appended to the url. (unless it is 0)
+    :return: list of integer course identifiers.
+    """
     course_ids = []
     url = base_url if page_num == 0 else f'{base_url}?page={page_num}'
     try:
-        soup = BeautifulSoup(requests.get(url).text)
+        soup = BeautifulSoup(requests.get(url).text, 'html.parser')
         for a in soup.findAll('a'):
-            # parsed format:"67101 | Introduction to CS", sometimes followed by " | Prof. name"
+            # parsed format:
+            # "67925 | NAND to Tetris Workshop", optionally followed by "| <Professor's name>"
             search = re.search(r'(\d{3,6})\s*[|:-]\s*([^|\n\r\t]+)', str(a.text))
             if search:
                 course_id, course = search.groups()
                 # ignoring `course` as sometimes it is the professor's name (website mistake)
-                course_ids.append(course_id)
+                course_ids.append(int(course_id))
 
         if course_ids:
-            next_step = _get_courses(base_url, page_num + 1)
-            course_ids.extend(next_step)
+            # if any courses were parsed, go on and attempt to parse the next page
+            next_step = _parse_corner_stone_page(base_url, page_num + 1)
+            course_ids += next_step
 
     except NewConnectionError:
         # nonexistent page, will just return the empty list
         pass
 
     return course_ids
+
+
+def _parse_corner_stones(url: str) -> List[int]:
+    """
+    :param url: url to a page representing corner stone courses given by some faculty
+    :return: list of integer course identifiers
+    """
+    urls = _parse_side_menu_urls(url)
+    result = []
+    for url in urls:
+        result += _parse_corner_stone_page(url)
+    return result
 
 
 def get_corner_stones():
@@ -58,8 +83,8 @@ def get_corner_stones():
                    r'%D7%A1%D7%95%D7%99%D7%99'
 
     return {
-        Faculty.SPIRIT: _get_courses(spirit),
-        Faculty.SOCIAL: _get_courses(social),
-        Faculty.SCIENCE: _get_courses(experimental)
+        Faculty.SPIRIT: _parse_corner_stones(spirit),
+        Faculty.SOCIAL: _parse_corner_stones(social),
+        Faculty.SCIENCE: _parse_corner_stones(experimental)
         # todo find a representation for the democracy ones, follow the url to see logic behind
     }
