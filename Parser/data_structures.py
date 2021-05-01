@@ -68,21 +68,23 @@ class CourseGroup:
                  courses: List[int],
                  course_type: CourseType,
                  year: Year,
+                 index_in_track_year: int,
                  required_course_count: Union[int, None],
-                 required_points: Union[int, None]
+                 required_points: Union[int, None],
                  ):
         self.track = track
+        self.courses = courses
         self.type = course_type
+        self.year = year
+        self.index_in_track_year = index_in_track_year
 
-        if course_type == CourseType.MUST and \
-                required_course_count is None and required_points is None:
+        if course_type == CourseType.MUST  \
+                and required_course_count is None \
+                and required_points is None:
             required_course_count = len(courses)
 
-        self.year = year
         self.required_course_count = required_course_count
         self.required_points = required_points
-
-        self.courses = courses
 
     def __repr__(self):
         if self.required_course_count:

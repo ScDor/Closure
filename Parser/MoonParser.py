@@ -253,6 +253,7 @@ def parse_moon(html_body: str, track_number: int = None) -> Tuple[Track,
     min_points = min_courses = None
     max_courses = None
     track = None
+    index_in_track_year = 0
 
     courses = []
     groups = []
@@ -271,7 +272,12 @@ def parse_moon(html_body: str, track_number: int = None) -> Tuple[Track,
 
             # parse year
             if txt in YEAR_STRINGS:
-                current_year = parse_year(txt)
+                year = parse_year(txt)
+                if (current_year is None) or (year != current_year):
+                    index_in_track_year = 0
+                    current_year = year
+                else:
+                    index_in_track_year += 1
                 continue
 
             # parse course type
@@ -324,8 +330,13 @@ def parse_moon(html_body: str, track_number: int = None) -> Tuple[Track,
             courses.extend(temp_courses)
 
             ids = [c.id for c in temp_courses]
-            temp_group = CourseGroup(track_number, ids, current_type, current_year,
-                                     min_courses, min_points)
+            temp_group = CourseGroup(track_number,
+                                     index_in_track_year,
+                                     ids,
+                                     current_type,
+                                     current_year,
+                                     min_courses,
+                                     min_points)
             groups.append(temp_group)
 
             previous_type = current_type
