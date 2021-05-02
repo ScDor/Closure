@@ -4,7 +4,7 @@ from typing import List, Tuple
 
 import pandas as pd
 
-from data_structures import Year, Semester, CourseType, Course, CourseGroup, Track
+from data_structures import Semester, CourseType, Course, CourseGroup, Track
 
 # hebrew titles as they appear on http://bit.ly/course_details_3010
 MIN_POINTS_PATTERN = re.compile(r'לפחות\s*(\d+)\s*נ')
@@ -41,13 +41,13 @@ HEB_ENG_TITLES = {
 }
 
 YEAR_STRINGS = {
-    'שנה א\'': Year.FIRST,
-    'שנה ב\'': Year.SECOND,
-    'שנה ג\'': Year.THIRD,
-    'שנה ד\'': Year.FOURTH,
-    'שנה ה\'': Year.FIFTH,
-    'שנה ו\'': Year.SIXTH,
-    'שנה ז\'': Year.SEVENTH
+    'שנה א\'': 1,
+    'שנה ב\'': 2,
+    'שנה ג\'': 3,
+    'שנה ד\'': 4,
+    'שנה ה\'': 5,
+    'שנה ו\'': 6,
+    'שנה ז\'': 7
 }
 
 SEMESTER_STRINGS = {
@@ -68,7 +68,7 @@ IGNORABLE_TITLES = {
     'סה\"כ נקודות חובה',
     'תוכנית הלימודים',
     'וגם',
-    'או'  # todo handle alternatives
+    'או'
 }
 
 # column names on tables representing course details
@@ -87,7 +87,7 @@ ADDITIONAL_HUG = 'חוג נוסף'
 MINOR = 'חטיבה'
 
 
-def parse_year(string: str) -> Year:
+def parse_year(string: str) -> int:
     """
     :param string: represents a year
     :return: Year object
@@ -193,7 +193,7 @@ RE_RANGE = re.compile(r'(\d+(?:\.\d+)?)-(?:\.\d+)?')
 RE_MIN = re.compile(r'לפחות\s*(\d+)|(\d+)\s*לפחות')
 
 
-def parse_track(df: pd.DataFrame) -> Track:
+def parse_track(df: pd.DataFrame, track_id: int) -> Track:
     must = from_list = choice = corner_stones = complementary = minor = additional_hug = 0
     point_columns = [i for i, c in enumerate(df.columns) if 'כ נקודות' in c]
 
@@ -239,13 +239,18 @@ def parse_track(df: pd.DataFrame) -> Track:
             else:
                 # print(f'Could not identify {category}={raw_point}, defaulting to MUST')
                 must += points
+    return Track(track_id=track_id,
+                 points_must=must,
+                 points_from_list=from_list,
+                 points_choice=choice,
+                 points_complementary=complementary,
+                 points_corner_stones=corner_stones,
+                 points_minor=minor)
 
-    return Track(must, from_list, choice, complementary, corner_stones, minor)
 
-
-def parse_moon(html_body: str, track_number: int = None) -> Tuple[Track,
-                                                                  List[Course],
-                                                                  List[CourseGroup]]:
+def parse_moon(html_body: str, track_id: int) -> Tuple[Track,
+                                                       List[Course],
+                                                       List[CourseGroup]]:
     """ parses a page from HUJI-MOON, see _compose_moon_url() """
     df_list = pd.read_html(html_body)
 
@@ -266,7 +271,7 @@ def parse_moon(html_body: str, track_number: int = None) -> Tuple[Track,
 
         if table.shape == (1, 1):  # one-cell table
             if txt in IGNORABLE_TITLES or 'סה"כ' in txt:
-                if txt in {'וגם', 'או'}:
+                if txt in {'וגם', 'או'}:  # todo handle alternatives
                     current_type = previous_type
                 continue
 
@@ -313,15 +318,15 @@ def parse_moon(html_body: str, track_number: int = None) -> Tuple[Track,
             if track is not None:
                 raise ValueError("found two track_number-detail tables on the same page")
             try:
-                track = parse_track(table)
+                track = parse_track(table, track_id)
             except NotImplementedError as e:
-                print(f'#{track_number}')
+                print(f'#{track_id}')
                 raise e
 
         if COURSE_DETAILS_TITLES.issubset(titles):
             if not all((current_year, current_type)):
                 raise ValueError("reached course details before parsing "
-                                 f"current year/course course_type, track#={track_number}")
+                                 f"current year/course course_type, track#={track_id}")
             # noinspection PyTypeChecker
             temp_courses = parse_course_details(table)
             if not temp_courses:
@@ -330,13 +335,14 @@ def parse_moon(html_body: str, track_number: int = None) -> Tuple[Track,
             courses.extend(temp_courses)
 
             ids = [c.id for c in temp_courses]
-            temp_group = CourseGroup(track_number,
-                                     index_in_track_year,
-                                     ids,
-                                     current_type,
-                                     current_year,
-                                     min_courses,
-                                     min_points)
+            temp_group = CourseGroup(track=track_id,
+                                     course_type=current_type,
+                                     courses=ids,
+                                     year=current_year,
+                                     index_in_track_year=index_in_track_year,
+                                     required_course_count=min_courses,
+                                     required_points=min_points)
+
             groups.append(temp_group)
 
             previous_type = current_type

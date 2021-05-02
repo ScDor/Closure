@@ -12,17 +12,6 @@ class Faculty(Enum):
     AGRICULTURE = 30
     MEDICINE = 99
 
-
-class Year(Enum):
-    """ year in studies """
-    FIRST = 1
-    SECOND = 2
-    THIRD = 3
-    FOURTH = 4
-    FIFTH = 5
-    SIXTH = 6
-    SEVENTH = 7
-
     def __str__(self):
         return f'{self.name.title()} Year'
 
@@ -67,7 +56,7 @@ class CourseGroup:
                  track: int,
                  courses: List[int],
                  course_type: CourseType,
-                 year: Year,
+                 year: int,
                  index_in_track_year: int,
                  required_course_count: Union[int, None],
                  required_points: Union[int, None],
@@ -78,7 +67,7 @@ class CourseGroup:
         self.year = year
         self.index_in_track_year = index_in_track_year
 
-        if course_type == CourseType.MUST  \
+        if course_type == CourseType.MUST \
                 and required_course_count is None \
                 and required_points is None:
             required_course_count = len(courses)
@@ -104,15 +93,22 @@ class CourseGroup:
 
 
 class Track:
-    def __init__(self, must: int = 0, from_list: int = 0, points_choice: int = 0,
-                 complementary: int = 0, corner_stones: int = 0, points_minor: int = 0,
-                 additional_hug: int = 0, groups: List[CourseGroup] = None):
-
-        self.points_must = must
-        self.points_from_list = from_list
+    def __init__(self,
+                 track_id: int,
+                 points_must: int = 0,
+                 points_from_list: int = 0,
+                 points_choice: int = 0,
+                 points_complementary: int = 0,
+                 points_corner_stones: int = 0,
+                 points_minor: int = 0,
+                 additional_hug: int = 0,
+                 groups: List[CourseGroup] = None):
+        self.id = track_id
+        self.points_must = points_must
+        self.points_from_list = points_from_list
         self.points_choice = points_choice
-        self.complementary = complementary
-        self.corner_stones = corner_stones
+        self.points_complementary = points_complementary
+        self.points_corner_stones = points_corner_stones
         self.points_minor = points_minor
         self.points_additional_hug = additional_hug
 
@@ -124,8 +120,8 @@ class Track:
         for (name, value) in (('must', self.points_must),
                               ('from_list', self.points_from_list),
                               ('choice', self.points_choice),
-                              ('complementary', self.complementary),
-                              ('corner_stones', self.corner_stones),
+                              ('complementary', self.points_complementary),
+                              ('corner_stones', self.points_corner_stones),
                               ('points_minor', self.points_minor),
                               ('additional_hug', self.points_additional_hug),
                               ('groups', self.groups)):
