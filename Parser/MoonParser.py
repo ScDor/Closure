@@ -160,6 +160,9 @@ def _compose_moon_url(track_id: int,
            f'&maslulId={track_id}'
 
 
+NOT_GIVEN_THIS_YEAR = '(לא נלמד השנה)'
+
+
 def parse_course_details(df: pd.DataFrame) -> List[Course]:
     """
     parses a table of course details, given previously-parsed Year and CourseType
@@ -176,9 +179,12 @@ def parse_course_details(df: pd.DataFrame) -> List[Course]:
     df[POINTS] = df[POINTS].astype(float)
     # NOTE fields MAX_YEAR and IS_ELEMENTARY can be parsed as well, heads up for duplicates
     for row in df.T.to_dict().values():
+        is_given = NOT_GIVEN_THIS_YEAR not in row[COURSE_NAME]
+        name = row[COURSE_NAME].replace(NOT_GIVEN_THIS_YEAR, "")
+
         parsed_courses.append(
-            Course(course_id=row[COURSE_ID], name=row[COURSE_NAME], semester=row[SEMESTER],
-                   points=row[POINTS], hug_id=row[HUG_ID]))
+            Course(course_id=row[COURSE_ID], name=name, semester=row[SEMESTER],
+                   points=row[POINTS], hug_id=row[HUG_ID], is_given_this_year=is_given))
 
     return parsed_courses
 
@@ -247,6 +253,7 @@ def parse_moon(html_body: str, track_number: int = None) -> Tuple[Track,
     min_points = min_courses = None
     max_courses = None
     track = None
+    index_in_track_year = 0
 
     courses = []
     groups = []
@@ -265,7 +272,12 @@ def parse_moon(html_body: str, track_number: int = None) -> Tuple[Track,
 
             # parse year
             if txt in YEAR_STRINGS:
-                current_year = parse_year(txt)
+                year = parse_year(txt)
+                if (current_year is None) or (year != current_year):
+                    index_in_track_year = 0
+                    current_year = year
+                else:
+                    index_in_track_year += 1
                 continue
 
             # parse course type
@@ -318,8 +330,13 @@ def parse_moon(html_body: str, track_number: int = None) -> Tuple[Track,
             courses.extend(temp_courses)
 
             ids = [c.id for c in temp_courses]
-            temp_group = CourseGroup(track_number, ids, current_type, current_year,
-                                     min_courses, min_points)
+            temp_group = CourseGroup(track_number,
+                                     index_in_track_year,
+                                     ids,
+                                     current_type,
+                                     current_year,
+                                     min_courses,
+                                     min_points)
             groups.append(temp_group)
 
             previous_type = current_type
