@@ -62,7 +62,7 @@ class CourseGroup:
                  required_points: Union[int, None],
                  ):
         self.track = track
-        self.courses = courses
+        self.course_ids = courses
         self.type = course_type
         self.year = year
         self.index_in_track_year = index_in_track_year
@@ -77,7 +77,7 @@ class CourseGroup:
 
     def __repr__(self):
         if self.required_course_count:
-            if self.required_course_count == len(self.courses):
+            if self.required_course_count == len(self.course_ids):
                 requirement = 'must do all'
             else:
                 requirement = f'need {self.required_course_count} courses'
@@ -89,7 +89,7 @@ class CourseGroup:
         return ','.join((str(self.track),
                          str(self.type),
                          requirement,
-                         *(str(c) for c in self.courses)))
+                         *(str(c) for c in self.course_ids)))
 
 
 class Track:

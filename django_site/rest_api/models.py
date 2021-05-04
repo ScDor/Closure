@@ -55,55 +55,12 @@ class Course(models.Model):
     semester = models.IntegerField(choices=Semester.choices)
     points = models.FloatField()
     hug_id = models.IntegerField()
-
-    # def __init__(self, course_id: int, name: str, semester: Semester, points: float,
-    #              hug_id: int):
-    #     self.id = course_idrrr
-    #     self.name = name
-    #     self.semester = semester
-    #     self.points = points
-    #     self.hug_id = hug_id
+    is_given_this_year = models.BooleanField()
 
     def __repr__(self):
         return ', '.join((str(self.id),
                           f'{self.points}pts',
                           str(self.semester)))
-
-    # def __init__(self,
-    #              track: int,
-    #              courses: List[int],
-    #              course_type: CourseType,
-    #              required_course_count: Union[int, None],
-    #              required_points: Union[int, None]
-    #              ):
-    #     self.track = track
-    #     self.type = course_type
-    #
-    #     if course_type == CourseType.MUST and \
-    #             required_course_count is None and required_points is None:
-    #         required_course_count = len(courses)
-    #
-    #     self.required_course_count = required_course_count
-    #     self.required_points = required_points
-    #
-    #     self.courses = courses
-
-    # def __repr__(self):
-    #     if self.required_course_count:
-    #         if self.required_course_count == self.courses:
-    #             requirement = 'must do all'
-    #         else:
-    #             requirement = f'need {self.required_course_count} courses'
-    #     elif self.required_points:
-    #         requirement = f'need {self.required_points} points'
-    #     else:
-    #         requirement = 'no requirements'
-    #
-    #     return ','.join((str(self.track),
-    #                      str(self.course_type),
-    #                      requirement,
-    #                      *(str(c) for c in self.courses.all())))
-    #
 
 
 class Track(models.Model):
@@ -147,7 +104,7 @@ class Track(models.Model):
 
 
 class CourseGroup(models.Model):
-    name = models.CharField(max_length=20, primary_key=True)
+    name = models.CharField(max_length=40, primary_key=True)
     track = models.ForeignKey(Track, on_delete=models.CASCADE)
     courses = models.ManyToManyField(Course)
     course_type = models.IntegerField(choices=CourseType.choices)
