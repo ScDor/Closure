@@ -3,14 +3,17 @@ from datetime import datetime
 from typing import List, Tuple
 
 import pandas as pd
+from bs4 import BeautifulSoup
 
 from data_structures import Semester, CourseType, Course, CourseGroup, Track
 
-# hebrew titles as they appear on http://bit.ly/course_details_3010
+TRACK_NAME_PATTERN = re.compile(r'מסלול\s+(.+)\(\d{4}\)')
 MIN_POINTS_PATTERN = re.compile(r'לפחות\s*(\d+)\s*נ')
 MIN_COURSES_PATTERN = re.compile(r'יש ללמוד.*(\d+) מתוך רשימת קורסים')
 MIN_COURSES_ONE_PATTERN = re.compile(r'לפחות קורס 1\s|את אחד')
 MAX_COURSES_ONE_PATTERN = re.compile(r'אחד לכל היותר|רק קורס 1')
+
+# hebrew titles as they appear on http://bit.ly/course_details_3010
 COURSE_ID_HEB = 'מספר הקורס'
 COURSE_NAME_HEB = 'שם הקורס'
 POINTS_HEB = 'נקודות זכות'
@@ -85,6 +88,25 @@ CORNER_STONES = 'אבני פינה'
 COMPLEMENTARY = 'לימודים משלימים'
 ADDITIONAL_HUG = 'חוג נוסף'
 MINOR = 'חטיבה'
+
+
+def parse_track_name(soup: BeautifulSoup) -> str:
+    """
+    :param soup: BeautifulSoup object of the html page
+    :return: track name
+    """
+    title = soup.find('span', {'id': 'lblMaslulName'}).text
+    return re.match(TRACK_NAME_PATTERN, title).group(1).strip()
+
+
+def parse_track_comment(soup: BeautifulSoup) -> str:
+    """
+    :param soup: BeautifulSoup object of the html page
+    :return: track comment
+    """
+    label = soup.find('lblDescription')
+    if label:
+        return label.text.strip()
 
 
 def parse_year(string: str) -> int:
@@ -163,7 +185,7 @@ def _compose_moon_url(track_id: int,
 NOT_GIVEN_THIS_YEAR = '(לא נלמד השנה)'
 
 
-def parse_course_details(df: pd.DataFrame) -> List[Course]:
+def parse_course_details(df: pd.DataFrame, data_year: int) -> List[Course]:
     """
     parses a table of course details, given previously-parsed Year and CourseType
     :param df: dataframe of course details
@@ -184,7 +206,8 @@ def parse_course_details(df: pd.DataFrame) -> List[Course]:
 
         parsed_courses.append(
             Course(course_id=row[COURSE_ID], name=name, semester=row[SEMESTER],
-                   points=row[POINTS], hug_id=row[HUG_ID], is_given_this_year=is_given))
+                   points=row[POINTS], hug_id=row[HUG_ID], is_given_this_year=is_given,
+                   data_year=data_year))
 
     return parsed_courses
 
@@ -193,7 +216,8 @@ RE_RANGE = re.compile(r'(\d+(?:\.\d+)?)-(?:\.\d+)?')
 RE_MIN = re.compile(r'לפחות\s*(\d+)|(\d+)\s*לפחות')
 
 
-def parse_track(df: pd.DataFrame, track_id: int) -> Track:
+def parse_track(df: pd.DataFrame, track_id: int, track_name: str, track_comment: str,
+                data_year: int) -> Track:
     must = from_list = choice = corner_stones = complementary = minor = additional_hug = 0
     point_columns = [i for i, c in enumerate(df.columns) if 'כ נקודות' in c]
 
@@ -240,18 +264,26 @@ def parse_track(df: pd.DataFrame, track_id: int) -> Track:
                 # print(f'Could not identify {category}={raw_point}, defaulting to MUST')
                 must += points
     return Track(track_id=track_id,
+                 track_name=track_name,
+                 track_comment=track_comment,
                  points_must=must,
                  points_from_list=from_list,
                  points_choice=choice,
                  points_complementary=complementary,
                  points_corner_stones=corner_stones,
-                 points_minor=minor)
+                 points_minor=minor,
+                 data_year=data_year)
 
 
-def parse_moon(html_body: str, track_id: int) -> Tuple[Track,
-                                                       List[Course],
-                                                       List[CourseGroup]]:
+def parse_moon(html_body: str, track_id: int, data_year: int) -> Tuple[Track,
+                                                                           List[Course],
+                                                                           List[CourseGroup]]:
     """ parses a page from HUJI-MOON, see _compose_moon_url() """
+    soup = BeautifulSoup(html_body, 'html.parser')
+
+    track_name = parse_track_name(soup)
+    track_comment = parse_track_comment(soup)
+
     df_list = pd.read_html(html_body)
 
     current_year = current_type = None
@@ -263,6 +295,7 @@ def parse_moon(html_body: str, track_id: int) -> Tuple[Track,
     courses = []
     groups = []
 
+    current_comment = None
     previous_type = None  # becomes current_type on 'וגם'
 
     for i, table in enumerate(df_list):
@@ -312,13 +345,15 @@ def parse_moon(html_body: str, track_id: int) -> Tuple[Track,
                 max_courses = 1
                 continue
 
-            # reaching here means txt could not be parsed, could be ok, or a bug
+            else:
+                if 'מספר הקורסשם הקורס' not in txt:
+                    current_comment = txt
 
         if any('כ נקודות בחוג' in str(c) for c in table.columns):
             if track is not None:
                 raise ValueError("found two track_number-detail tables on the same page")
             try:
-                track = parse_track(table, track_id)
+                track = parse_track(table, track_id, track_name, track_comment,data_year)
             except NotImplementedError as e:
                 print(f'#{track_id}')
                 raise e
@@ -328,21 +363,23 @@ def parse_moon(html_body: str, track_id: int) -> Tuple[Track,
                 raise ValueError("reached course details before parsing "
                                  f"current year/course course_type, track#={track_id}")
             # noinspection PyTypeChecker
-            temp_courses = parse_course_details(table)
+            temp_courses = parse_course_details(table,data_year)
             if not temp_courses:
                 continue
 
             courses.extend(temp_courses)
 
             ids = [c.id for c in temp_courses]
-            temp_group = CourseGroup(track=track_id,
+            temp_group = CourseGroup(track_id=track_id,
                                      course_type=current_type,
                                      courses=ids,
                                      year=current_year,
                                      index_in_track_year=index_in_track_year,
                                      required_course_count=min_courses,
-                                     required_points=min_points)
-
+                                     required_points=min_points,
+                                     comment=current_comment,
+                                     data_year=data_year)
+            current_comment = None
             groups.append(temp_group)
 
             previous_type = current_type

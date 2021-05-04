@@ -37,10 +37,11 @@ class CourseType(Enum):
 
 class Course:
     def __init__(self, course_id: int, name: str, semester: Semester, points: float,
-                 hug_id: int, is_given_this_year: bool):
+                 hug_id: int, is_given_this_year: bool, data_year: int):
         self.id = course_id
         self.name = name
         self.semester = semester
+        self.data_year = data_year
         self.points = points
         self.hug_id = hug_id
         self.is_given_this_year = is_given_this_year
@@ -53,18 +54,21 @@ class Course:
 
 class CourseGroup:
     def __init__(self,
-                 track: int,
+                 track_id: int,
                  courses: List[int],
                  course_type: CourseType,
                  year: int,
+                 data_year: int,
                  index_in_track_year: int,
                  required_course_count: Union[int, None],
                  required_points: Union[int, None],
+                 comment: Union[str, None] = None,
                  ):
-        self.track = track
+        self.track = track_id
         self.course_ids = courses
         self.type = course_type
         self.year = year
+        self.data_year = data_year
         self.index_in_track_year = index_in_track_year
 
         if course_type == CourseType.MUST \
@@ -74,6 +78,7 @@ class CourseGroup:
 
         self.required_course_count = required_course_count
         self.required_points = required_points
+        self.comment = comment
 
     def __repr__(self):
         if self.required_course_count:
@@ -95,6 +100,9 @@ class CourseGroup:
 class Track:
     def __init__(self,
                  track_id: int,
+                 track_name: str,
+                 track_comment: str,
+                 data_year: int,
                  points_must: int = 0,
                  points_from_list: int = 0,
                  points_choice: int = 0,
@@ -104,6 +112,9 @@ class Track:
                  additional_hug: int = 0,
                  groups: List[CourseGroup] = None):
         self.id = track_id
+        self.name = track_name
+        self.comment = track_comment
+        self.data_year = data_year
         self.points_must = points_must
         self.points_from_list = points_from_list
         self.points_choice = points_choice
@@ -117,7 +128,9 @@ class Track:
     def __repr__(self):
         value_dictionary = {}
 
-        for (name, value) in (('must', self.points_must),
+        for (name, value) in ('id', self.id,
+                              ('name', self.name),
+                              ('must', self.points_must),
                               ('from_list', self.points_from_list),
                               ('choice', self.points_choice),
                               ('complementary', self.points_complementary),
