@@ -276,8 +276,8 @@ def parse_track(df: pd.DataFrame, track_id: int, track_name: str, track_comment:
 
 
 def parse_moon(html_body: str, track_id: int, data_year: int) -> Tuple[Track,
-                                                                           List[Course],
-                                                                           List[CourseGroup]]:
+                                                                       List[Course],
+                                                                       List[CourseGroup]]:
     """ parses a page from HUJI-MOON, see _compose_moon_url() """
     soup = BeautifulSoup(html_body, 'html.parser')
 
@@ -311,11 +311,9 @@ def parse_moon(html_body: str, track_id: int, data_year: int) -> Tuple[Track,
             # parse year
             if txt in YEAR_STRINGS:
                 year = parse_year(txt)
-                if (current_year is None) or (year != current_year):
+                if current_year and (year != current_year):
                     index_in_track_year = 0
-                    current_year = year
-                else:
-                    index_in_track_year += 1
+                current_year = year
                 continue
 
             # parse course type
@@ -353,7 +351,7 @@ def parse_moon(html_body: str, track_id: int, data_year: int) -> Tuple[Track,
             if track is not None:
                 raise ValueError("found two track_number-detail tables on the same page")
             try:
-                track = parse_track(table, track_id, track_name, track_comment,data_year)
+                track = parse_track(table, track_id, track_name, track_comment, data_year)
             except NotImplementedError as e:
                 print(f'#{track_id}')
                 raise e
@@ -363,7 +361,7 @@ def parse_moon(html_body: str, track_id: int, data_year: int) -> Tuple[Track,
                 raise ValueError("reached course details before parsing "
                                  f"current year/course course_type, track#={track_id}")
             # noinspection PyTypeChecker
-            temp_courses = parse_course_details(table,data_year)
+            temp_courses = parse_course_details(table, data_year)
             if not temp_courses:
                 continue
 
@@ -381,6 +379,7 @@ def parse_moon(html_body: str, track_id: int, data_year: int) -> Tuple[Track,
                                      data_year=data_year)
             current_comment = None
             groups.append(temp_group)
+            index_in_track_year += 1
 
             previous_type = current_type
             min_courses = min_points = current_type = None
