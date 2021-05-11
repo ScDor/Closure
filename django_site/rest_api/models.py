@@ -61,8 +61,7 @@ class Course(models.Model):
     class Meta:
         unique_together = ('course_id', 'year', 'hug_id')
 
-
-    def __repr__(self):
+    def __str__(self):
         return ', '.join((str(self.course_id),
                           f'{self.points}pts',
                           str(self.semester)))
@@ -86,7 +85,7 @@ class Track(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["track", "year"], name="track_year")]
 
-    def __repr__(self):
+    def __str__(self):
         value_dictionary = {}
 
         for (name, value) in (('must', self.points_must),
@@ -116,6 +115,23 @@ class CourseGroup(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["track", "year_in_studies", 'course_type', 'index_in_track_year'],
                                     name="group_unique")]
+
+
+    def __str__(self):
+        if self.required_course_count:
+            if self.required_course_count == self.courses.count():
+                requirement = 'must do all'
+            else:
+                requirement = f'need {self.required_course_count} courses'
+        elif self.required_points:
+            requirement = f'need {self.required_points} points'
+        else:
+            requirement = 'no requirements'
+
+        return ','.join((str(self.track),
+                         str(self.course_type),
+                         requirement,
+                         *(str(c) for c in self.courses.get())))
 
 
 class Student(models.Model):

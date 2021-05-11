@@ -394,7 +394,11 @@ def parse_moon(html_body: str, track_id: int, data_year: int) -> Optional[Tuple[
             courses.extend(temp_courses)
 
             # ids = [c.course_id for c in temp_courses]
-            track = Track.objects.get(track=track_id, year=data_year)
+            # track = Track.objects.get(track=track_id, year=data_year)
+            if current_type == CourseType.MUST \
+                    and min_courses is None \
+                    and min_points is None:
+                min_courses = len(courses)
             temp_group, _ = CourseGroup.objects.update_or_create(track=track,
                                                                  course_type=current_type,
                                                                  year_in_studies=current_year,
