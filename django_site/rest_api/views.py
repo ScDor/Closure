@@ -7,7 +7,7 @@ from .serializers import CourseSerializer, CourseGroupSerializer, StudentSeriali
 
 
 class CourseViewSet(viewsets.ModelViewSet):
-    queryset = Course.objects.all().order_by('id')
+    queryset = Course.objects.all().order_by('course_id')
     serializer_class = CourseSerializer
 
 
@@ -19,3 +19,8 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
 class StudentGroupViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all().order_by('name')
     serializer_class = StudentSerializer
+
+
+class TrackGroupViewSet(viewsets.ModelViewSet):
+    queryset = Track.objects.all().order_by('track')
+    serializer_class = CourseGroupSerializer
