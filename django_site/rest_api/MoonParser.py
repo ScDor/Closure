@@ -196,6 +196,7 @@ def parse_course_details(df: pd.DataFrame, data_year: int) -> List[Course]:
     """
     parses a table of course details, given previously-parsed Year and CourseType
     :param df: dataframe of course details
+    :param data_year: year to which this course is relevant (shnaton year)
     :return: dataframe of courses
     """
     df.columns = [HEB_ENG_TITLES[title] for title in df.loc[0]]
@@ -289,8 +290,8 @@ def parse_track(df: pd.DataFrame, track_id: int, track_name: str, track_comment:
 
 
 def parse_moon(html_body: str, track_id: int, data_year: int) -> Optional[Tuple[Track,
-                                                                       List[Course],
-                                                                       List[CourseGroup]]]:
+                                                                                List[Course],
+                                                                                List[CourseGroup]]]:
     """ parses a page from HUJI-MOON, see _compose_moon_url() """
     soup = BeautifulSoup(html_body, 'html.parser')
 
