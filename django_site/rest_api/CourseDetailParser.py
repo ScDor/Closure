@@ -1,3 +1,6 @@
+import os
+from typing import Dict, List
+
 import requests
 import json
 
@@ -18,20 +21,28 @@ def construct_course_details(course_id: int, faculty: int = 2, year: int = 2021)
 #     html_body = json.load(f)
 
 
-def _parse_requirement_table(table: pd.DataFrame):
-    return [{'course_id': row[1][0], 'min_grade': row[1][4]} for row in table.T.items()]
+def _parse_requirement_table(table: pd.DataFrame, current_course_id: int) -> List[Dict[str, int]]:
+    """
+    parses course id and min_grades of a requirement table
+    """
+    return [{'course_id': row[1][0], 'min_grade': row[1][4]} for row in table.T.items()
+            if int(row[1][0]) != current_course_id]  # did you know 67101 is prerequisite to 67101? 🤦
 
 
-def parse_requirements(html_body: str):
+def parse_requirements(html_body: str, current_course_id: int) -> List[List[Dict[str, int]]]:
+    if 'tblGroupsCourseLev\"' not in html_body:
+        return []
+
     titles = [row[0][0] for row in pd.read_html(html_body, attrs={'id': 'tblGroupsCourseLev'})]
-    requirements = []
+
+    parsed_requirements = []
 
     for i in range(len(titles)):
         try:
             df_list = pd.read_html(html_body, attrs={'id': f'lstGroupsCourseLev_grdCourses_{i}'})
 
             # an empty df_list indicates a title without following courses, that's fine and is ignored.
-            requirements.append(_parse_requirement_table(df_list[0]) if df_list else [])
+            parsed_requirements.append(_parse_requirement_table(df_list[0], current_course_id) if df_list else [])
 
         except ValueError as e:
             if str(e) == 'No tables found':
@@ -39,7 +50,8 @@ def parse_requirements(html_body: str):
             else:
                 raise e
 
-    assert len(requirements) == len(titles)
-    return list(zip(titles, requirements))
+    assert len(parsed_requirements) == len(titles)
+    return parsed_requirements
+
 
 
