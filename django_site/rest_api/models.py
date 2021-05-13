@@ -34,12 +34,12 @@ class Semester(models.TextChoices):
     """ semester when the course is given """
     A = 'FIRST'
     B = 'SECOND'
-    SUMMER = 'Summer'
-    EITHER = 'Either'
-    ANNUAL = 'Annual'
+    SUMMER = 'SUMMER'
+    EITHER = 'EITHER'
+    ANNUAL = 'ANNUAL'
 
     def __str__(self):
-        return f'Semester {self.name}'
+        return f'Semester {self.name.title()}'
 
 
 class CourseType(models.TextChoices):
@@ -86,9 +86,14 @@ class Track(models.Model):
             models.UniqueConstraint(fields=["track", "year"], name="track_year")]
 
     def __str__(self):
+        return f'{self.track}: {self.name}'
+
+    def describe(self):
         value_dictionary = {}
 
-        for (name, value) in (('must', self.points_must),
+        for (name, value) in (('track_name', self.name),
+                              ('track_id', self.points_must),
+                              ('must', self.points_must),
                               ('from_list', self.points_from_list),
                               ('choice', self.points_choice),
                               ('complementary', self.points_complementary),
@@ -139,4 +144,5 @@ class Student(models.Model):
     track = models.ForeignKey(Track, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)
     year_in_studies = models.IntegerField(choices=Year.choices)
-    courses = models.ManyToManyField(Course)
+    courses = models.ManyToManyField(Course,blank=True)
+    # todo add __str__
