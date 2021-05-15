@@ -39,7 +39,7 @@ class Semester(models.TextChoices):
     ANNUAL = 'ANNUAL'
 
     def __str__(self):
-        return f'Semester {self.name}'
+        return f'Semester {self.value}'
 
 
 class CourseType(models.TextChoices):
@@ -134,7 +134,7 @@ class CourseGroup(models.Model):
         return ','.join((str(self.track),
                          str(self.course_type),
                          requirement,
-                         *(str(c) for c in self.courses.get())))
+                         *(str(c) for c in self.courses.all())))
 
 
 class Student(models.Model):
@@ -142,11 +142,10 @@ class Student(models.Model):
     track = models.ForeignKey(Track, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)
     year_in_studies = models.IntegerField(choices=Year.choices)
-    courses = models.ManyToManyField(Course, through='Take', blank=True)
+    courses = models.ManyToManyField('Take', blank=True)
 
 
 class Take(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     year_in_studies = models.IntegerField(choices=Year.choices)
     semester = models.CharField(choices=Semester.choices, max_length=10)

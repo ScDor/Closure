@@ -6,14 +6,14 @@ from .models import Track, Course, Student, CourseGroup, Take
 class CourseSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Course
-        fields = ('id', 'year', 'name', 'semester',
+        fields = ('course_id', 'year', 'name', 'semester',
                   'points', 'is_given_this_year', 'hug_id')
 
 
 class StudentSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Student
-        fields = ('course_id', 'track', 'name', 'year_in_studies', 'courses')
+        fields = ('id', 'track', 'name', 'year_in_studies', 'courses')
 
 
 class TrackGroupSerializer(serializers.HyperlinkedModelSerializer):
@@ -30,7 +30,6 @@ class CourseGroupSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('track', 'course_type', 'year_in_studies',
                   'index_in_track_year',
                   'courses', 'required_course_count', 'required_points',
-
                   'comment')
 
 
