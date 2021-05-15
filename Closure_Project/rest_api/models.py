@@ -34,9 +34,9 @@ class Semester(models.TextChoices):
     """ semester when the course is given """
     A = 'FIRST'
     B = 'SECOND'
-    SUMMER = 'Summer'
-    EITHER = 'Either'
-    ANNUAL = 'Annual'
+    SUMMER = 'SUMMER'
+    EITHER = 'EITHER'
+    ANNUAL = 'ANNUAL'
 
     def __str__(self):
         return f'Semester {self.name}'
@@ -44,9 +44,9 @@ class Semester(models.TextChoices):
 
 class CourseType(models.TextChoices):
     """ course course_type: must take, must choose from a list or free choice """
-    MUST = 'Must'
-    CHOICE = 'Choice'
-    FROM_LIST = 'Choose From List'
+    MUST = 'MUST'
+    CHOICE = 'CHOICE'
+    FROM_LIST = 'CHOOSE_FROM_LIST'
 
 
 class Course(models.Model):
@@ -64,7 +64,8 @@ class Course(models.Model):
     def __str__(self):
         return ', '.join((str(self.course_id),
                           f'{self.points}pts',
-                          str(self.semester)))
+                          str(self.semester),
+                         str(self.hug_id)))
 
 
 class Track(models.Model):
@@ -86,6 +87,9 @@ class Track(models.Model):
             models.UniqueConstraint(fields=["track_number", "year"], name="track_year")]
 
     def __str__(self):
+        return f'track_number - {self.track_number} : track_year: {self.year}'
+
+    def describe(self):
         value_dictionary = {}
 
         for (name, value) in (('must', self.points_must),
@@ -116,7 +120,6 @@ class CourseGroup(models.Model):
             models.UniqueConstraint(fields=["track", "year_in_studies", 'course_type', 'index_in_track_year'],
                                     name="group_unique")]
 
-
     def __str__(self):
         if self.required_course_count:
             if self.required_course_count == self.courses.count():
@@ -139,4 +142,11 @@ class Student(models.Model):
     track = models.ForeignKey(Track, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)
     year_in_studies = models.IntegerField(choices=Year.choices)
-    courses = models.ManyToManyField(Course)
+    courses = models.ManyToManyField(Course, through='Take', blank=True)
+
+
+class Take(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    year_in_studies = models.IntegerField(choices=Year.choices)
+    semester = models.CharField(choices=Semester.choices, max_length=10)

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Track, Course, Student, CourseGroup
+from .models import Track, Course, Student, CourseGroup, Take
 
 
 class CourseSerializer(serializers.HyperlinkedModelSerializer):
@@ -13,7 +13,7 @@ class CourseSerializer(serializers.HyperlinkedModelSerializer):
 class StudentSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Student
-        fields = ('id', 'track', 'name', 'year_in_studies', 'courses')
+        fields = ('course_id', 'track', 'name', 'year_in_studies', 'courses')
 
 
 class TrackGroupSerializer(serializers.HyperlinkedModelSerializer):
@@ -30,4 +30,12 @@ class CourseGroupSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('track', 'course_type', 'year_in_studies',
                   'index_in_track_year',
                   'courses', 'required_course_count', 'required_points',
+
                   'comment')
+
+
+class TakeSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Take
+        fields = ('student', 'course', 'year_in_studies',
+                  'semester')

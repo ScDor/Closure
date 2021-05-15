@@ -2,8 +2,8 @@
 
 from rest_framework import viewsets
 
-from .models import Course, Student, CourseGroup, Track
-from .serializers import CourseSerializer, CourseGroupSerializer, StudentSerializer, TrackGroupSerializer
+from .models import Course, Student, CourseGroup, Track, Take
+from .serializers import CourseSerializer, CourseGroupSerializer, StudentSerializer, TrackGroupSerializer, TakeSerializer
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -24,3 +24,8 @@ class StudentGroupViewSet(viewsets.ModelViewSet):
 class TrackGroupViewSet(viewsets.ModelViewSet):
     queryset = Track.objects.all().order_by('track_number')
     serializer_class = TrackGroupSerializer
+
+
+class TakeGroupViewSet(viewsets.ModelViewSet):
+    queryset = Take.objects.all().order_by('course')
+    serializer_class = TakeSerializer
