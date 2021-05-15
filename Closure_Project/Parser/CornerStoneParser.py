@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib3.exceptions import NewConnectionError
 
-from Closure.data_structures import Faculty
+from rest_api.models import Faculty
 
 
 def _parse_side_menu_urls(url: str):
