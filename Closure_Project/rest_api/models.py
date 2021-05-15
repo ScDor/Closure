@@ -39,7 +39,7 @@ class Semester(models.TextChoices):
     ANNUAL = 'ANNUAL'
 
     def __str__(self):
-        return f'Semester {self.value}'
+        return f'{self.value.title()} Semester'
 
 
 class CourseType(models.TextChoices):

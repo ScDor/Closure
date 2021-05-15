@@ -1,7 +1,7 @@
 import os
 import re
 from datetime import datetime
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Closure_Project.Closure_Project.settings")
 
@@ -29,7 +29,7 @@ MAX_YEAR_HEB = 'עד שנה'  # does not always appear
 IS_ELEMENTARY_HEB = 'קורס יסוד'  # does not always appear
 HUG_ID_HEB = 'שיוך לחוג'
 
-# english versions of the titles, to be used project-wide
+# english versions of the titles
 COURSE_ID = 'course_id'
 COURSE_NAME = 'course_name'
 POINTS = 'points'
@@ -230,6 +230,15 @@ RE_MIN = re.compile(r'לפחות\s*(\d+)|(\d+)\s*לפחות')
 
 def parse_track(df: pd.DataFrame, track_id: int, track_name: str, track_comment: str,
                 data_year: int) -> Track:
+    """
+    parses track data into the databse
+    :param df: data representing a track
+    :param track_id: track id
+    :param track_name: track name
+    :param track_comment: track comment
+    :param data_year: year to which the data is relevant
+    :return: parsed Track object
+    """
     must = from_list = choice = corner_stones = complementary = minor = additional_hug = 0
     point_columns = [i for i, c in enumerate(df.columns) if 'כ נקודות' in c]
 
@@ -251,10 +260,9 @@ def parse_track(df: pd.DataFrame, track_id: int, track_name: str, track_comment:
             except ValueError:
                 match = RE_RANGE.match(raw_point) or RE_MIN.match(raw_point)
                 if match:
-                    points = float(match[1] or match[2])  # todo is lower bound the right way?
+                    points = float(match[1] or match[2])
                 else:
-                    print(f'could not parse points for category {category}={raw_point}')
-                    # todo should we just leave it as is?
+                    # print(f'could not parse points for category {category}={raw_point}')
                     continue
 
             if category in (MUST, MUST_IN_HUG, MUST_PROGRAMMING, MUST_SAFETY_LIBRARY) \
@@ -288,9 +296,12 @@ def parse_track(df: pd.DataFrame, track_id: int, track_name: str, track_comment:
                                           comment=track_comment)[0]
 
 
-def parse_moon(html_body: str, track_id: int, data_year: int) -> Optional[Tuple[Track,
-                                                                                List[Course],
-                                                                                List[CourseGroup]]]:
+class NoTrackParsedException(BaseException):
+    pass
+
+
+def parse_moon(html_body: str, track_id: int, data_year: int) -> \
+        Tuple[Track, List[Course], List[CourseGroup]]:
     """ parses a page from HUJI-MOON, see _compose_moon_url() """
     soup = BeautifulSoup(html_body, 'html.parser')
 
@@ -323,7 +334,8 @@ def parse_moon(html_body: str, track_id: int, data_year: int) -> Optional[Tuple[
                 print(f'#{track_id}')
                 raise e
     if track is None:
-        return
+        raise NoTrackParsedException(track_id)
+
     for i, table in enumerate(df_list):
         titles = table.loc[0]
         txt = str(table.iloc[0, 0]).strip()
@@ -373,42 +385,31 @@ def parse_moon(html_body: str, track_id: int, data_year: int) -> Optional[Tuple[
                 if 'מספר הקורסשם הקורס' not in txt:
                     current_comment = txt
 
-        # if any('כ נקודות בחוג' in str(c) for c in table.columns):
-        #     if track is not None:
-        #         raise ValueError("found two track_number-detail tables on the same page")
-        #     try:
-        #         track = parse_track(table, track_id, track_name, track_comment, data_year)
-        #     except NotImplementedError as e:
-        #         print(f'#{track_id}')
-        #         raise e
-
         if COURSE_DETAILS_TITLES.issubset(titles):
             if not all((current_year, current_type)):
                 raise ValueError("reached course details before parsing "
                                  f"current year/course course_type, track#={track_id}")
-            # noinspection PyTypeChecker
             temp_courses = parse_course_details(table, data_year)
             if not temp_courses:
                 continue
-            # Course.objects.bulk_update(temp_courses)
             courses.extend(temp_courses)
 
-            # ids = [c.course_id for c in temp_courses]
-            # track = Track.objects.get(track=track_id, year=data_year)
-            if current_type == CourseType.MUST \
-                    and min_courses is None \
-                    and min_points is None:
+            if current_type == CourseType.MUST and min_courses is None and min_points is None:
                 min_courses = len(courses)
-            temp_group, _ = CourseGroup.objects.update_or_create(track=track,
-                                                                 course_type=current_type,
-                                                                 year_in_studies=current_year,
-                                                                 index_in_track_year=index_in_track_year,
-                                                                 required_course_count=min_courses,
-                                                                 required_points=min_points,
-                                                                 comment=current_comment,
-                                                                 )
+
+            temp_group, _ = CourseGroup.objects.update_or_create(
+                track=track,
+                course_type=current_type,
+                year_in_studies=current_year,
+                index_in_track_year=index_in_track_year,
+                required_course_count=min_courses,
+                required_points=min_points,
+                comment=current_comment
+            )
+
             for course in temp_courses:
                 temp_group.courses.add(course)
+
             current_comment = None
             groups.append(temp_group)
             index_in_track_year += 1
@@ -418,7 +419,5 @@ def parse_moon(html_body: str, track_id: int, data_year: int) -> Optional[Tuple[
         else:
             if 'לכל היותר' in txt and not max_courses:
                 raise NotImplementedError("todo implement parsing of max_courses>1")
-    # if track:
-    #     track.groups = groups
 
     return track, courses, groups
