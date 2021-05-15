@@ -69,7 +69,7 @@ class Course(models.Model):
 
 class Track(models.Model):
     id = models.AutoField(primary_key=True)
-    track = models.IntegerField()
+    track_number = models.IntegerField()
     year = models.IntegerField()
     name = models.CharField(max_length=255)
     points_must = models.IntegerField()
@@ -83,7 +83,7 @@ class Track(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["track", "year"], name="track_year")]
+            models.UniqueConstraint(fields=["track_number", "year"], name="track_year")]
 
     def __str__(self):
         value_dictionary = {}

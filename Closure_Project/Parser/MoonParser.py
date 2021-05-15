@@ -275,7 +275,7 @@ def parse_track(df: pd.DataFrame, track_id: int, track_name: str, track_comment:
             else:
                 # print(f'Could not identify {category}={raw_point}, defaulting to MUST')
                 must += points
-    return Track.objects.update_or_create(track=track_id,
+    return Track.objects.update_or_create(track_number=track_id,
                                           year=data_year,
                                           name=track_name,
                                           points_must=must,
