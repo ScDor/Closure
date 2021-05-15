@@ -12,7 +12,7 @@ django.setup()
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from .models import Semester, CourseType, Course, CourseGroup, Track
+from rest_api.models import Semester, CourseType, Course, CourseGroup, Track
 
 TRACK_NAME_PATTERN = re.compile(r'מסלול\s+(.+)\(\d{4}\)')
 MIN_POINTS_PATTERN = re.compile(r'לפחות\s*(\d+)\s*נ')
