@@ -3,7 +3,7 @@ import re
 from datetime import datetime
 from typing import List, Tuple, Optional
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_site.django_site.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Closure_Project.Closure_Project.settings")
 
 import django
 
@@ -289,8 +289,8 @@ def parse_track(df: pd.DataFrame, track_id: int, track_name: str, track_comment:
 
 
 def parse_moon(html_body: str, track_id: int, data_year: int) -> Optional[Tuple[Track,
-                                                                       List[Course],
-                                                                       List[CourseGroup]]]:
+                                                                                List[Course],
+                                                                                List[CourseGroup]]]:
     """ parses a page from HUJI-MOON, see _compose_moon_url() """
     soup = BeautifulSoup(html_body, 'html.parser')
 
