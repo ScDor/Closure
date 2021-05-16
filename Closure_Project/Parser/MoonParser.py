@@ -422,3 +422,24 @@ def parse_moon(html_body: str, track_id: int, data_year: int) -> \
                 raise NotImplementedError("todo implement parsing of max_courses>1")
 
     return track, courses, groups
+
+
+def parse_course_wfr_page(html_body: str, data_year: int):
+    """
+    parses course details from pages such as
+    http://moon.cc.huji.ac.il/nano/pages/wfrCourse.aspx?faculty=2&year=2021&courseId=67118
+    :param html_body: html body
+    :param data_year: year to which data is relevant
+    :return:
+    """
+    soup = BeautifulSoup(html_body, 'html5lib')
+
+    course_id = int(soup.find('span', {'id': 'lblCourseId'}).text)
+    points = int(soup.find('span', {'id': 'lblPoints'}).text)
+    name = soup.find('span', {'id': 'lblCourseName'}).text
+    semester = soup.find('span', {'id': 'lblSemester'}).text.rstrip('\'')
+    comment = '. '.join(s.strip().rstrip('.') for s in
+                        soup.find('span', {'id': 'lblRemark'}).text.split('\n'))
+    is_given = soup.find('span', {'id': 'lbllearnedNow'}).text == ''
+    print('\n'.join(str(s)
+                    for s in [course_id, data_year, points, name, semester, comment,is_given]))
