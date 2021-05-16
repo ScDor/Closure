@@ -5,6 +5,10 @@ import requests
 from bs4 import BeautifulSoup
 from urllib3.exceptions import NewConnectionError
 
+import utils
+
+utils.setup_django_pycharm()
+
 from rest_api.models import Faculty
 
 

@@ -424,6 +424,10 @@ def parse_moon(html_body: str, track_id: int, data_year: int) -> \
     return track, courses, groups
 
 
+class NothingToParseException(BaseException):
+    pass
+
+
 def parse_course_wfr_page(html_body: str, data_year: int):
     """
     parses course details from pages such as
@@ -433,13 +437,27 @@ def parse_course_wfr_page(html_body: str, data_year: int):
     :return:
     """
     soup = BeautifulSoup(html_body, 'html5lib')
+    raw_course_id = soup.find('span', {'id': 'lblCourseId'}).text
 
-    course_id = int(soup.find('span', {'id': 'lblCourseId'}).text)
-    points = int(soup.find('span', {'id': 'lblPoints'}).text)
+    if not raw_course_id:
+        raise NothingToParseException()
+    course_id = int(raw_course_id)
+
+    try:
+        points = float(soup.find('span', {'id': 'lblPoints'}).text)
+    except AttributeError as e:
+        if course_id in {74101}:
+            points = 0
+        else:
+            raise e
+
     name = soup.find('span', {'id': 'lblCourseName'}).text
     semester = soup.find('span', {'id': 'lblSemester'}).text.rstrip('\'')
     comment = '. '.join(s.strip().rstrip('.') for s in
                         soup.find('span', {'id': 'lblRemark'}).text.split('\n'))
     is_given = soup.find('span', {'id': 'lbllearnedNow'}).text == ''
-    print('\n'.join(str(s)
-                    for s in [course_id, data_year, points, name, semester, comment,is_given]))
+
+    Course.objects.update_or_create()
+    # print('\n'.join(str(s)
+    #                 for s in
+    #                 [course_id, data_year, points, name, semester, comment, is_given]))

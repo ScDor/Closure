@@ -2,6 +2,8 @@ import json
 import os
 from typing import List, Tuple
 
+import requests
+
 import utils
 
 utils.setup_django_pycharm()
@@ -9,10 +11,10 @@ utils.setup_django_pycharm()
 from rest_api.models import Course, CourseGroup, Track
 from MoonParser import parse_moon, NoTrackParsedException
 
-DUMP_FILE = 'dump.json'
+TRACK_DUMP = 'track_dump.json'
 
 
-def parse(json_folder: str, data_year: int, dump: bool = False) -> \
+def parse_tracks(json_folder: str, data_year: int, dump: bool = False) -> \
         Tuple[List[List[Course]], List[List[CourseGroup]], List[Track], List[str]]:
     """
     Parses and inserts parsed into the database
@@ -56,14 +58,57 @@ def parse(json_folder: str, data_year: int, dump: bool = False) -> \
             print(formatted_track_id, end=', ')
 
     if dump:
-        utils.dump((all_courses, all_groups, all_tracks, all_track_ids), DUMP_FILE)
+        utils.dump((all_courses, all_groups, all_tracks, all_track_ids), TRACK_DUMP)
 
     return all_courses, all_groups, all_tracks, all_track_ids
 
 
+def parse_corner_stones():
+    pass
+
+
+from MoonParser import parse_course_wfr_page, NothingToParseException
+
+
+def parse_wfr(file_name: str):
+    print(file_name)
+    file_id = file_name[:file_name.find('.')]
+    with open(os.path.join('course_wfr', file_name), 'rt', encoding='utf8') as open_file:
+        try:
+            read = open_file.read()
+            parse_course_wfr_page(read, 2021)
+            with open('good.txt', 'at') as log:
+                log.write(file_id + '\n')
+            # print(f'+{file_id}')
+
+        except NothingToParseException:
+            # print(f'-{file_id}')
+            with open('bad.txt', 'at') as log:
+                log.write(file_id + '\n')
+            # print(f'({file_id}:{len(read)})', end='')
+        except Exception as e:
+            print(file_name + ' ERROR ' + str(e))
+            raise e
+
+
 def load():
-    all_courses, all_groups, all_tracks, ids = utils.load(DUMP_FILE)
-    CourseGroup.objects.update_or_create()
+    all_courses, all_groups, all_tracks, ids = utils.load(TRACK_DUMP)
+
+
+from multiprocessing import Pool
 
 if __name__ == '__main__':
-    parse('tracks', 2021, True)
+    # parse_tracks('tracks', 2021, True)
+    seen = set()
+    with open('good.txt', 'rt') as f:
+        good = f.readlines()
+    with open('bad.txt', 'rt') as f:
+        bad = f.readlines()
+    seen |= set(good) | set(bad)
+    seen = {x.rstrip('\n') for x in seen}
+
+    with Pool() as pool:
+        files = [f for f in os.listdir('course_wfr')
+                             if f[:f.find('.')] not in seen]
+        print(len(files))
+        pool.map(parse_wfr, files)
