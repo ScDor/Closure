@@ -214,7 +214,7 @@ def parse_course_details(df: pd.DataFrame, data_year: int) -> List[Course]:
 
         parsed_courses.append(
             Course.objects.update_or_create(course_id=row[COURSE_ID],
-                                            year=data_year,
+                                            data_year=data_year,
                                             name=name,
                                             semester=row[SEMESTER],
                                             is_given_this_year=is_given,
@@ -285,7 +285,7 @@ def parse_track(df: pd.DataFrame, track_id: int, track_name: str, track_comment:
                 # print(f'Could not identify {category}={raw_point}, defaulting to MUST')
                 must += points
     return Track.objects.update_or_create(track_number=track_id,
-                                          year=data_year,
+                                          data_year=data_year,
                                           name=track_name,
                                           points_must=must,
                                           points_from_list=from_list,
@@ -428,17 +428,17 @@ class NothingToParseException(BaseException):
     pass
 
 
-def parse_course_wfr_page(html_body: str, data_year: int):
+def parse_course_wfr_page(html_body: str, data_year: int) -> Course:
     """
     parses course details from pages such as
     http://moon.cc.huji.ac.il/nano/pages/wfrCourse.aspx?faculty=2&year=2021&courseId=67118
     :param html_body: html body
     :param data_year: year to which data is relevant
-    :return:
+    :return: Course
     """
     soup = BeautifulSoup(html_body, 'html5lib')
-    raw_course_id = soup.find('span', {'id': 'lblCourseId'}).text
 
+    raw_course_id = soup.find('span', {'id': 'lblCourseId'}).text
     if not raw_course_id:
         raise NothingToParseException()
     course_id = int(raw_course_id)
@@ -452,12 +452,23 @@ def parse_course_wfr_page(html_body: str, data_year: int):
             raise e
 
     name = soup.find('span', {'id': 'lblCourseName'}).text
-    semester = soup.find('span', {'id': 'lblSemester'}).text.rstrip('\'')
+
+    raw_semester = soup.find('span', {'id': 'lblSemester'}).text
+    semester = {'א\'': Semester.A,
+                'ב\'': Semester.B,
+                'א\' או ב\'': Semester.EITHER,
+                'קורס שנתי': Semester.ANNUAL,
+                'קורס קיץ': Semester.SUMMER,
+                }[raw_semester]
+
     comment = '. '.join(s.strip().rstrip('.') for s in
                         soup.find('span', {'id': 'lblRemark'}).text.split('\n'))
     is_given = soup.find('span', {'id': 'lbllearnedNow'}).text == ''
 
-    Course.objects.update_or_create()
-    # print('\n'.join(str(s)
-    #                 for s in
-    #                 [course_id, data_year, points, name, semester, comment, is_given]))
+    return Course.objects.update_or_create(course_id=course_id,
+                                           data_year=data_year,
+                                           name=name,
+                                           semester=semester,
+                                           is_given_this_year=is_given,
+                                           points=points,
+                                           comment=comment)[0]

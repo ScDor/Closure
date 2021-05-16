@@ -51,27 +51,35 @@ class CourseType(models.TextChoices):
 
 class Course(models.Model):
     course_id = models.IntegerField()
-    year = models.IntegerField()
+    data_year = models.IntegerField()
     name = models.CharField(max_length=20)
     semester = models.CharField(max_length=6, choices=Semester.choices)
     is_given_this_year = models.BooleanField()
     points = models.FloatField()
-    hug_id = models.IntegerField()
+    comment = models.CharField(max_length=255, blank=True)
 
     class Meta:
-        unique_together = ('course_id', 'year', 'hug_id')
+        unique_together = ('course_id', 'data_year')
 
     def __str__(self):
         return ', '.join((str(self.course_id),
                           f'{self.points}pts',
-                          str(self.semester),
-                         str(self.hug_id)))
+                          str(self.semester)))
+
+
+class Hug(models.Model):
+    id = models.IntegerField(primary_key=True)
+    courses = models.ManyToManyField(Course)
+
+    def __str__(self):
+        courses = ','.join(self.courses.all())
+        return f'{self.id}: {courses}'
 
 
 class Track(models.Model):
     id = models.AutoField(primary_key=True)
     track_number = models.IntegerField()
-    year = models.IntegerField()
+    data_year = models.IntegerField()
     name = models.CharField(max_length=255)
     points_must = models.IntegerField()
     points_from_list = models.IntegerField()
@@ -80,14 +88,14 @@ class Track(models.Model):
     points_corner_stones = models.IntegerField()
     points_minor = models.IntegerField()
     points_additional_hug = models.IntegerField()
-    comment = models.CharField(max_length=255, null=True)
+    comment = models.CharField(max_length=255, blank=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["track_number", "year"], name="track_year")]
+            models.UniqueConstraint(fields=["track_number", "data_year"], name="track_year")]
 
     def __str__(self):
-        return f'{self.track_number} ({self.year})'
+        return f'{self.track_number} ({self.data_year})'
 
     def describe(self):
         value_dictionary = {}
@@ -119,8 +127,9 @@ class CourseGroup(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["track", "year_in_studies", 'course_type', 'index_in_track_year'],
-                                    name="group_unique")]
+            models.UniqueConstraint(
+                fields=['track', 'year_in_studies', 'course_type', 'index_in_track_year'],
+                name='group_unique')]
 
     def __str__(self):
         if self.required_course_count:
@@ -148,8 +157,9 @@ class Student(models.Model):
 
     def __str__(self):
         return ', '.join((self.name.title(),
-                      f'year={self.year_in_studies}',
-                      f'took {len(self.courses.all())} courses'))
+                          f'year={self.year_in_studies}',
+                          f'took {len(self.courses.all())} courses'))
+
 
 class Take(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
@@ -158,5 +168,5 @@ class Take(models.Model):
 
     def __str__(self):
         return ', '.join((f'{self.course.course_id}',
-            f'year={self.year_in_studies}',
-            f'semester={self.semester.lower()}'))
+                          f'year={self.year_in_studies}',
+                          f'semester={self.semester.lower()}'))

@@ -2,14 +2,11 @@ import json
 import os
 from typing import List, Tuple
 
-import requests
-
+from MoonParser import parse_course_wfr_page, NothingToParseException ,parse_moon, NoTrackParsedException
 import utils
 
 utils.setup_django_pycharm()
-
 from rest_api.models import Course, CourseGroup, Track
-from MoonParser import parse_moon, NoTrackParsedException
 
 TRACK_DUMP = 'track_dump.json'
 
@@ -67,25 +64,26 @@ def parse_corner_stones():
     pass
 
 
-from MoonParser import parse_course_wfr_page, NothingToParseException
-
-
-def parse_wfr(file_name: str):
+def parse_wfr(file_name: str, write_status_to_file: bool = False):
     print(file_name)
     file_id = file_name[:file_name.find('.')]
+
     with open(os.path.join('course_wfr', file_name), 'rt', encoding='utf8') as open_file:
         try:
             read = open_file.read()
             parse_course_wfr_page(read, 2021)
-            with open('good.txt', 'at') as log:
-                log.write(file_id + '\n')
+
+            if write_status_to_file:
+                with open('good.txt', 'at') as log:
+                    log.write(file_id + '\n')
             # print(f'+{file_id}')
 
         except NothingToParseException:
+            if write_status_to_file:
+                with open('bad.txt', 'at') as log:
+                    log.write(file_id + '\n')
             # print(f'-{file_id}')
-            with open('bad.txt', 'at') as log:
-                log.write(file_id + '\n')
-            # print(f'({file_id}:{len(read)})', end='')
+
         except Exception as e:
             print(file_name + ' ERROR ' + str(e))
             raise e
@@ -95,20 +93,20 @@ def load():
     all_courses, all_groups, all_tracks, ids = utils.load(TRACK_DUMP)
 
 
-from multiprocessing import Pool
-
 if __name__ == '__main__':
-    # parse_tracks('tracks', 2021, True)
-    seen = set()
     with open('good.txt', 'rt') as f:
-        good = f.readlines()
-    with open('bad.txt', 'rt') as f:
-        bad = f.readlines()
-    seen |= set(good) | set(bad)
-    seen = {x.rstrip('\n') for x in seen}
+        good = set(x.rstrip('\n') for x in f.readlines())
 
-    with Pool() as pool:
-        files = [f for f in os.listdir('course_wfr')
-                             if f[:f.find('.')] not in seen]
-        print(len(files))
-        pool.map(parse_wfr, files)
+    with open('bad.txt', 'rt') as f:
+        bad = set(x.rstrip('\n') for x in f.readlines())
+
+    seen = good | bad
+
+    files = {f for f in os.listdir('course_wfr') if f[:f.find('.')] in good}
+    print(f'working on {len(files)} files')
+
+    # with Pool() as pool:
+    #     pool.map(parse_wfr, files)
+
+    for file in files:
+        parse_wfr(file)
