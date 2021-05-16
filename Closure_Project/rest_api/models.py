@@ -87,7 +87,7 @@ class Track(models.Model):
             models.UniqueConstraint(fields=["track_number", "year"], name="track_year")]
 
     def __str__(self):
-        return f'track_number - {self.track_number} : track_year: {self.year}'
+        return f'{self.track_number} ({self.year})'
 
     def describe(self):
         value_dictionary = {}
@@ -146,8 +146,17 @@ class Student(models.Model):
     year_in_studies = models.IntegerField(choices=Year.choices)
     courses = models.ManyToManyField('Take', blank=True)
 
+    def __str__(self):
+        return ', '.join((self.name.title(),
+                      f'year={self.year_in_studies}',
+                      f'took {len(self.courses.all())} courses'))
 
 class Take(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     year_in_studies = models.IntegerField(choices=Year.choices)
     semester = models.CharField(choices=Semester.choices, max_length=10)
+
+    def __str__(self):
+        return ', '.join((f'{self.course.course_id}',
+            f'year={self.year_in_studies}',
+            f'semester={self.semester.lower()}'))
