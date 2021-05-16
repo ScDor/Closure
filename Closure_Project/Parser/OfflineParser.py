@@ -2,16 +2,18 @@ import json
 import os
 from typing import List, Tuple
 
-from MoonParser import parse_course_wfr_page, NothingToParseException ,parse_moon, NoTrackParsedException
 import utils
+from MoonParser import parse_course_wfr_page, NothingToParseException, parse_moon, \
+    NoTrackParsedException
 
 utils.setup_django_pycharm()
 from rest_api.models import Course, CourseGroup, Track
 
+COURSE_DUMP = 'course_dump.json'
 TRACK_DUMP = 'track_dump.json'
 
 
-def parse_tracks(json_folder: str, data_year: int, dump: bool = False) -> \
+def _parse_tracks(json_folder: str, data_year: int, dump: bool = False) -> \
         Tuple[List[List[Course]], List[List[CourseGroup]], List[Track], List[str]]:
     """
     Parses and inserts parsed into the database
@@ -64,14 +66,14 @@ def parse_corner_stones():
     pass
 
 
-def parse_wfr(file_name: str, write_status_to_file: bool = False):
+def _parse_wfr_file(file_name: str, write_status_to_file: bool = False):
     print(file_name)
     file_id = file_name[:file_name.find('.')]
-
+    result = None
     with open(os.path.join('course_wfr', file_name), 'rt', encoding='utf8') as open_file:
         try:
             read = open_file.read()
-            parse_course_wfr_page(read, 2021)
+            result = parse_course_wfr_page(read, 2021)
 
             if write_status_to_file:
                 with open('good.txt', 'at') as log:
@@ -88,25 +90,47 @@ def parse_wfr(file_name: str, write_status_to_file: bool = False):
             print(file_name + ' ERROR ' + str(e))
             raise e
 
+    return result
+
 
 def load():
     all_courses, all_groups, all_tracks, ids = utils.load(TRACK_DUMP)
 
 
-if __name__ == '__main__':
-    with open('good.txt', 'rt') as f:
-        good = set(x.rstrip('\n') for x in f.readlines())
+def parse_wfr(wfr_path: str, read_log_files: bool, dump: bool):
+    files = set(os.listdir(wfr_path))
 
-    with open('bad.txt', 'rt') as f:
-        bad = set(x.rstrip('\n') for x in f.readlines())
+    if read_log_files:
+        with open('good.txt', 'rt') as f:
+            good = set(x.rstrip('\n') for x in f.readlines())
 
-    seen = good | bad
+        with open('bad.txt', 'rt') as f:
+            bad = set(x.rstrip('\n') for x in f.readlines())
+        print('filtering for files only in good.txt', end=', ')
+        files = {f for f in files if f[:f.find('.')] in good}
 
-    files = {f for f in os.listdir('course_wfr') if f[:f.find('.')] in good}
-    print(f'working on {len(files)} files')
+    print(f'parsing {len(files)} files')
 
-    # with Pool() as pool:
-    #     pool.map(parse_wfr, files)
+    results = [_parse_wfr_file(file) for file in files]
 
-    for file in files:
-        parse_wfr(file)
+    if dump:
+        with open(COURSE_DUMP, 'w', encoding='utf8') as f:
+            json.dump(results, f)
+
+    return results
+
+
+def insert_parsed_wfr_to_db(parsed_wfr: dict) -> None:
+    for course in parsed_wfr:
+        Course.objects.update_or_create(**course)
+
+
+def insert_dumped_wfr_to_db(only_add_new: bool) -> None:
+    with open(COURSE_DUMP, 'r', encoding='utf8') as f:
+        parsed = json.load(f)
+
+    if only_add_new:
+        existing_ids = {v[1] for v in Course.objects.values_list()}
+        parsed = [p for p in parsed if p['course_id'] not in existing_ids]
+
+    insert_parsed_wfr_to_db(parsed)

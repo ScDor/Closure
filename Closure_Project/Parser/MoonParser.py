@@ -1,7 +1,7 @@
 import os
 import re
 from datetime import datetime
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Closure_Project.Closure_Project.settings")
 
@@ -428,7 +428,7 @@ class NothingToParseException(BaseException):
     pass
 
 
-def parse_course_wfr_page(html_body: str, data_year: int) -> Course:
+def parse_course_wfr_page(html_body: str, data_year: int) -> Dict:
     """
     parses course details from pages such as
     http://moon.cc.huji.ac.il/nano/pages/wfrCourse.aspx?faculty=2&year=2021&courseId=67118
@@ -465,10 +465,7 @@ def parse_course_wfr_page(html_body: str, data_year: int) -> Course:
                         soup.find('span', {'id': 'lblRemark'}).text.split('\n'))
     is_given = soup.find('span', {'id': 'lbllearnedNow'}).text == ''
 
-    return Course.objects.update_or_create(course_id=course_id,
-                                           data_year=data_year,
-                                           name=name,
-                                           semester=semester,
-                                           is_given_this_year=is_given,
-                                           points=points,
-                                           comment=comment)[0]
+    # use these kwargs to perform get_or_update()
+    return {'course_id': course_id, 'data_year': data_year, 'name': name,
+            'semester': semester, 'is_given_this_year': is_given, 'points': points,
+            'comment': comment}
