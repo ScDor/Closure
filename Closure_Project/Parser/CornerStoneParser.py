@@ -9,7 +9,7 @@ import utils
 
 utils.setup_django_pycharm()
 
-from rest_api.models import Faculty
+from rest_api.models import Faculty, Course
 
 
 def _parse_side_menu_urls(url: str):
@@ -75,8 +75,8 @@ def _parse_corner_stones(url: str) -> List[int]:
     return result
 
 
-def get_corner_stones():
-    spirit = r'https://ap.huji.ac.il/%D7%A7%D7%95%D7%A8%D7%A1%D7%99%D7%9D-%D7%A8%D7%95%D7%97-2'
+def fetch_parse_corner_stones():
+    spirit = r'https://\/%D7%A7%D7%95%D7%A8%D7%A1%D7%99%D7%9D-%D7%A8%D7%95%D7%97-2'
     social = r'https://ap.huji.ac.il/%D7%A7%D7%95%D7%A8%D7%A1%D7%99%D7%9D-%D7%97%D7%91%D7%A8' \
              r'%D7%94'
     democracy = r'https://ap.huji.ac.il/%D7%A8%D7%A9%D7%99%D7%9E%D7%AA-%D7%A7%D7%95%D7%A8%D7' \
@@ -92,3 +92,21 @@ def get_corner_stones():
         Faculty.SCIENCE: _parse_corner_stones(experimental)
         # todo find a representation for the democracy ones, follow the url to see logic behind
     }
+
+
+def fetch_insert_corner_stones_to_db() -> None:
+    """
+    fetches corner stones from the website, and sets `is_corner_stone=True` to relevant ones.
+    """
+    print(f'before parsing, there are {Course.objects.filter(is_corner_stone=True)}')
+    for faculty, course_ids in fetch_parse_corner_stones().items():
+        for course_id in course_ids:
+            course = Course.objects.get(course_id=course_id)
+            course.is_corner_stone = True
+            course.save(update_fields=['is_corner_stone'])
+    print(f'after parsing, there are {Course.objects.filter(is_corner_stone=True)}')
+
+
+if __name__ == '__main__':
+    fetch_insert_corner_stones_to_db()
+

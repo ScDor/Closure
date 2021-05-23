@@ -56,6 +56,7 @@ class Course(models.Model):
     semester = models.CharField(max_length=6, choices=Semester.choices)
     is_given_this_year = models.BooleanField()
     points = models.FloatField()
+    is_corner_stone = models.BooleanField(null=True)
     comment = models.CharField(max_length=255, blank=True)
 
     class Meta:

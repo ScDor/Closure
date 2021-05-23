@@ -1,9 +1,12 @@
 import json
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Dict
+
+from tqdm import tqdm
 
 import utils
-from MoonParser import parse_course_wfr_page, NothingToParseException, parse_moon, \
+from CornerStoneParser import fetch_insert_corner_stones_to_db
+from MoonParser import parse_course_detail_page, NothingToParseException, parse_moon, \
     NoTrackParsedException
 
 utils.setup_django_pycharm()
@@ -13,11 +16,11 @@ COURSE_DUMP = 'course_dump.json'
 TRACK_DUMP = 'track_dump.json'
 
 
-def _parse_tracks(json_folder: str, data_year: int, dump: bool = False) -> \
+def _parse_tracks(html_folder: str, data_year: int, dump: bool = False) -> \
         Tuple[List[List[Course]], List[List[CourseGroup]], List[Track], List[str]]:
     """
     Parses and inserts parsed into the database
-    :param json_folder: folder with huji track files named `<track_id>.json`
+    :param html_folder: folder with huji track files named `<track_id>.json`
     :param data_year: year to which the data is relevant
     :param dump: whether to dump results to a jsonpickle file (for faster later processing)
     """
@@ -27,12 +30,12 @@ def _parse_tracks(json_folder: str, data_year: int, dump: bool = False) -> \
     all_groups: List[List[CourseGroup]] = []
     all_track_ids: List[str] = []
 
-    for file_name in os.listdir(json_folder):
-        with open(rf'{json_folder}/{file_name}', 'r') as openf:
+    for file_name in os.listdir(html_folder):
+        with open(rf'{html_folder}/{file_name}', 'r', encoding='utf8') as openf:
             track_id = int(file_name.split('.')[0])
-            body = json.load(openf)
+            body = openf.read()
 
-            if len(body) == 6244:  # empty file
+            if len(body) == 6160:  # empty file
                 continue
 
             parsed_track = False
@@ -62,18 +65,14 @@ def _parse_tracks(json_folder: str, data_year: int, dump: bool = False) -> \
     return all_courses, all_groups, all_tracks, all_track_ids
 
 
-def parse_corner_stones():
-    pass
-
-
-def _parse_wfr_file(file_name: str, write_status_to_file: bool = False):
+def _parse_wfr_file(file_name: str, write_status_to_file: bool = False) -> Dict:
     print(file_name)
     file_id = file_name[:file_name.find('.')]
     result = None
     with open(os.path.join('course_wfr', file_name), 'rt', encoding='utf8') as open_file:
         try:
             read = open_file.read()
-            result = parse_course_wfr_page(read, 2021)
+            result = parse_course_detail_page(read, 2021)
 
             if write_status_to_file:
                 with open('good.txt', 'at') as log:
@@ -93,21 +92,26 @@ def _parse_wfr_file(file_name: str, write_status_to_file: bool = False):
     return result
 
 
-def load():
+def load_tracks():
     all_courses, all_groups, all_tracks, ids = utils.load(TRACK_DUMP)
 
 
-def parse_wfr(wfr_path: str, read_log_files: bool, dump: bool):
-    files = set(os.listdir(wfr_path))
+def parse_course_details_folder(read_log_files: bool, dump: bool) \
+        -> List[Dict]:
+    files = set(os.listdir('course_details'))
 
     if read_log_files:
-        with open('good.txt', 'rt') as f:
-            good = set(x.rstrip('\n') for x in f.readlines())
+        if os.path.exists('good.txt') and os.path.exists('bad.txt'):
+            with open('good.txt', 'rt') as f:
+                good = set(x.rstrip('\n') for x in f.readlines())
 
-        with open('bad.txt', 'rt') as f:
-            bad = set(x.rstrip('\n') for x in f.readlines())
-        print('filtering for files only in good.txt', end=', ')
-        files = {f for f in files if f[:f.find('.')] in good}
+            with open('bad.txt', 'rt') as f:
+                bad = set(x.rstrip('\n') for x in f.readlines())
+
+            print('filtering for files only in good.txt', end=', ')
+            files = {f for f in files if f[:f.find('.')] in good}
+        else:
+            print(f'either good.txt or bad.txt do not exist, ignoring read_log_files')
 
     print(f'parsing {len(files)} files')
 
@@ -120,12 +124,12 @@ def parse_wfr(wfr_path: str, read_log_files: bool, dump: bool):
     return results
 
 
-def insert_parsed_wfr_to_db(parsed_wfr: dict) -> None:
-    for course in parsed_wfr:
+def insert_parsed_courses_to_db(parsed_wfr: dict) -> None:
+    for course in tqdm(parsed_wfr):
         Course.objects.update_or_create(**course)
 
 
-def insert_dumped_wfr_to_db(only_add_new: bool) -> None:
+def insert_dumped_courses_to_db(only_add_new: bool) -> None:
     with open(COURSE_DUMP, 'r', encoding='utf8') as f:
         parsed = json.load(f)
 
@@ -133,4 +137,15 @@ def insert_dumped_wfr_to_db(only_add_new: bool) -> None:
         existing_ids = {v[1] for v in Course.objects.values_list()}
         parsed = [p for p in parsed if p['course_id'] not in existing_ids]
 
-    insert_parsed_wfr_to_db(parsed)
+    insert_parsed_courses_to_db(parsed)
+
+
+def main():
+    parse_course_details_folder(True,True)
+    insert_dumped_courses_to_db(True)
+    fetch_insert_corner_stones_to_db()
+    _parse_tracks('tracks', 2021)
+
+
+if __name__ == '__main__':
+    main()
