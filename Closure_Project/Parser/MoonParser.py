@@ -3,6 +3,8 @@ import re
 from datetime import datetime
 from typing import List, Tuple, Dict
 
+from django.core.exceptions import ObjectDoesNotExist
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Closure_Project.Closure_Project.settings")
 
 import django
@@ -193,36 +195,42 @@ def _compose_moon_url(track_id: int,
 NOT_GIVEN_THIS_YEAR = '(לא נלמד השנה)'
 
 
-def parse_course_detail_df(df: pd.DataFrame, data_year: int) -> List[dict]:
+def parse_course_detail_df(df: pd.DataFrame, track_id: int) -> List[dict]:
     """
     parses a table of course details, given previously-parsed Year and CourseType
     :param df: dataframe of course details
-    :param data_year: year to which this course is relevant (shnaton year)
+    :param track_id: track for which the course is relevant
     :return: dataframe of courses
     """
     df.columns = [HEB_ENG_TITLES[title] for title in df.loc[0]]
     df = df.drop(0)
     parsed_courses = []
 
-    df[SEMESTER] = df[SEMESTER].apply(parse_semester)
-    df[COURSE_ID] = df[COURSE_ID].astype(int)
-    df[HUG_ID] = df[HUG_ID].astype(int)
-    df[POINTS] = df[POINTS].astype(float)
+    # in earlier versions, the course details were parsed from here
+    # df[SEMESTER] = df[SEMESTER].apply(parse_semester)
+    # df[COURSE_ID] = df[COURSE_ID].astype(int)
+    # df[HUG_ID] = df[HUG_ID].astype(int)
+    # df[POINTS] = df[POINTS].astype(float)
     # NOTE fields MAX_YEAR and IS_ELEMENTARY can be parsed as well, heads up for duplicates
     for row in df.T.to_dict().values():
-        is_given = NOT_GIVEN_THIS_YEAR not in row[COURSE_NAME]
-        name = row[COURSE_NAME].replace(NOT_GIVEN_THIS_YEAR, "")
-
+        # is_given = NOT_GIVEN_THIS_YEAR not in row[COURSE_NAME]
+        #  name = row[COURSE_NAME].replace(NOT_GIVEN_THIS_YEAR, "")
+        #
         course_id = row[COURSE_ID]
+        #
+        #     course_values = {'course_id': course_id,
+        #                      'data_year': data_year,
+        #                      'name': name,
+        #                      'semester': row[SEMESTER],
+        #                      'is_given_this_year': is_given,
+        #                      'points': row[POINTS]}
+        try:
+            course_object = Course.objects.get(course_id=course_id)
+            parsed_courses.append(course_object)  # raises exception on failure
 
-        course_values = {'course_id': course_id,
-                         'data_year': data_year,
-                         'name': name,
-                         'semester': row[SEMESTER],
-                         'is_given_this_year': is_given,
-                         'points': row[POINTS]}
-        Course.objects.get(course_id=course_id)  # raises exception on failure
-        parsed_courses.append(Course.objects.update_or_create(**course_values)[0])
+        except ObjectDoesNotExist:
+            print(f'track #{track_id}: could not find course #{course_id} in database')
+        # parsed_courses.append(Course.objects.update_or_create(**course_values)[0])
 
     return parsed_courses
 
@@ -397,12 +405,15 @@ def parse_moon(html_body: str, track_id: int, data_year: int) -> \
 
             # NOTE all course details are parsed, but only course_id is used, for getting
             # from DB, as the real source for HUJI course information is wfr
-            current_course_details = parse_course_detail_df(table, data_year)
+            current_course_details = parse_course_detail_df(table, track_id)
             if not current_course_details:
                 continue
+
             current_course_ids = [c.course_id for c in current_course_details]
 
-            if current_type == CourseType.MUST and min_courses is None and min_points is None:
+            if current_type == CourseType.MUST \
+                    and min_courses is None \
+                    and min_points is None:
                 min_courses = len(courses)
 
             group_values = {'track': track,

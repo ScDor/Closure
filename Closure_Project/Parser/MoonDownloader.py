@@ -16,11 +16,7 @@ def download_course(i: int):
     print(i)
 
 
-def download_track(i: int, skip_existing: bool = True):
-    if skip_existing and os.path.exists(f'/tracks/{i}.html'):
-        print(f'skipping {i}')
-        return
-
+def download_track(i: int):
     url = f'http://moon.cc.huji.ac.il/nano/pages/wfrMaslulDetails.aspx' \
           f'?year=2021&' \
           f'faculty=2&' \

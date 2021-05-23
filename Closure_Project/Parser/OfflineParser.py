@@ -24,13 +24,13 @@ def _parse_tracks(html_folder: str, data_year: int, dump: bool = False) -> \
     :param data_year: year to which the data is relevant
     :param dump: whether to dump results to a jsonpickle file (for faster later processing)
     """
-    print(f'x = parsed with tracks\t (x) = parsed without track')
+    # print(f'x = parsed with tracks\t (x) = parsed without track')
     all_tracks: List[Track] = []
     all_courses: List[List[Course]] = []
     all_groups: List[List[CourseGroup]] = []
     all_track_ids: List[str] = []
 
-    for file_name in os.listdir(html_folder):
+    for file_name in tqdm(os.listdir(html_folder)):
         with open(rf'{html_folder}/{file_name}', 'r', encoding='utf8') as openf:
             track_id = int(file_name.split('.')[0])
             body = openf.read()
@@ -57,7 +57,7 @@ def _parse_tracks(html_folder: str, data_year: int, dump: bool = False) -> \
             file_name = file_name.split('.')[0]
             formatted_track_id = file_name if parsed_track else f'({file_name})'
             all_track_ids.append(formatted_track_id)
-            print(formatted_track_id, end=', ')
+            # print(formatted_track_id, end=', ')
 
     if dump:
         utils.dump((all_courses, all_groups, all_tracks, all_track_ids), TRACK_DUMP)
@@ -65,11 +65,11 @@ def _parse_tracks(html_folder: str, data_year: int, dump: bool = False) -> \
     return all_courses, all_groups, all_tracks, all_track_ids
 
 
-def _parse_wfr_file(file_name: str, write_status_to_file: bool = False) -> Dict:
-    print(file_name)
+def _parse_course_details_html(file_name: str, write_status_to_file: bool = False) -> Dict:
+    # print(file_name)
     file_id = file_name[:file_name.find('.')]
     result = None
-    with open(os.path.join('course_wfr', file_name), 'rt', encoding='utf8') as open_file:
+    with open(os.path.join('course_details', file_name), 'rt', encoding='utf8') as open_file:
         try:
             read = open_file.read()
             result = parse_course_detail_page(read, 2021)
@@ -98,6 +98,7 @@ def load_tracks():
 
 def parse_course_details_folder(read_log_files: bool, dump: bool) \
         -> List[Dict]:
+    print('parsing course detail folder')
     files = set(os.listdir('course_details'))
 
     if read_log_files:
@@ -114,8 +115,9 @@ def parse_course_details_folder(read_log_files: bool, dump: bool) \
             print(f'either good.txt or bad.txt do not exist, ignoring read_log_files')
 
     print(f'parsing {len(files)} files')
-
-    results = [_parse_wfr_file(file) for file in files]
+    results = []
+    for file in tqdm(files):
+        results.append(_parse_course_details_html(file))
 
     if dump:
         with open(COURSE_DUMP, 'w', encoding='utf8') as f:
@@ -125,6 +127,7 @@ def parse_course_details_folder(read_log_files: bool, dump: bool) \
 
 
 def insert_parsed_courses_to_db(parsed_wfr: dict) -> None:
+    print('inserting parsed courses to db')
     for course in tqdm(parsed_wfr):
         Course.objects.update_or_create(**course)
 
@@ -148,4 +151,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parse_all()

@@ -3,6 +3,7 @@ from typing import List
 
 import requests
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 from urllib3.exceptions import NewConnectionError
 
 import utils
@@ -76,7 +77,7 @@ def _parse_corner_stones(url: str) -> List[int]:
 
 
 def fetch_parse_corner_stones():
-    spirit = r'https://\/%D7%A7%D7%95%D7%A8%D7%A1%D7%99%D7%9D-%D7%A8%D7%95%D7%97-2'
+    spirit = r'https://ap.huji.ac.il/%D7%A7%D7%95%D7%A8%D7%A1%D7%99%D7%9D-%D7%A8%D7%95%D7%97-2'
     social = r'https://ap.huji.ac.il/%D7%A7%D7%95%D7%A8%D7%A1%D7%99%D7%9D-%D7%97%D7%91%D7%A8' \
              r'%D7%94'
     democracy = r'https://ap.huji.ac.il/%D7%A8%D7%A9%D7%99%D7%9E%D7%AA-%D7%A7%D7%95%D7%A8%D7' \
@@ -98,13 +99,13 @@ def fetch_insert_corner_stones_to_db() -> None:
     """
     fetches corner stones from the website, and sets `is_corner_stone=True` to relevant ones.
     """
-    print(f'before parsing, there are {Course.objects.filter(is_corner_stone=True)}')
+    print('fetching and parsing corner stone courses')
     for faculty, course_ids in fetch_parse_corner_stones().items():
-        for course_id in course_ids:
+        print(f'parsing corner stones for faculty {faculty.name}')
+        for course_id in tqdm(course_ids):
             course = Course.objects.get(course_id=course_id)
             course.is_corner_stone = True
             course.save(update_fields=['is_corner_stone'])
-    print(f'after parsing, there are {Course.objects.filter(is_corner_stone=True)}')
 
 
 if __name__ == '__main__':
