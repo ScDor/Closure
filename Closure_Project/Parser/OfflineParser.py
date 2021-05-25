@@ -138,12 +138,12 @@ def insert_dumped_courses_to_db(only_add_new: bool) -> None:
 
     if only_add_new:
         existing_ids = {v[1] for v in Course.objects.values_list()}
-        parsed = [p for p in parsed if p['course_id'] not in existing_ids]
+        parsed = [p for p in parsed if p and p['course_id'] not in existing_ids]
 
     insert_parsed_courses_to_db(parsed)
 
 
-def main():
+def parse_all():
     parse_course_details_folder(True,True)
     insert_dumped_courses_to_db(True)
     fetch_insert_corner_stones_to_db()
