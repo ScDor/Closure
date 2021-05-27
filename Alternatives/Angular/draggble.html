@@ -1,0 +1,40 @@
+<script src="https://code.angularjs.org/1.4.8/angular.js"></script>
+<script src="https://rawgit.com/fatlinesofcode/ngDraggable/master/ngDraggable.js"></script>
+
+<body ng-app="app">
+  <div ng-controller="controller">
+
+    <div class="row">
+      <h1>ngDraggable Example</h1>
+    </div>
+
+    <div ng-drop="true" ng-drop-success="onDropCompleteRemove($data,$event)">
+      <ul class="draggable-objects">
+        <li ng-repeat="obj in listItems">
+          <div ng-drag="true" ng-drag-data="obj" data-allow-transform="true" class="item"> {{obj.title}} </div>
+        </li>
+      </ul>
+    </div>
+
+    <hr/>
+    <div ng-drop="true" ng-drop-success="onDropComplete($data,$event)" class="drop-container">
+      <span class="title">Drop area</span>
+
+      <div ng-repeat="obj in droppedObjects" ng-drag="true" ng-drag-data="obj" ng-drag-success="onDragComplete($data,$event)" class="item">
+        {{obj.title}}
+      </div>
+    </div>
+
+    <hr/>
+    <div class="container">
+      Drop on input:
+      <input ng-model="input.name" class="drop-input" ng-drop="true" ng-drop-success="onDropCompleteInput($data,$event)">
+    </div>
+
+    <br>
+    <hr/>
+    <pre>listItems = {{listItems|json}}</pre>
+    <pre>input = {{input|json}}</pre>
+    <pre>droppedObjects = {{droppedObjects|json}}</pre>
+  </div>
+</body>

@@ -1,0 +1,4 @@
+as our main functionality requires dragging and dropping without refreshing the page, react seemed like a natural option.
+however, it requires a lot of code, and has a steep learning curve
+
+React is using the MIT license, which is pretty much unlimited, so thats good.
