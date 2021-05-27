@@ -3,9 +3,14 @@ from typing import List
 
 import requests
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 from urllib3.exceptions import NewConnectionError
 
-from rest_api.models import Faculty
+import utils
+
+utils.setup_django_pycharm()
+
+from rest_api.models import Faculty, Course
 
 
 def _parse_side_menu_urls(url: str):
@@ -71,7 +76,7 @@ def _parse_corner_stones(url: str) -> List[int]:
     return result
 
 
-def get_corner_stones():
+def fetch_parse_corner_stones():
     spirit = r'https://ap.huji.ac.il/%D7%A7%D7%95%D7%A8%D7%A1%D7%99%D7%9D-%D7%A8%D7%95%D7%97-2'
     social = r'https://ap.huji.ac.il/%D7%A7%D7%95%D7%A8%D7%A1%D7%99%D7%9D-%D7%97%D7%91%D7%A8' \
              r'%D7%94'
@@ -88,3 +93,21 @@ def get_corner_stones():
         Faculty.SCIENCE: _parse_corner_stones(experimental)
         # todo find a representation for the democracy ones, follow the url to see logic behind
     }
+
+
+def fetch_insert_corner_stones_to_db() -> None:
+    """
+    fetches corner stones from the website, and sets `is_corner_stone=True` to relevant ones.
+    """
+    print('fetching and parsing corner stone courses')
+    for faculty, course_ids in fetch_parse_corner_stones().items():
+        print(f'parsing corner stones for faculty {faculty.name}')
+        for course_id in tqdm(course_ids):
+            course = Course.objects.get(course_id=course_id)
+            course.is_corner_stone = True
+            course.save(update_fields=['is_corner_stone'])
+
+
+if __name__ == '__main__':
+    fetch_insert_corner_stones_to_db()
+
