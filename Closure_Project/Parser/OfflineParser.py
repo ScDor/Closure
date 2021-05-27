@@ -9,6 +9,9 @@ from CornerStoneParser import fetch_insert_corner_stones_to_db
 from MoonParser import parse_course_detail_page, NothingToParseException, parse_moon, \
     NoTrackParsedException
 
+LOGGED_NOT_PARSED = 'bad.txt'
+LOGGED_PARSED = 'good.txt'
+
 utils.setup_django_pycharm()
 from rest_api.models import Course, CourseGroup, Track
 
@@ -65,8 +68,7 @@ def _parse_tracks(html_folder: str, data_year: int, dump: bool = False) -> \
     return all_courses, all_groups, all_tracks, all_track_ids
 
 
-def _parse_course_details_html(file_name: str, write_status_to_file: bool = False) -> Dict:
-    # print(file_name)
+def _parse_course_details_html(file_name: str, write_log_files: bool) -> Dict:
     file_id = file_name[:file_name.find('.')]
     result = None
     with open(os.path.join('course_details', file_name), 'rt', encoding='utf8') as open_file:
@@ -74,14 +76,14 @@ def _parse_course_details_html(file_name: str, write_status_to_file: bool = Fals
             read = open_file.read()
             result = parse_course_detail_page(read, 2021)
 
-            if write_status_to_file:
-                with open('good.txt', 'at') as log:
+            if write_log_files:
+                with open(LOGGED_PARSED, 'at') as log:
                     log.write(file_id + '\n')
             # print(f'+{file_id}')
 
         except NothingToParseException:
-            if write_status_to_file:
-                with open('bad.txt', 'at') as log:
+            if write_log_files:
+                with open(LOGGED_NOT_PARSED, 'at') as log:
                     log.write(file_id + '\n')
             # print(f'-{file_id}')
 
@@ -96,28 +98,38 @@ def load_tracks():
     all_courses, all_groups, all_tracks, ids = utils.load(TRACK_DUMP)
 
 
-def parse_course_details_folder(read_log_files: bool, dump: bool) \
-        -> List[Dict]:
+def parse_course_details_folder(read_log_files: bool,
+                                write_log_files: bool,
+                                dump: bool) -> List[Dict]:
+    """
+    Parses a folder of html files for courses, returning the course details as dictionary
+    :param write_log_files: log (append) parsing staus to LOGGED_PARSED,LOGGED_NOT_PARSED
+    :param read_log_files: only parse files mentioned in the LOGGED_PARSED file: parse faster!
+    :param dump: should dump into COURSE_DUMP, for faster (no need to parse) loading later
+    :return: list of dictionaries representing courses
+    """
     print('parsing course detail folder')
     files = set(os.listdir('course_details'))
 
     if read_log_files:
-        if os.path.exists('good.txt') and os.path.exists('bad.txt'):
-            with open('good.txt', 'rt') as f:
-                good = set(x.rstrip('\n') for x in f.readlines())
+        if os.path.exists(LOGGED_PARSED) and os.path.exists(LOGGED_NOT_PARSED):
+            with open(LOGGED_PARSED, 'rt') as f:
+                parsable_courses = set(x.rstrip('\n') for x in f.readlines())
 
-            with open('bad.txt', 'rt') as f:
-                bad = set(x.rstrip('\n') for x in f.readlines())
+            # with open(LOGGED_NOT_PARSED, 'rt') as f:
+            #     unparsable_courses = set(x.rstrip('\n') for x in f.readlines())
 
-            print('filtering for files only in good.txt', end=', ')
-            files = {f for f in files if f[:f.find('.')] in good}
+            print('filtering for courses from LOGGED_PARSED', end=', ')
+            files = {f for f in files if f[:f.find('.')] in parsable_courses}
         else:
-            print(f'either good.txt or bad.txt do not exist, ignoring read_log_files')
+            print(f'either LOGGED_PARSED or LOGGED_NOT_PARSED do not exist, '
+                  f'ignoring the read_log_files argument, parsing all')
 
     print(f'parsing {len(files)} files')
     results = []
     for file in tqdm(files):
-        results.append(_parse_course_details_html(file))
+        results.append(_parse_course_details_html(file_name=file,
+                                                  write_log_files=write_log_files))
 
     if dump:
         with open(COURSE_DUMP, 'w', encoding='utf8') as f:
@@ -144,7 +156,7 @@ def insert_dumped_courses_to_db(only_add_new: bool) -> None:
 
 
 def parse_all():
-    parse_course_details_folder(True,True)
+    # parse_course_details_folder(read_log_files=True, write_log_files=True, dump=True)
     insert_dumped_courses_to_db(True)
     fetch_insert_corner_stones_to_db()
     _parse_tracks('tracks', 2021)
