@@ -301,7 +301,7 @@ def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
                                                track_comment,
                                                data_year)
                 if dump:
-                    utils.dump(track_values, f'parsed_tracks/{track_id}.json')
+                    utils.dump_json(track_values, f'parsed_tracks/{track_id}.json')
                 break
 
             except NotImplementedError as e:
@@ -388,7 +388,7 @@ def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
 
             group_value_list.append(group_values)
             if dump:
-                utils.dump(group_values,
+                utils.dump_json(group_values,
                            f'parsed_groups/'
                            f'{track_id}_{current_year}_{index_in_track_year}.json')
 

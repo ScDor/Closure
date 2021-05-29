@@ -114,7 +114,7 @@ def parse_course_details_folder(read_log_files: bool,
                                                   write_log_files=write_log_files))
 
     if dump:
-        utils.dump(results, COURSE_DUMP)
+        utils.dump_json(results, COURSE_DUMP)
 
     return results
 
@@ -127,7 +127,7 @@ def insert_parsed_courses_to_db(parsed_courses: dict) -> None:
 
 def insert_dumped_courses_to_db(only_add_new: bool) -> None:
     # noinspection PyTypeChecker
-    parsed = utils.load(COURSE_DUMP)
+    parsed = utils.load_json(COURSE_DUMP)
     if only_add_new:
         existing_ids = {v[1] for v in Course.objects.values_list()}
         parsed = [p for p in parsed if p and p['course_id'] not in existing_ids]

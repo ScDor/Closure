@@ -2,12 +2,12 @@ import json
 import os
 
 
-def dump(o: object, filename: str) -> None:
+def dump_json(o: object, filename: str) -> None:
     with open(filename, 'w', encoding='utf8') as f:
         json.dump(o, f, ensure_ascii=False)
 
 
-def load(filename: str):
+def load_json(filename: str):
     with open(filename, 'r', encoding='utf8') as f:
         return json.load(f)
 
