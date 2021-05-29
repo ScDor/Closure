@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from datetime import datetime
@@ -311,7 +312,7 @@ class NoTrackParsedException(BaseException):
     pass
 
 
-def parse_moon(html_body: str, track_id: int, data_year: int) -> \
+def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
         Tuple[Track, List[Course], List[CourseGroup]]:
     """ parses a page from HUJI-MOON, see _compose_moon_url() """
     soup = BeautifulSoup(html_body, 'html.parser')
@@ -341,11 +342,18 @@ def parse_moon(html_body: str, track_id: int, data_year: int) -> \
             try:
                 track_values = _parse_track_df(table, track_id, track_name, track_comment,
                                                data_year)
+                if dump:
+                    if not os.path.exists('parsed_tracks'):
+                        os.mkdir('parsed_tracks')
+                    with open(f'parsed_tracks/{track_id}.json', 'w', encoding='utf8') as f:
+                        json.dump(track_values, f, ensure_ascii=False)
+
                 track = Track.objects.update_or_create(**track_values)[0]
                 break
             except NotImplementedError as e:
                 print(f'#{track_id}')
                 raise e
+
     if track is None:
         raise NoTrackParsedException(track_id)
 
@@ -409,6 +417,7 @@ def parse_moon(html_body: str, track_id: int, data_year: int) -> \
             if not current_course_details:
                 continue
 
+            # noinspection PyUnresolvedReferences
             current_course_ids = [c.course_id for c in current_course_details]
 
             if current_type == CourseType.MUST \

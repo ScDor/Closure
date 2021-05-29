@@ -44,7 +44,7 @@ def _parse_tracks(html_folder: str, data_year: int, dump: bool = False) -> \
             parsed_track = False
 
             try:
-                track, courses, groups = parse_moon(body, track_id, data_year)
+                track, courses, groups = parse_moon(body, track_id, data_year, dump)
                 all_tracks.append(track)
                 all_courses.append(courses)
                 all_groups.append(groups)
