@@ -153,7 +153,7 @@ def load_dumped_courses(only_add_new: bool) -> None:
         load_parsed_course(c)
 
 
-def parse_all():
+def parse_dump_load_all():
     parse_course_details_folder(dump=True)
     load_dumped_courses(only_add_new=False)
 
@@ -165,4 +165,4 @@ def parse_all():
 
 
 if __name__ == '__main__':
-    parse_all()
+    parse_dump_load_all()
