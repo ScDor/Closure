@@ -38,20 +38,24 @@ def download_track(i: int):
 
 
 def download_all_courses():
+    folder = 'course_details_html'
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+
     with Pool() as pool:
         pool.map(download_course, (i for i in range(1_000, 100_000)))
 
 
 def download_all_tracks():
+    folder = 'tracks_html'
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+
     with Pool() as pool:
         pool.map(download_track, (i for i in range(1_000, 10_000)))
 
 
 def download_all():
-    for folder in ['tracks_html', 'course_details_html']:
-        if not os.path.exists(folder):
-            os.mkdir(folder)
-
     download_all_courses()
     download_all_tracks()
 
