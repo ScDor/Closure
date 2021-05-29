@@ -384,18 +384,19 @@ def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
                             'index_in_track_year': index_in_track_year,
                             'required_course_count': min_courses,
                             'required_points': min_points,
-                            'comment': current_comment}
+                            'comment': current_comment,
+                            'course_ids': current_course_ids}
 
             group_value_list.append(group_values)
             if dump:
                 utils.dump_json(group_values,
-                           f'parsed_groups/'
-                           f'{track_id}_{current_year}_{index_in_track_year}.json')
+                                f'parsed_groups/'
+                                f'{track_id}_y{current_year}_{index_in_track_year}.json')
 
             current_comment = None  # reset after using in group_values
             index_in_track_year += 1
             previous_type = current_type
-            min_courses = min_points = current_type = None # reset after using in group_values
+            min_courses = min_points = current_type = None  # reset after using in group_values
         else:
             if 'לכל היותר' in txt and not max_courses:
                 raise NotImplementedError("todo implement parsing of max_courses>1")
@@ -416,11 +417,14 @@ def parse_course_detail_page(html_body: str, data_year: int) -> Dict:
     :return: Course
     """
     soup = BeautifulSoup(html_body, 'html5lib')
+    try:
+        raw_course_id = soup.find('span', {'id': 'lblCourseId'}).text
+        if not raw_course_id:
+            raise NothingToParseException()
+        course_id = int(raw_course_id)
 
-    raw_course_id = soup.find('span', {'id': 'lblCourseId'}).text
-    if not raw_course_id:
-        raise NothingToParseException()
-    course_id = int(raw_course_id)
+    except AttributeError:
+        raise NothingToParseException("could not parse course id")
 
     try:
         points = float(soup.find('span', {'id': 'lblPoints'}).text)

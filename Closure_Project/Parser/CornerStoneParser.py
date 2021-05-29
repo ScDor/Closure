@@ -95,7 +95,7 @@ def fetch_parse_corner_stones():
     return result
 
 
-def fetch_insert_corner_stones_to_db() -> None:
+def fetch_insert_corner_stones_into_db() -> None:
     """
     fetches corner stones from the website, and sets `is_corner_stone=True` to relevant ones.
     """
@@ -117,4 +117,4 @@ def fetch_insert_corner_stones_to_db() -> None:
 
 
 if __name__ == '__main__':
-    fetch_insert_corner_stones_to_db()
+    fetch_insert_corner_stones_into_db()

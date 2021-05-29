@@ -4,6 +4,7 @@ from typing import List, Tuple, Dict
 from tqdm import tqdm
 
 import utils
+from CornerStoneParser import fetch_insert_corner_stones_into_db
 from MoonParser import parse_course_detail_page, NothingToParseException, parse_moon, \
     NoTrackParsedException
 
@@ -11,13 +12,12 @@ LOGGED_NOT_PARSED = 'bad.txt'
 LOGGED_PARSED = 'good.txt'
 
 utils.setup_django_pycharm()
-from rest_api.models import Course
+from rest_api.models import Course, Track, CourseGroup
 
-COURSE_DUMP = 'course_dump.json'
-TRACK_DUMP = 'track_dump.json'
+COURSE_DUMP = 'parsed_courses.json'
 
 
-def _parse_track_folder(html_folder: str, data_year: int, dump: bool = False) -> \
+def parse_track_folder(html_folder: str, data_year: int, dump: bool = False) -> \
         Tuple[List[Dict],
               List[List[Dict]],
               List[List[int]]]:
@@ -57,61 +57,40 @@ def _parse_track_folder(html_folder: str, data_year: int, dump: bool = False) ->
     return all_tracks, all_groups, all_course_ids
 
 
-def _parse_course_details_html(file_name: str, write_log_files: bool) -> Dict:
-    file_id = file_name[:file_name.find('.')]
+def _parse_course_details_html(file_path: str) -> Dict:
     result = None
-    with open(os.path.join('course_details_html', file_name), 'rt', encoding='utf8') as \
-            open_file:
+    with open(file_path, 'rt', encoding='utf8') as open_file:
         try:
             read = open_file.read()
             result = parse_course_detail_page(read, 2021)
 
-            if write_log_files:
-                with open(LOGGED_PARSED, 'at') as log:
-                    log.write(file_id + '\n')
-            # print(f'+{file_id}')
-
         except NothingToParseException:
-            if write_log_files:
-                with open(LOGGED_NOT_PARSED, 'at') as log:
-                    log.write(file_id + '\n')
-            # print(f'-{file_id}')
+            pass
 
         except Exception as e:
-            print(file_name + ' ERROR ' + str(e))
+            print(file_path + ' ERROR ' + str(e))
             raise e
 
     return result
 
 
-def parse_course_details_folder(read_log_files: bool,
-                                write_log_files: bool,
-                                dump: bool) -> List[Dict]:
+def parse_course_details_folder(dump: bool) -> List[Dict]:
     """
     Parses a folder of html files for courses, returning the course details as dictionary
     :param write_log_files: log (append) parsing staus to LOGGED_PARSED,LOGGED_NOT_PARSED
-    :param read_log_files: only parse files mentioned in the LOGGED_PARSED file: parse faster!
     :param dump: should dump into COURSE_DUMP, for faster (no need to parse) loading later
     :return: list of dictionaries representing courses
     """
     print('parsing course detail folder')
-    files = set(os.listdir('course_details_html'))
-
-    if read_log_files:
-        if os.path.exists(LOGGED_PARSED):
-            with open(LOGGED_PARSED, 'rt') as f:
-                parsable_courses = set(x.rstrip('\n') for x in f.readlines())
-
-            print('filtering for courses from LOGGED_PARSED', end=', ')
-            files = {f for f in files if f[:f.find('.')] in parsable_courses}
-        else:
-            print(f'either LOGGED_PARSED does not exist, parsing all instead')
-
-    print(f'parsing {len(files)} files')
     results = []
-    for file in tqdm(files):
-        results.append(_parse_course_details_html(file_name=file,
-                                                  write_log_files=write_log_files))
+
+    all_file_paths = [os.path.join('course_details_html', f)
+                      for f in os.listdir('course_details_html')]
+
+    nonempty_paths = [p for p in all_file_paths if os.stat(p).st_size != 29_589]
+
+    for file_path in tqdm(nonempty_paths):
+        results.append(_parse_course_details_html(file_path))
 
     if dump:
         utils.dump_json(results, COURSE_DUMP)
@@ -119,27 +98,70 @@ def parse_course_details_folder(read_log_files: bool,
     return results
 
 
-def insert_parsed_courses_to_db(parsed_courses: dict) -> None:
-    print('inserting parsed courses to db')
-    for course in tqdm(parsed_courses):
-        Course.objects.update_or_create(**course)
+def load_parsed_track(track_values: Dict) -> None:
+    # print('inserting track #' + str(track_values['track_number']))
+    Track.objects.update_or_create(**track_values)
 
 
-def insert_dumped_courses_to_db(only_add_new: bool) -> None:
+def load_parsed_track_folder(folder: str = 'parsed_tracks') -> None:
+    for f in tqdm(os.listdir(folder)):
+        load_parsed_track(utils.load_json(os.path.join(folder, f)))
+
+
+def load_parsed_group(group_values: Dict) -> None:
+    track_id = group_values['track_id']
+    track = Track.objects.get(track_number=track_id)
+    del group_values['track_id']
+
+    group_values['track'] = track
+
+    course_ids = group_values['course_ids']
+    del group_values['course_ids']
+
+    group, _ = CourseGroup.objects.update_or_create(
+        track=track,
+        year_in_studies=group_values['year_in_studies'],
+        index_in_track_year=group_values['index_in_track_year'],
+        defaults=group_values)
+
+    group.courses.set(Course.objects.filter(course_id__in=course_ids))
+    group.save()
+
+
+def load_parsed_groups_folder(folder_path: str = 'parsed_groups'):
+    for f in tqdm(os.listdir(folder_path)):
+        path = os.path.join(folder_path,f)
+        load_parsed_group(utils.load_json(path))
+
+
+def load_parsed_course(course_values: Dict) -> None:
+    Course.objects.update_or_create(course_id=course_values['course_id'],
+                                    defaults=course_values)
+
+
+def load_dumped_courses(only_add_new: bool) -> None:
+    print('loading parsed courses to db')
     # noinspection PyTypeChecker
-    parsed = utils.load_json(COURSE_DUMP)
+    parsed = [c for c in utils.load_json(COURSE_DUMP)
+              if c is not None]  # some are None because of parsing issues
+
     if only_add_new:
         existing_ids = {v[1] for v in Course.objects.values_list()}
         parsed = [p for p in parsed if p and p['course_id'] not in existing_ids]
 
-    insert_parsed_courses_to_db(parsed)
+    for c in tqdm(parsed):
+        load_parsed_course(c)
 
 
 def parse_all():
-    # parse_course_details_folder(read_log_files=True, write_log_files=True, dump=True)
-    # insert_dumped_courses_to_db(True)
-    # fetch_insert_corner_stones_to_db()
-    _parse_track_folder('tracks_html', 2021, True)
+    parse_course_details_folder(dump=True)
+    load_dumped_courses(only_add_new=False)
+
+    fetch_insert_corner_stones_into_db()
+
+    parse_track_folder('tracks_html', 2021, True) # parses groups too
+    load_parsed_track_folder()
+    load_parsed_groups_folder()
 
 
 if __name__ == '__main__':
