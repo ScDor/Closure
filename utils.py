@@ -1,19 +1,15 @@
+import json
 import os
 
-import jsonpickle
 
-jsonpickle.set_preferred_backend('json')
-jsonpickle.set_encoder_options('json', ensure_ascii=False)
-
-
-def dump(o: object, filename: str, compact: bool = False) -> None:
+def dump(o: object, filename: str) -> None:
     with open(filename, 'w', encoding='utf8') as f:
-        f.write(jsonpickle.encode(o, indent=None if compact else 1))
+        json.dump(o, f, ensure_ascii=False)
 
 
-def load(filename: str) -> object:
+def load(filename: str):
     with open(filename, 'r', encoding='utf8') as f:
-        return jsonpickle.decode(f.read())
+        return json.load(f)
 
 
 def setup_django_pycharm():

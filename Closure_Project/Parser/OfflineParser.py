@@ -1,4 +1,3 @@
-import json
 import os
 from typing import List, Tuple, Dict
 
@@ -12,62 +11,57 @@ LOGGED_NOT_PARSED = 'bad.txt'
 LOGGED_PARSED = 'good.txt'
 
 utils.setup_django_pycharm()
-from rest_api.models import Course, CourseGroup, Track
+from rest_api.models import Course
 
 COURSE_DUMP = 'course_dump.json'
 TRACK_DUMP = 'track_dump.json'
 
 
-def _parse_tracks(html_folder: str, data_year: int, dump: bool = False) -> \
-        Tuple[List[List[Course]], List[List[CourseGroup]], List[Track], List[str]]:
+def _parse_track_folder(html_folder: str, data_year: int, dump: bool = False) -> \
+        Tuple[List[Dict],
+              List[List[Dict]],
+              List[List[int]]]:
     """
-    Parses and inserts parsed into the database
+    Parses a folder of html files for tracks, returning parsed tracks, groups and course ids
     :param html_folder: folder with huji track files named `<track_id>.json`
     :param data_year: year to which the data is relevant
-    :param dump: whether to dump results to a jsonpickle file (for faster later processing)
+    :param dump: whether to dump results
     """
     # print(f'x = parsed with tracks\t (x) = parsed without track')
-    all_tracks: List[Track] = []
-    all_courses: List[List[Course]] = []
-    all_groups: List[List[CourseGroup]] = []
-    all_track_ids: List[str] = []
+    all_tracks: List[Dict] = []
+    all_groups: List[List[Dict]] = []
+    all_course_ids: List[List[int]] = []
 
     for file_name in tqdm(os.listdir(html_folder)):
-        with open(rf'{html_folder}/{file_name}', 'r', encoding='utf8') as openf:
-            track_id = int(file_name.split('.')[0])
-            body = openf.read()
+        track_id = int(file_name.split('.')[0])
+
+        with open(f'{html_folder}/{file_name}', encoding='utf8') as f:
+            body = f.read()
 
             if len(body) == 6160:  # empty file
                 continue
 
-            parsed_track = False
-
             try:
-                track, courses, groups = parse_moon(body, track_id, data_year, dump)
+                track, groups, courses = parse_moon(body, track_id, data_year, dump)
                 all_tracks.append(track)
-                all_courses.append(courses)
                 all_groups.append(groups)
-                parsed_track = True
+                all_course_ids.append(courses)
 
-            except NoTrackParsedException as e:
+            except NoTrackParsedException:
                 pass
 
             except ValueError as e:
                 if str(e) != 'No tables found':
                     raise e
 
-            file_name = file_name.split('.')[0]
-            formatted_track_id = file_name if parsed_track else f'({file_name})'
-            all_track_ids.append(formatted_track_id)
-            # print(formatted_track_id, end=', ')
-
-    return all_courses, all_groups, all_tracks, all_track_ids
+    return all_tracks, all_groups, all_course_ids
 
 
 def _parse_course_details_html(file_name: str, write_log_files: bool) -> Dict:
     file_id = file_name[:file_name.find('.')]
     result = None
-    with open(os.path.join('course_details', file_name), 'rt', encoding='utf8') as open_file:
+    with open(os.path.join('course_details_html', file_name), 'rt', encoding='utf8') as \
+            open_file:
         try:
             read = open_file.read()
             result = parse_course_detail_page(read, 2021)
@@ -90,10 +84,6 @@ def _parse_course_details_html(file_name: str, write_log_files: bool) -> Dict:
     return result
 
 
-def load_tracks():
-    all_courses, all_groups, all_tracks, ids = utils.load(TRACK_DUMP)
-
-
 def parse_course_details_folder(read_log_files: bool,
                                 write_log_files: bool,
                                 dump: bool) -> List[Dict]:
@@ -105,21 +95,17 @@ def parse_course_details_folder(read_log_files: bool,
     :return: list of dictionaries representing courses
     """
     print('parsing course detail folder')
-    files = set(os.listdir('course_details'))
+    files = set(os.listdir('course_details_html'))
 
     if read_log_files:
-        if os.path.exists(LOGGED_PARSED) and os.path.exists(LOGGED_NOT_PARSED):
+        if os.path.exists(LOGGED_PARSED):
             with open(LOGGED_PARSED, 'rt') as f:
                 parsable_courses = set(x.rstrip('\n') for x in f.readlines())
-
-            # with open(LOGGED_NOT_PARSED, 'rt') as f:
-            #     unparsable_courses = set(x.rstrip('\n') for x in f.readlines())
 
             print('filtering for courses from LOGGED_PARSED', end=', ')
             files = {f for f in files if f[:f.find('.')] in parsable_courses}
         else:
-            print(f'either LOGGED_PARSED or LOGGED_NOT_PARSED do not exist, '
-                  f'ignoring the read_log_files argument, parsing all')
+            print(f'either LOGGED_PARSED does not exist, parsing all instead')
 
     print(f'parsing {len(files)} files')
     results = []
@@ -128,22 +114,20 @@ def parse_course_details_folder(read_log_files: bool,
                                                   write_log_files=write_log_files))
 
     if dump:
-        with open(COURSE_DUMP, 'w', encoding='utf8') as f:
-            json.dump(results, f)
+        utils.dump(results, COURSE_DUMP)
 
     return results
 
 
-def insert_parsed_courses_to_db(parsed_wfr: dict) -> None:
+def insert_parsed_courses_to_db(parsed_courses: dict) -> None:
     print('inserting parsed courses to db')
-    for course in tqdm(parsed_wfr):
+    for course in tqdm(parsed_courses):
         Course.objects.update_or_create(**course)
 
 
 def insert_dumped_courses_to_db(only_add_new: bool) -> None:
-    with open(COURSE_DUMP, 'r', encoding='utf8') as f:
-        parsed = json.load(f)
-
+    # noinspection PyTypeChecker
+    parsed = utils.load(COURSE_DUMP)
     if only_add_new:
         existing_ids = {v[1] for v in Course.objects.values_list()}
         parsed = [p for p in parsed if p and p['course_id'] not in existing_ids]
@@ -155,7 +139,7 @@ def parse_all():
     # parse_course_details_folder(read_log_files=True, write_log_files=True, dump=True)
     # insert_dumped_courses_to_db(True)
     # fetch_insert_corner_stones_to_db()
-    _parse_tracks('tracks', 2021, True)
+    _parse_track_folder('tracks_html', 2021, True)
 
 
 if __name__ == '__main__':
