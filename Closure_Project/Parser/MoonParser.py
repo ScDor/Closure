@@ -3,18 +3,13 @@ import re
 from datetime import datetime
 from typing import List, Tuple, Dict
 
-from django.core.exceptions import ObjectDoesNotExist
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Closure_Project.Closure_Project.settings")
-
-import django
-
-django.setup()
-
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from rest_api.models import Semester, CourseType, Course, CourseGroup, Track
+import utils
+
+utils.setup_django_pycharm()
+from rest_api.models import Semester, CourseType
 
 TRACK_NAME_PATTERN = re.compile(r'מסלול\s+(.+)\(\d{4}\)')
 MIN_POINTS_PATTERN = re.compile(r'לפחות\s*(\d+)\s*נ')
@@ -192,49 +187,6 @@ def _compose_moon_url(track_id: int,
            f'&maslulId={track_id}'
 
 
-NOT_GIVEN_THIS_YEAR = '(לא נלמד השנה)'
-
-
-def parse_course_detail_df(df: pd.DataFrame, track_id: int) -> List[dict]:
-    """
-    parses a table of course details, given previously-parsed Year and CourseType
-    :param df: dataframe of course details
-    :param track_id: track for which the course is relevant
-    :return: dataframe of courses
-    """
-    df.columns = [HEB_ENG_TITLES[title] for title in df.loc[0]]
-    df = df.drop(0)
-    parsed_courses = []
-
-    # in earlier versions, the course details were parsed from here
-    # df[SEMESTER] = df[SEMESTER].apply(parse_semester)
-    # df[COURSE_ID] = df[COURSE_ID].astype(int)
-    # df[HUG_ID] = df[HUG_ID].astype(int)
-    # df[POINTS] = df[POINTS].astype(float)
-    # NOTE fields MAX_YEAR and IS_ELEMENTARY can be parsed as well, heads up for duplicates
-    for row in df.T.to_dict().values():
-        # is_given = NOT_GIVEN_THIS_YEAR not in row[COURSE_NAME]
-        #  name = row[COURSE_NAME].replace(NOT_GIVEN_THIS_YEAR, "")
-        #
-        course_id = row[COURSE_ID]
-        #
-        #     course_values = {'course_id': course_id,
-        #                      'data_year': data_year,
-        #                      'name': name,
-        #                      'semester': row[SEMESTER],
-        #                      'is_given_this_year': is_given,
-        #                      'points': row[POINTS]}
-        try:
-            course_object = Course.objects.get(course_id=course_id)
-            parsed_courses.append(course_object)  # raises exception on failure
-
-        except ObjectDoesNotExist:
-            print(f'track #{track_id}: could not find course #{course_id} in database')
-        # parsed_courses.append(Course.objects.update_or_create(**course_values)[0])
-
-    return parsed_courses
-
-
 RE_RANGE = re.compile(r'(\d+(?:\.\d+)?)-(?:\.\d+)?')
 RE_MIN = re.compile(r'לפחות\s*(\d+)|(\d+)\s*לפחות')
 
@@ -242,13 +194,13 @@ RE_MIN = re.compile(r'לפחות\s*(\d+)|(\d+)\s*לפחות')
 def _parse_track_df(df: pd.DataFrame, track_id: int, track_name: str, track_comment: str,
                     data_year: int) -> dict:
     """
-    parses track data into the database
+    parses track data
     :param df: data representing a track
     :param track_id: track id
     :param track_name: track name
     :param track_comment: track comment
     :param data_year: year to which the data is relevant
-    :return: parsed Track object
+    :return: parsed data
     """
     must = from_list = choice = corner_stones = complementary = minor = additional_hug = 0
     point_columns = [i for i, c in enumerate(df.columns) if 'כ נקודות' in c]
@@ -273,7 +225,6 @@ def _parse_track_df(df: pd.DataFrame, track_id: int, track_name: str, track_comm
                 if match:
                     points = float(match[1] or match[2])
                 else:
-                    # print(f'could not parse points for category {category}={raw_point}')
                     continue
 
             if category in (MUST, MUST_IN_HUG, MUST_PROGRAMMING, MUST_SAFETY_LIBRARY) \
@@ -311,8 +262,10 @@ class NoTrackParsedException(BaseException):
     pass
 
 
-def parse_moon(html_body: str, track_id: int, data_year: int) -> \
-        Tuple[Track, List[Course], List[CourseGroup]]:
+def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
+        Tuple[Dict,
+              List[Dict],
+              List[int]]:
     """ parses a page from HUJI-MOON, see _compose_moon_url() """
     soup = BeautifulSoup(html_body, 'html.parser')
 
@@ -324,29 +277,38 @@ def parse_moon(html_body: str, track_id: int, data_year: int) -> \
     current_year = current_type = None
     min_points = min_courses = None
     max_courses = None
-    track = None
+    track_values = None
     index_in_track_year = 0
 
-    courses = []
-    groups = []
+    course_ids: List[int] = []
+    group_value_list = []
 
     current_comment = None
     previous_type = None  # becomes current_type on 'וגם'
 
+    if dump:
+        for folder in ['parsed_tracks', 'parsed_groups']:
+            if not os.path.exists(folder):
+                os.mkdir(folder)
+
     # parse track first
     for table in reversed(df_list):
         if any('כ נקודות בחוג' in str(c) for c in table.columns):
-            # if track is not None:
-            #     raise ValueError("found two track_number-detail tables on the same page")
             try:
-                track_values = _parse_track_df(table, track_id, track_name, track_comment,
+                track_values = _parse_track_df(table,
+                                               track_id,
+                                               track_name,
+                                               track_comment,
                                                data_year)
-                track = Track.objects.update_or_create(**track_values)[0]
+                if dump:
+                    utils.dump_json(track_values, f'parsed_tracks/{track_id}.json')
                 break
+
             except NotImplementedError as e:
                 print(f'#{track_id}')
                 raise e
-    if track is None:
+
+    if track_values is None:
         raise NoTrackParsedException(track_id)
 
     for i, table in enumerate(df_list):
@@ -403,45 +365,43 @@ def parse_moon(html_body: str, track_id: int, data_year: int) -> \
                 raise ValueError("reached course details before parsing "
                                  f"current year/course course_type, track#={track_id}")
 
-            # NOTE all course details are parsed, but only course_id is used, for getting
-            # from DB, as the real source for HUJI course information is wfr
-            current_course_details = parse_course_detail_df(table, track_id)
-            if not current_course_details:
-                continue
+            table.columns = [HEB_ENG_TITLES[title] for title in table.loc[0]]
+            table.drop(0, inplace=True)
+            current_course_ids = table[COURSE_ID].tolist()
+            course_ids.extend(current_course_ids)
 
-            current_course_ids = [c.course_id for c in current_course_details]
+            if not current_course_ids:
+                continue  # a CourseGroup without courses is meaningless
 
             if current_type == CourseType.MUST \
                     and min_courses is None \
                     and min_points is None:
-                min_courses = len(courses)
+                min_courses = len(course_ids)
 
-            group_values = {'track': track,
+            group_values = {'track_id': track_id,
                             'course_type': current_type,
                             'year_in_studies': current_year,
                             'index_in_track_year': index_in_track_year,
                             'required_course_count': min_courses,
                             'required_points': min_points,
-                            'comment': current_comment}
+                            'comment': current_comment,
+                            'course_ids': current_course_ids}
 
-            current_group, _ = CourseGroup.objects.update_or_create(**group_values)
+            group_value_list.append(group_values)
+            if dump:
+                utils.dump_json(group_values,
+                                f'parsed_groups/'
+                                f'{track_id}_y{current_year}_{index_in_track_year}.json')
 
-            for course_id in current_course_ids:
-                course = Course.objects.get(course_id=course_id)
-                courses.append(course)
-                current_group.courses.add(course)
-
-            current_comment = None
-            groups.append(current_group)
+            current_comment = None  # reset after using in group_values
             index_in_track_year += 1
-
             previous_type = current_type
-            min_courses = min_points = current_type = None
+            min_courses = min_points = current_type = None  # reset after using in group_values
         else:
             if 'לכל היותר' in txt and not max_courses:
                 raise NotImplementedError("todo implement parsing of max_courses>1")
 
-    return track, courses, groups
+    return track_values, group_value_list, course_ids
 
 
 class NothingToParseException(BaseException):
@@ -457,11 +417,14 @@ def parse_course_detail_page(html_body: str, data_year: int) -> Dict:
     :return: Course
     """
     soup = BeautifulSoup(html_body, 'html5lib')
+    try:
+        raw_course_id = soup.find('span', {'id': 'lblCourseId'}).text
+        if not raw_course_id:
+            raise NothingToParseException()
+        course_id = int(raw_course_id)
 
-    raw_course_id = soup.find('span', {'id': 'lblCourseId'}).text
-    if not raw_course_id:
-        raise NothingToParseException()
-    course_id = int(raw_course_id)
+    except AttributeError:
+        raise NothingToParseException("could not parse course id")
 
     try:
         points = float(soup.find('span', {'id': 'lblPoints'}).text)

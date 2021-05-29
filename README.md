@@ -39,13 +39,22 @@ Note:
 * The example parser provided in the `Parser` folder is configured to fetch and parse
 information from the Hebrew versions of the said websites.
 
-#### Parsing ####
-to get the relevant files, run `MoonDownloader.py`. The folders `tracks` and `course_details` will be created.
+#### Downloading and parsing ####
+to get the relevant files, run `MoonDownloader.py`. The folders `tracks_html` and `course_details_html` will be created.
 
 Downloading will take time! (the moon website is..._fragile_)
 
 Once you have both folders populated, run `OfflineParer.py`.
-This too will take time
+
+Parsing happens in the following order:
+1. Parsing course details, parsed data is stored in `parsed_courses.json`
+2. Parsing data relevant for the `Track` and `CourseGroup` objects. parsed data is stored in folders named `parsed_tracks` and `parsed_groups` as json files.
+3. Loading the parsed course data as `Models.Course` objects in the Django database. 
+4. Fetching CornerStone course information (course id only), and marking relevant `Course` objects as `is_corner_stone = True` (None by default)
+5. Loading the parsed Track data as `Models.Track` objects in the Django database. 
+6. Loading the parsed `CourseGroup` data as `Models.CourseGroup` objects in the Django database. 
+
+The aforementioned order is important, as some objects assume existence of others (e.g. `CourseGroup` and `Course` objects).
 
 
 ## Contributions ##

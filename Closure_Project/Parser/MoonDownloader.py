@@ -11,7 +11,7 @@ def download_course(i: int):
           f'year=2021&' \
           f'courseId={i}'
 
-    with open(f'course_details/{i}.html', 'wb') as f:
+    with open(f'course_details_html/{i}.html', 'wb') as f:
         f.write(requests.get(url).content)
     print(i)
 
@@ -32,7 +32,7 @@ def download_track(i: int):
             print(f'({i})')
             sleep(5)
 
-    with open(f'tracks/{i}.html', 'wb') as f:
+    with open(f'tracks_html/{i}.html', 'wb') as f:
         f.write(get.content)
     print(i)
 
@@ -48,7 +48,7 @@ def download_all_tracks():
 
 
 def download_all():
-    for folder in ['tracks', 'course_details']:
+    for folder in ['tracks_html', 'course_details_html']:
         if not os.path.exists(folder):
             os.mkdir(folder)
 
