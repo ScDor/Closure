@@ -153,7 +153,7 @@ class Student(models.Model):
     track = models.ForeignKey(Track, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)
     year_in_studies = models.IntegerField(choices=Year.choices)
-    courses = models.ManyToManyField('Take', blank=True)
+    courses = models.ManyToManyField(Course, through='Take', blank=True)
 
     def __str__(self):
         return ', '.join((self.name.title(),
@@ -162,6 +162,7 @@ class Student(models.Model):
 
 
 class Take(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     year_in_studies = models.IntegerField(choices=Year.choices)
     semester = models.CharField(choices=Semester.choices, max_length=10)
