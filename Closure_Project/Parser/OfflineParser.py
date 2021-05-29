@@ -5,7 +5,6 @@ from typing import List, Tuple, Dict
 from tqdm import tqdm
 
 import utils
-from CornerStoneParser import fetch_insert_corner_stones_to_db
 from MoonParser import parse_course_detail_page, NothingToParseException, parse_moon, \
     NoTrackParsedException
 
@@ -61,9 +60,6 @@ def _parse_tracks(html_folder: str, data_year: int, dump: bool = False) -> \
             formatted_track_id = file_name if parsed_track else f'({file_name})'
             all_track_ids.append(formatted_track_id)
             # print(formatted_track_id, end=', ')
-
-    if dump:
-        utils.dump((all_courses, all_groups, all_tracks, all_track_ids), TRACK_DUMP)
 
     return all_courses, all_groups, all_tracks, all_track_ids
 
@@ -157,9 +153,9 @@ def insert_dumped_courses_to_db(only_add_new: bool) -> None:
 
 def parse_all():
     # parse_course_details_folder(read_log_files=True, write_log_files=True, dump=True)
-    insert_dumped_courses_to_db(True)
-    fetch_insert_corner_stones_to_db()
-    _parse_tracks('tracks', 2021)
+    # insert_dumped_courses_to_db(True)
+    # fetch_insert_corner_stones_to_db()
+    _parse_tracks('tracks', 2021, True)
 
 
 if __name__ == '__main__':
