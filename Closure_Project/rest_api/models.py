@@ -159,6 +159,7 @@ class Student(models.Model):
     def __str__(self):
         return ', '.join((self.name.title(),
                           f'year={self.year_in_studies}',
+                          f'track={self.track.track_number}',
                           f'took {len(self.courses.all())} courses'))
 
 
