@@ -42,28 +42,56 @@ export default {
       allcourses: [
         {
           id: 1,
-          name: "קורס 1",
+          name: "חשבון אינפיניטסימלי 1",
           year: 1,
-          semester: 2,
+          semester: 1,
         },
         {
           id: 2,
-          name: "קורס 2",
+          name: "מבוא למדעי המחשב",
           year: 1,
           semester: 1,
         },
         {
           id: 3,
-          name: "קורס 3",
+          name: "אלגברה ליניארית 1",
           year: 1,
           semester: 1,
         },
         {
           id: 4,
-          name: "קורס 4",
-          year: 2,
+          name: "מתמטיקה דיסקרטית",
+          year: 1,
           semester: 1,
+        },{
+          id: 5,
+          name: "חשבון אינפיניטסימלי 2",
+          year: 1,
+          semester: 2,
         },
+        {
+          id: 6,
+          name: "C / C++",
+          year: 1,
+          semester: 2,
+        },
+        {
+          id: 7,
+          name: "אלגברה ליניארית 2",
+          year: 1,
+          semester: 2,
+        },
+        {
+          id: 8,
+          name: "מבני נתונים",
+          year: 1,
+          semester: 2,
+        },{
+          id: 9,
+          name: "אבן פינה קיקיונית כלשהי",
+          year: 1,
+          semester: 2,
+        }
       ],
     };
   },

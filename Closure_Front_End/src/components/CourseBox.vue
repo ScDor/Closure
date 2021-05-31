@@ -18,7 +18,7 @@ export default {
   box-shadow: 0px 0px 0px 0px;
   font-size: 0.75rem;
 }
-/* .course-box:hover {
-  cursor: grab;
-} */
+.course-box:hover {
+  box-shadow: 1px 1px 1px 1px rgb(231, 231, 231);
+}
 </style>
