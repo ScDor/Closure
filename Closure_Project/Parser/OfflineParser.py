@@ -155,11 +155,15 @@ def load_dumped_courses(only_add_new: bool) -> None:
 
 def parse_dump_load_all():
     parse_course_details_folder(dump=True)
-    load_dumped_courses(only_add_new=False)
-
     fetch_insert_corner_stones_into_db()
+    parse_track_folder('tracks_html', 2021, True)  # parses groups too
 
-    parse_track_folder('tracks_html', 2021, True) # parses groups too
+    load_all_dumped()
+
+
+def load_all_dumped():
+    load_dumped_courses(False)
+    fetch_insert_corner_stones_into_db()
     load_parsed_track_folder()
     load_parsed_groups_folder()
 
