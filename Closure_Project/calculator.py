@@ -40,10 +40,24 @@ def remaining(student: Student):
         else:
             done['COMPLEMENTARY'] += course.points
 
-    result = [{'type': CourseType.MUST.name, 'required': track.points_must, 'done': done[CourseType.MUST]},
-              {'type': CourseType.FROM_LIST.name, 'required': track.points_from_list,
+    result = [{'type': CourseType.MUST.name,
+               'required': track.points_must,
+               'done': done[CourseType.MUST]},
+
+              {'type': CourseType.FROM_LIST.name,
+               'required': track.points_from_list,
                'done': done[CourseType.FROM_LIST]},
-              {'type': CourseType.CHOICE.name, 'required': track.points_choice, 'done': done[CourseType.CHOICE]},
-              {'type': 'CORNER_STONE', 'required': track.points_corner_stones, 'done': done['CORNER_STONE']},
-              {'type': 'COMPLEMENTARY', 'required': track.points_complementary, 'done': done['COMPLEMENTARY']}]
+
+              {'type': CourseType.CHOICE.name,
+               'required': track.points_choice,
+               'done': done[CourseType.CHOICE]},
+
+              {'type': 'CORNER_STONE',
+               'required': track.points_corner_stones,
+               'done': done['CORNER_STONE']},
+
+              {'type': 'COMPLEMENTARY',
+               'required': track.points_complementary,
+               'done': done['COMPLEMENTARY']}]
+
     return result
