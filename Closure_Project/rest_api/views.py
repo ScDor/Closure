@@ -11,7 +11,7 @@ from rest_framework import filters
 
 
 from .models import Course, Student, CourseGroup, Track, Take
-from .serializers import CourseSerializer, CourseGroupSerializer, StudentSerializer, TrackGroupSerializer, \
+from .serializers import CourseSerializer, CourseGroupSerializer, StudentSerializer, TrackSerializer, \
     TakeSerializer
 
 
@@ -45,7 +45,7 @@ class StudentGroupViewSet(viewsets.ModelViewSet):
 class TrackGroupViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = Track.objects.all().order_by('track_number')
-    serializer_class = TrackGroupSerializer
+    serializer_class = TrackSerializer
     lookup_field = 'track_number'
 
 
