@@ -1,4 +1,5 @@
 /Closure_Project/db.sqlite3
+/venv
 /Closure_Project/Parser/tracks/
-/Closure_Project/Parser/*/*.json
-/Closure_Project/Parser/*/*.html
+/Closure_Project/Parser/*.json
+/Closure_Project/Parser/*.html
