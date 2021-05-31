@@ -46,6 +46,7 @@ class TrackGroupViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = Track.objects.all().order_by('track_number')
     serializer_class = TrackGroupSerializer
+    lookup_field = 'track_number'
 
 
 class TakeGroupViewSet(viewsets.ModelViewSet):
