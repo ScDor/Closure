@@ -15,3 +15,34 @@
     </li>
   </ul>
 </template>
+
+
+<script>
+import axios from "axios";
+import { defineComponent } from "@vue/composition-api";
+
+export default defineComponent({
+  
+  setup() {
+    console.log("hey");
+    /* var res =axios.get(
+      "http://127.0.0.1:8000/api/v1/courses/?limit=10&offset=10&search=670",
+      {
+        headers: {
+          Authorization: "Token d614bfa8fd3863b6d859f2f16c795c8b775b2243",
+        },
+      }
+    ).then(courses => courses )
+    console.log(res); */
+    var res  = axios.get(
+      "http://127.0.0.1:8000/api/v1/courses/?limit=10&offset=10&search=670",
+      {
+        headers: {
+          Authorization: "Token d614bfa8fd3863b6d859f2f16c795c8b775b2243",
+        },
+      }
+    )
+      .then((response) => console.log(response.data.results));
+  }
+});
+</script>
