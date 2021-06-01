@@ -11,8 +11,9 @@ the Hebrew University of Jerusalem.
 ## Getting Started ##
 
 1. Clone this repo
-2. run `python Closure_Project/manage.py migrate --run-syncdb`
-3. run the django server with `python Closure_Project/manage.py runserver`
+2. run `python Closure_Project/manage.py makemigrations rest_api`
+3. run `python Closure_Project/manage.py migrate`
+4. run the django server with `python Closure_Project/manage.py runserver`
 
 You now have a django instance with the database configured (yet blank)
 
@@ -55,6 +56,12 @@ Parsing happens in the following order:
 6. Loading the parsed `CourseGroup` data as `Models.CourseGroup` objects in the Django database. 
 
 The aforementioned order is important, as some objects assume existence of others (e.g. `CourseGroup` and `Course` objects).
+
+#### Genrating auth ####
+1. If you don't have admin superuser, creat one with `python Closure_Project/manage.py createsuper`
+2.  `python Closure_Project/manage.py migrate`
+3. run the django server with `python Closure_Project/manage.py createsuperuser`
+4. Use basic authentication with you your username and passowrd, ot generate token with `python Closure_Project/manage.py drf_create_token` and add `{Autharization: Token <key>}` to request headers.
 
 
 ## Contributions ##
