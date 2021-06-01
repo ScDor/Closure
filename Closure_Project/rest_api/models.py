@@ -96,7 +96,7 @@ class Track(models.Model):
             models.UniqueConstraint(fields=["track_number", "data_year"], name="track_year")]
 
     def __str__(self):
-        return f'{self.track_number} ({self.data_year})'
+        return f'#{self.track_number} {self.name} ({self.data_year})'
 
     def describe(self):
         value_dictionary = {}
@@ -159,6 +159,7 @@ class Student(models.Model):
     def __str__(self):
         return ', '.join((self.name.title(),
                           f'year={self.year_in_studies}',
+                          f'track={self.track.track_number}',
                           f'took {len(self.courses.all())} courses'))
 
 
