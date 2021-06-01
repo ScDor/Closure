@@ -1,4 +1,5 @@
 import os
+from time import time
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Closure_Project.settings")
 
@@ -26,8 +27,13 @@ def remaining(student: Student):
         required_courses.update(group_courses)
 
     done = {t: 0 for t in ALL_COURSE_TYPES}
+    counted = set()
 
     for course in student.courses.all():
+        if course in counted:
+            continue
+        counted.add(course)
+
         if course.is_corner_stone:
             done['CORNER_STONE'] += course.points
 
