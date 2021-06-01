@@ -7,12 +7,13 @@ urllib3~=1.26.4
 jsonpickle~=2.0.0
 lxml~=4.6.3
 html5lib~=1.1
-pip~=21.1.1
 pytz~=2021.1
 sqlparse~=0.4.1
 asgiref~=3.3.4
 numpy~=1.20.2
 setuptools~=56.2.0
 djangorestframework~=3.12.4
-
+tqdm~=4.60.0
+django-cors-headers==3.6.0
+drf_yasg==1.20.0
 django-filter~=2.4.0

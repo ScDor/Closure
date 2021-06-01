@@ -9,7 +9,7 @@ import utils
 
 utils.setup_django_pycharm()
 
-from rest_api.models import Faculty
+from rest_api.models import Course
 
 
 def _parse_side_menu_urls(url: str):
@@ -75,7 +75,7 @@ def _parse_corner_stones(url: str) -> List[int]:
     return result
 
 
-def get_corner_stones():
+def fetch_parse_corner_stones():
     spirit = r'https://ap.huji.ac.il/%D7%A7%D7%95%D7%A8%D7%A1%D7%99%D7%9D-%D7%A8%D7%95%D7%97-2'
     social = r'https://ap.huji.ac.il/%D7%A7%D7%95%D7%A8%D7%A1%D7%99%D7%9D-%D7%97%D7%91%D7%A8' \
              r'%D7%94'
@@ -85,10 +85,36 @@ def get_corner_stones():
                 r'%A8%D7%90%D7%9C-0'
     experimental = r'https://ap.huji.ac.il/%D7%94%D7%AA%D7%97%D7%95%D7%9D-%D7%94%D7%A0%D7%99' \
                    r'%D7%A1%D7%95%D7%99%D7%99'
+    result = []
 
-    return {
-        Faculty.SPIRIT: _parse_corner_stones(spirit),
-        Faculty.SOCIAL: _parse_corner_stones(social),
-        Faculty.SCIENCE: _parse_corner_stones(experimental)
-        # todo find a representation for the democracy ones, follow the url to see logic behind
-    }
+    result.extend(_parse_corner_stones(spirit))
+    result.extend(_parse_corner_stones(social))
+    result.extend(_parse_corner_stones(experimental))
+    result.extend(_parse_corner_stones(democracy))
+
+    return result
+
+
+def fetch_insert_corner_stones_into_db() -> None:
+    """
+    fetches corner stones from the website, and sets `is_corner_stone=True` to relevant ones.
+    """
+    old_corner_stones = {c.course_id for c in Course.objects.filter(is_corner_stone=True)}
+    print(f'before parsing, {len(Course.objects.filter(is_corner_stone=True))} '
+          f'courses are marked as corner stone')
+
+    parsed = fetch_parse_corner_stones()
+
+    for course_id in parsed:
+        course = Course.objects.get(course_id=course_id)
+        course.is_corner_stone = True
+        course.save(update_fields=['is_corner_stone'])
+
+    new_corner_stones = {c.course_id for c in Course.objects.filter(is_corner_stone=True)
+                         if c.course_id not in old_corner_stones}
+    print(f'after parsing, {len(new_corner_stones)} new courses marked as corner stone: '
+          f'{new_corner_stones}')
+
+
+if __name__ == '__main__':
+    fetch_insert_corner_stones_into_db()
