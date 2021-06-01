@@ -1,9 +1,8 @@
 from django.urls import include, path
-from django.conf.urls import url
-from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import routers, permissions
-
+from drf_yasg import openapi
+from django.conf.urls import url
 from . import views
 
 router = routers.DefaultRouter()
@@ -22,7 +21,7 @@ schema_view = get_schema_view(
         license=openapi.License(name="BSD License"),
     ),
     public=True,
-    permission_classes=[permissions.AllowAny],
+    permission_classes=(permissions.AllowAny,)
 )
 
 # Wire up our API using automatic URL routing.
