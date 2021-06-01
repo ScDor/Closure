@@ -1,30 +1,68 @@
 <template>
   <p class="menu-label">ניווט</p>
-  <ul class="menu-list">
-    <li>
-      <div class="control has-icons-left has-icons-right is-size-7">
-        <input
-          class="input is-dark is-size-7"
-          type="course"
-          placeholder="חפש קורס"
-        />
-        <span class="icon is-small is-right">
-          <i class="fas fa-search"></i>
-        </span>
+
+  <div class="dropdown is-active">
+    <div class="dropdown-trigger">
+      <div class="field">
+        <div class="control has-icons-left has-icons-right is-size-7">
+          <input
+            class="input is-dark is-size-7"
+            type="course"
+            placeholder="חפש קורס"
+            v-model="query"
+            @keyup="searchCourses"
+          />
+          <span class="icon is-small is-right">
+            <i class="fas fa-search"></i>
+          </span>
+        </div>
       </div>
-    </li>
-  </ul>
+    </div>
+
+    <div class="dropdown-menu" id="dropdown-menu" role="menu">
+      <div class="dropdown-content">
+        <a class="dropdown-item" v-for='item in info'>{{item}}</a>
+      </div>
+    </div>
+  </div>
 </template>
 
 
 <script>
 import axios from "axios";
-import { defineComponent } from "@vue/composition-api";
+// import { Navigation } from "@vue/composition-api";
 
-export default defineComponent({
-  
+export default({
+  data() {
+    return {
+      info: null,
+      query: "",
+    };
+  },
+
+  methods: {
+    searchCourses() {
+      axios
+        .get(
+          "http://127.0.0.1:8000/api/v1/courses/?limit=15&offset=15&search=" +
+            this.query,
+          {
+            headers: {
+              Authorization: "Token d614bfa8fd3863b6d859f2f16c795c8b775b2243",
+            },
+          }
+        )
+        .then((response) => (this.info = response.data.results));
+        
+      /* if (this.info) {
+        this.info.forEach((element) => {
+          console.log(element);
+        });
+      } */
+    },
+  },
+
   setup() {
-    console.log("hey");
     /* var res =axios.get(
       "http://127.0.0.1:8000/api/v1/courses/?limit=10&offset=10&search=670",
       {
@@ -34,15 +72,6 @@ export default defineComponent({
       }
     ).then(courses => courses )
     console.log(res); */
-    var res  = axios.get(
-      "http://127.0.0.1:8000/api/v1/courses/?limit=10&offset=10&search=670",
-      {
-        headers: {
-          Authorization: "Token d614bfa8fd3863b6d859f2f16c795c8b775b2243",
-        },
-      }
-    )
-      .then((response) => console.log(response.data.results));
-  }
+  },
 });
 </script>
