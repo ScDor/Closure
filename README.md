@@ -57,7 +57,7 @@ Parsing happens in the following order:
 
 The aforementioned order is important, as some objects assume existence of others (e.g. `CourseGroup` and `Course` objects).
 
-#### Genrating auth ####
+#### Generating auth ####
 1. If you don't have admin superuser, creat one with `python Closure_Project/manage.py createsuper`
 2.  `python Closure_Project/manage.py migrate`
 3. run the django server with `python Closure_Project/manage.py createsuperuser`
