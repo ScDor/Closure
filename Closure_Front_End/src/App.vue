@@ -10,7 +10,7 @@
       <div class="columns is-variable is-2">
         <!-- navigation -->
         <div class="column is-2 is-right is-hidden-mobile is-hidden-touch">
-          <navigation></navigation>
+          <navigation @clickcourse="add"></navigation>
         </div>
         <!-- all years -->
         <div class="column" v-for="year in years" :key="year">
@@ -41,59 +41,76 @@ export default {
 
       allcourses: [
         {
-          id: 1,
+          course_id: 1,
           name: "חשבון אינפיניטסימלי 1",
           year: 1,
           semester: 1,
         },
         {
-          id: 2,
+          course_id: 2,
           name: "מבוא למדעי המחשב",
           year: 1,
           semester: 1,
         },
         {
-          id: 3,
+          course_id: 3,
           name: "אלגברה ליניארית 1",
           year: 1,
           semester: 1,
         },
         {
-          id: 4,
+          course_id: 4,
           name: "מתמטיקה דיסקרטית",
           year: 1,
           semester: 1,
-        },{
-          id: 5,
+        },
+        {
+          course_id: 5,
           name: "חשבון אינפיניטסימלי 2",
           year: 1,
           semester: 2,
         },
         {
-          id: 6,
+          course_id: 6,
           name: "C / C++",
           year: 1,
           semester: 2,
         },
         {
-          id: 7,
+          course_id: 7,
           name: "אלגברה ליניארית 2",
           year: 1,
           semester: 2,
         },
         {
-          id: 8,
+          course_id: 8,
           name: "מבני נתונים",
           year: 1,
           semester: 2,
-        },{
-          id: 9,
+        },
+        {
+          course_id: 9,
           name: "אבן פינה קיקיונית כלשהי",
           year: 1,
           semester: 2,
-        }
+        },
       ],
     };
+  },
+
+
+  methods: {
+    add(event, course) {
+      console.log(course);
+      this.allcourses.push({
+        id: course.course_id,
+        name: course.name,
+        
+        year: 1,
+        semester: 1,
+      });
+      console.log(this.allcourses);
+    },
   },
 };
 </script>

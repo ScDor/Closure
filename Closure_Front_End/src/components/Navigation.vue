@@ -1,27 +1,32 @@
 <template>
   <p class="menu-label">ניווט</p>
 
-  <div class="dropdown is-active">
-    <div class="dropdown-trigger">
-      <div class="field">
-        <div class="control has-icons-left has-icons-right is-size-7">
-          <input
-            class="input is-dark is-size-7"
-            type="course"
-            placeholder="חפש קורס"
-            v-model="query"
-            @keyup="searchCourses"
-          />
-          <span class="icon is-small is-right">
-            <i class="fas fa-search"></i>
-          </span>
-        </div>
-      </div>
-    </div>
+  <div class="control has-icons-right">
+    <input
+      class="input is-dark"
+      type="course"
+      placeholder="חפש קורס"
+      v-model="query"
+      @keyup="searchCourses"
+      @keydown="showSearch"
+    />
 
-    <div class="dropdown-menu" id="dropdown-menu" role="menu">
+    <span class="icon is-small is-right is-size-7">
+      <i class="fas fa-search"></i>
+    </span>
+  </div>
+
+  <div class="dropdown is-active" :class="{ hide: hide }">
+    <div class="dropdown-menu">
       <div class="dropdown-content">
-        <a class="dropdown-item" v-for='item in info'>{{item}}</a>
+        <li
+          class="dropdown-item"
+          v-for="course in suggestions"
+          :key="course"
+          @click="emitClick($event, course)"
+        >
+          {{ course.name }}
+        </li>
       </div>
     </div>
   </div>
@@ -30,13 +35,16 @@
 
 <script>
 import axios from "axios";
-// import { Navigation } from "@vue/composition-api";
 
-export default({
+export default {
+
+  emits: ['clickcourse'],
+
   data() {
     return {
-      info: null,
+      hide: true,
       query: "",
+      suggestions: [],
     };
   },
 
@@ -48,30 +56,55 @@ export default({
             this.query,
           {
             headers: {
-              Authorization: "Token d614bfa8fd3863b6d859f2f16c795c8b775b2243",
+              Authorization: "Token 425fa39de10f02351c7043d0dbe34a4b31be7a27",
             },
           }
         )
-        .then((response) => (this.info = response.data.results));
-        
-      /* if (this.info) {
-        this.info.forEach((element) => {
-          console.log(element);
-        });
-      } */
+        .then((response) => (this.suggestions = response.data.results))
+        .then((this.hide = !this.suggestions.length || this.query == ""));
+    },
+
+    emitClick(event, course) {
+      this.hide = true;
+      this.query = "";
+      this.$emit('clickcourse', event, course);
     },
   },
-
-  setup() {
-    /* var res =axios.get(
-      "http://127.0.0.1:8000/api/v1/courses/?limit=10&offset=10&search=670",
-      {
-        headers: {
-          Authorization: "Token d614bfa8fd3863b6d859f2f16c795c8b775b2243",
-        },
-      }
-    ).then(courses => courses )
-    console.log(res); */
-  },
-});
+};
 </script>
+
+
+<style>
+.input {
+  min-width: 15.5vw;
+  padding: 0.25rem;
+  margin-right: 0.2rem;
+  font-size: 0.75rem;
+}
+
+.span {
+  font-size: 0.75rem;
+}
+
+.dropdown-menu {
+  min-width: 15.5vw;
+  margin-right: 0.2rem;
+}
+
+.dropdown-content {
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.hide {
+  display: none;
+}
+
+.dropdown-item {
+  font-size: 0.75rem;
+}
+
+.dropdown-item:hover {
+  background: #efefef;
+  cursor: pointer;
+}
+</style>
