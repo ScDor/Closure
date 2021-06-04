@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import serializers
 
 from .models import Track, Course, Student, CourseGroup, Take, Hug
@@ -36,10 +38,11 @@ class CourseSerializer(DynamicFieldsModelSerializer):
 class TakeSerializer(DynamicFieldsModelSerializer):
     course = CourseSerializer(fields=('url', 'course_id', 'name', 'semester', 'points'), read_only=True)
     url = serializers.HyperlinkedRelatedField(source='course', view_name='course-detail', queryset=Course.objects.all())
+    type = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Take
-        fields = ('url', 'course', 'year_in_studies', 'semester')
+        fields = ('url', 'course', 'year_in_studies', 'semester', 'type')
 
 
 class CourseGroupSerializer(DynamicFieldsModelSerializer):
@@ -59,7 +62,7 @@ class HugSerializer(DynamicFieldsModelSerializer):
 
 class TrackSerializer(DynamicFieldsModelSerializer):
     url = serializers.HyperlinkedRelatedField(source='id', read_only=True, view_name='track-detail')
-    course_groups = CourseGroupSerializer(source='track_set', many=True, read_only=True)
+    course_groups = CourseGroupSerializer(source='coursegroup_set', many=True, read_only=True)
 
     class Meta:
         model = Track
@@ -70,17 +73,37 @@ class TrackSerializer(DynamicFieldsModelSerializer):
 
 class StudentSerializer(DynamicFieldsModelSerializer):
     courses = TakeSerializer(source='take_set', many=True)
-    url = serializers.HyperlinkedRelatedField(source='track', view_name='track-detail',
-                                              queryset=Track.objects.all())
-    track = TrackSerializer(fields=('url', 'track_number', 'name'), read_only=True)
+    url = serializers.HyperlinkedRelatedField(source='id', view_name='student-detail',
+                                              read_only=True)
+
+    track_url = serializers.HyperlinkedRelatedField(source='track', view_name='track-detail',
+                                                    queryset=Track.objects.all())
+    track = TrackSerializer(fields=('track_number', 'name'), read_only=True)
+    remaining = serializers.JSONField(read_only=True)
 
     class Meta:
         model = Student
-        fields = ('url', 'track', 'name', 'year_in_studies', 'courses')
+        fields = ('url', 'track_url', 'track', 'name', 'year_in_studies', 'remaining', 'courses')
 
     def create(self, validated_data):
+        logging.error(validated_data)
         take_set = validated_data.pop('take_set')
         student = Student.objects.create(**validated_data)
         for take in take_set:
             Take.objects.create(student=student, **take)
+        return student
+
+    def update(self, student: Student, validated_data):
+        logging.error(validated_data)
+        take_set = validated_data.pop('take_set')
+
+        student.name = validated_data.get('name', student.name)
+        student.track = validated_data.get('track', student.track)
+        student.courses.clear()
+        for take in take_set:
+            Take.objects.create(student=student,
+                                course=take['course'],
+                                year_in_studies=take['year_in_studies'],
+                                semester=take['semester'])
+
         return student
