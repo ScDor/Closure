@@ -173,7 +173,8 @@ class Take(models.Model):
         return ', '.join((f'{self.course.course_id}',
                           f'year={self.year_in_studies}',
                           f'semester={self.semester.lower()}'))
-
-    @property
-    def type(self):
-        return
+    #
+    # @property
+    # def type(self):
+    #     track = self.student.track
+    #     track.objects.

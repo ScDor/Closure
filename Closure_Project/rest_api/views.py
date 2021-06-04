@@ -25,7 +25,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 class CourseGroupViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminUser,)
-
+    pagination_class = ResultSetPagination
     queryset = CourseGroup.objects.all().order_by('track')
     serializer_class = CourseGroupSerializer
 
@@ -34,10 +34,9 @@ class StudentGroupViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = Student.objects.all().order_by('name')
     serializer_class = StudentSerializer
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filter_fields = ('name', 'courses')  # TODO check
+    filter_backends = (filters.SearchFilter, )
     pagination_class = ResultSetPagination
-    search_fields = ('name',)
+    search_fields = ('name', 'courses__name', '^courses__course_id')
 
 
 class TrackViewSet(viewsets.ModelViewSet):

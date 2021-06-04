@@ -1,5 +1,3 @@
-import logging
-
 from rest_framework import serializers
 
 from .models import Track, Course, Student, CourseGroup, Take, Hug
@@ -36,7 +34,7 @@ class CourseSerializer(DynamicFieldsModelSerializer):
 
 
 class TakeSerializer(DynamicFieldsModelSerializer):
-    course = serializers.StringRelatedField()
+    course = CourseSerializer(fields=('url', 'course_id', 'name', 'semester', 'points'), read_only=True)
     url = serializers.HyperlinkedRelatedField(source='course', view_name='course-detail', queryset=Course.objects.all())
 
     class Meta:
@@ -45,6 +43,8 @@ class TakeSerializer(DynamicFieldsModelSerializer):
 
 
 class CourseGroupSerializer(DynamicFieldsModelSerializer):
+    courses = CourseSerializer(fields=('url', 'course_id', 'name', 'semester', 'points'), many=True, read_only=True)
+
     class Meta:
         model = CourseGroup
         fields = ('track', 'course_type', 'year_in_studies', 'index_in_track_year', 'courses',
@@ -70,8 +70,9 @@ class TrackSerializer(DynamicFieldsModelSerializer):
 
 class StudentSerializer(DynamicFieldsModelSerializer):
     courses = TakeSerializer(source='take_set', many=True)
-    url = serializers.HyperlinkedRelatedField(source='id', read_only=True, view_name='student-detail')
-    track = TrackSerializer(fields=('url', 'track_number'))
+    url = serializers.HyperlinkedRelatedField(source='track', view_name='track-detail',
+                                              queryset=Track.objects.all())
+    track = TrackSerializer(fields=('url', 'track_number', 'name'), read_only=True)
 
     class Meta:
         model = Student
