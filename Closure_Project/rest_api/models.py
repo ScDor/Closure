@@ -117,7 +117,7 @@ class Track(models.Model):
 
 
 class CourseGroup(models.Model):
-    track = models.ForeignKey(Track, on_delete=models.CASCADE)
+    track = models.ForeignKey(Track, on_delete=models.CASCADE, related_name='track_set')
     course_type = models.CharField(max_length=20, choices=CourseType.choices)
     year_in_studies = models.IntegerField()
     index_in_track_year = models.IntegerField()
@@ -165,7 +165,7 @@ class Student(models.Model):
 
 class Take(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='course_id_1')
     year_in_studies = models.IntegerField(choices=Year.choices)
     semester = models.CharField(choices=Semester.choices, max_length=10)
 
@@ -173,3 +173,7 @@ class Take(models.Model):
         return ', '.join((f'{self.course.course_id}',
                           f'year={self.year_in_studies}',
                           f'semester={self.semester.lower()}'))
+
+    @property
+    def type(self):
+        return
