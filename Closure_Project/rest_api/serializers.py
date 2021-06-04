@@ -63,10 +63,11 @@ class HugSerializer(DynamicFieldsModelSerializer):
 class TrackSerializer(DynamicFieldsModelSerializer):
     url = serializers.HyperlinkedRelatedField(source='id', read_only=True, view_name='track-detail')
     course_groups = CourseGroupSerializer(source='coursegroup_set', many=True, read_only=True)
+    total_points = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Track
-        fields = ('url', 'track_number', 'name', 'data_year', 'points_must', 'points_from_list',
+        fields = ('url', 'track_number', 'name', 'data_year', 'total_points', 'points_must', 'points_from_list',
                   'points_choice', 'points_complementary', 'points_corner_stones',
                   'points_minor', 'points_additional_hug', 'comment', 'course_groups')
 

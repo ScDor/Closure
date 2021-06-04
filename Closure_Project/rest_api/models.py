@@ -101,6 +101,16 @@ class Track(models.Model):
     def __str__(self):
         return f'#{self.track_number} {self.name} ({self.data_year})'
 
+    @property
+    def total_points(self) -> int:
+        return self.points_must \
+               + self.points_from_list \
+               + self.points_choice \
+               + self.points_complementary \
+               + self.points_corner_stones \
+               + self.points_minor \
+               + self.points_additional_hug
+
     def describe(self):
         value_dictionary = {}
 
