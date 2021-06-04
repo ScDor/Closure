@@ -20,7 +20,7 @@ class CourseViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filter_fields = ('course_id', 'data_year',)
     pagination_class = ResultSetPagination
-    search_fields = ('name', 'course_id')
+    search_fields = ('name', '^course_id')
 
 
 class CourseGroupViewSet(viewsets.ModelViewSet):
@@ -48,7 +48,7 @@ class TrackViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filter_fields = ('name', 'track_number')
     pagination_class = ResultSetPagination
-    search_fields = ('name', 'track_number')
+    search_fields = ('name', '^track_number')
 
 
 class TakeGroupViewSet(viewsets.ModelViewSet):
