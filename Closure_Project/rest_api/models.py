@@ -163,7 +163,7 @@ class CourseGroup(models.Model):
 
 
 REQUIRED_COURSE_TYPES = (CourseType.MUST, CourseType.FROM_LIST, CourseType.CHOICE)  # order matters! do not modify
-ALL_COURSE_TYPES = REQUIRED_COURSE_TYPES + ('CORNER_STONE', 'COMPLEMENTARY')
+ALL_COURSE_TYPES = REQUIRED_COURSE_TYPES + (CourseType.CORNER_STONE, CourseType.SUPPLEMENTARY)
 
 
 class Student(models.Model):
@@ -201,18 +201,7 @@ class Student(models.Model):
             if course in counted:
                 continue
             counted.add(course)
-
-            if course.is_corner_stone:
-                done[CourseType.CORNER_STONE] += course.points
-
-            elif course in required_courses:
-                for course_type in REQUIRED_COURSE_TYPES:  # ordered by importance
-                    if course in required_by_type[course_type]:
-                        done[course_type] += course.points
-                        break  # prevents courses from being counted in more than one type
-
-            else:
-                done[CourseType.SUPPLEMENTARY] += course.points
+            done[take.type] += course.points
 
         result = {CourseType.MUST.name:
                       {'required': track.points_must,

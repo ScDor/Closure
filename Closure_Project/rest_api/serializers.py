@@ -84,7 +84,6 @@ class StudentSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Student
         fields = ('url', 'track_url', 'track', 'name', 'year_in_studies', 'remaining', 'courses')
-        read_only_fields = ('track', )
 
     def create(self, validated_data):
         logging.error(validated_data)
