@@ -57,9 +57,9 @@ Parsing happens in the following order:
 
 The aforementioned order is important, as some objects assume existence of others (e.g. `CourseGroup` and `Course` objects).
 
-#### Generating auth ####
+### Generating auth ###
 1. If you don't have admin superuser, creat one with `python Closure_Project/manage.py createsuperuser`
-2. Use basic authentication with you your username and passowrd created, or generate token with `python Closure_Project/manage.py drf_create_token` and add `{Autharization: Token <key>}` to request headers.
+2. Use basic authentication with your username and passowrd created, or generate token with `python Closure_Project/manage.py drf_create_token` and add `{Autharization: Token <key>}` to request headers.
 
 
 ## Contributions ##
