@@ -53,12 +53,6 @@ class CourseGroupSerializer(DynamicFieldsModelSerializer):
                   'required_course_count', 'required_points', 'comment')
 
 
-class HugSerializer(DynamicFieldsModelSerializer):
-    class Meta:
-        model = Hug
-        fields = ('course',)
-
-
 class TrackSerializer(DynamicFieldsModelSerializer):
     url = serializers.HyperlinkedRelatedField(source='id', read_only=True, view_name='track-detail')
     course_groups = CourseGroupSerializer(source='coursegroup_set', many=True, read_only=True)
