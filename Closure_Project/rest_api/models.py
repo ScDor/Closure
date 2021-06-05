@@ -228,7 +228,7 @@ class Student(models.Model):
 
 class Take(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='course_id_1')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
     year_in_studies = models.IntegerField(choices=Year.choices)
     semester = models.CharField(choices=Semester.choices, max_length=10)
 
