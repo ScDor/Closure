@@ -2,6 +2,7 @@
 import uuid
 from enum import Enum
 
+from django.contrib.auth.models import User
 from django.db import models
 
 
@@ -47,6 +48,8 @@ class CourseType(models.TextChoices):
     MUST = 'MUST'
     CHOICE = 'CHOICE'
     FROM_LIST = 'CHOOSE_FROM_LIST'
+    CORNER_STONE = 'CORNER_STONE'
+    SUPPLEMENTARY = 'SUPPLEMENTARY'
 
 
 class Course(models.Model):
@@ -98,6 +101,16 @@ class Track(models.Model):
     def __str__(self):
         return f'#{self.track_number} {self.name} ({self.data_year})'
 
+    @property
+    def total_points(self) -> int:
+        return self.points_must \
+               + self.points_from_list \
+               + self.points_choice \
+               + self.points_complementary \
+               + self.points_corner_stones \
+               + self.points_minor \
+               + self.points_additional_hug
+
     def describe(self):
         value_dictionary = {}
 
@@ -121,10 +134,10 @@ class CourseGroup(models.Model):
     course_type = models.CharField(max_length=20, choices=CourseType.choices)
     year_in_studies = models.IntegerField()
     index_in_track_year = models.IntegerField()
-    courses = models.ManyToManyField(Course)
     required_course_count = models.IntegerField(null=True)
     required_points = models.IntegerField(null=True)
     comment = models.CharField(max_length=255, null=True)
+    courses = models.ManyToManyField(Course)
 
     class Meta:
         constraints = [
@@ -149,7 +162,12 @@ class CourseGroup(models.Model):
                          *(str(c) for c in self.courses.all())))
 
 
+REQUIRED_COURSE_TYPES = (CourseType.MUST, CourseType.FROM_LIST, CourseType.CHOICE)  # order matters! do not modify
+ALL_COURSE_TYPES = REQUIRED_COURSE_TYPES + (CourseType.CORNER_STONE, CourseType.SUPPLEMENTARY)
+
+
 class Student(models.Model):
+    # user = models.OneToOneField(User, on_delete=models.CASCADE)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     track = models.ForeignKey(Track, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)
@@ -162,6 +180,51 @@ class Student(models.Model):
                           f'track={self.track.track_number}',
                           f'took {len(self.courses.all())} courses'))
 
+    @property
+    def remaining(self):
+        track = self.track
+        groups = track.coursegroup_set.all()
+        required_by_type = {k: set() for k in REQUIRED_COURSE_TYPES}
+        required_courses = set()
+
+        for group in groups:
+            group_courses = list(group.courses.all())
+
+            required_by_type[group.course_type].update(group_courses)
+            required_courses.update(group_courses)
+
+        done = {t: 0 for t in ALL_COURSE_TYPES}
+        counted = set()
+
+        for take in self.take_set.all():
+            course = take.course
+            if course in counted:
+                continue
+            counted.add(course)
+            done[take.type] += course.points
+
+        result = {CourseType.MUST.name:
+                      {'required': track.points_must,
+                       'done': done[CourseType.MUST]},
+
+                  CourseType.FROM_LIST.name:
+                      {'required': track.points_from_list,
+                       'done': done[CourseType.FROM_LIST]},
+
+                  CourseType.CHOICE.name:
+                      {'required': track.points_choice,
+                       'done': done[CourseType.CHOICE]},
+
+                  CourseType.CORNER_STONE.name:
+                      {'required': track.points_corner_stones,
+                       'done': done[CourseType.CORNER_STONE]},
+
+                  CourseType.SUPPLEMENTARY.name:
+                      {'required': track.points_complementary,
+                       'done': done[CourseType.SUPPLEMENTARY]}}
+
+        return result
+
 
 class Take(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
@@ -173,3 +236,17 @@ class Take(models.Model):
         return ', '.join((f'{self.course.course_id}',
                           f'year={self.year_in_studies}',
                           f'semester={self.semester.lower()}'))
+
+    @property
+    def type(self) -> CourseType:
+        if self.course.is_corner_stone:
+            return CourseType.CORNER_STONE
+
+        cg_set = self.student.track.coursegroup_set
+        matching_cg = cg_set.filter(courses__id=self.course.id).all()
+        types = {cg.course_type for cg in matching_cg}
+        for course_type in [CourseType.MUST, CourseType.FROM_LIST, CourseType.CHOICE]:
+            if course_type in types:
+                return course_type
+
+        return CourseType.SUPPLEMENTARY
