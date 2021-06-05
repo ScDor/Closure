@@ -14,10 +14,9 @@ class DynamicFieldsModelSerializer(serializers.HyperlinkedModelSerializer):
     def __init__(self, *args, **kwargs):
         # Don't pass the 'fields' arg up to the superclass
         fields = kwargs.pop('fields', None)
-
         # Instantiate the superclass normally
         super(DynamicFieldsModelSerializer, self).__init__(*args, **kwargs)
-
+        self.Meta.read_only_fields = fields
         if fields is not None:
             # Drop any fields that are not specified in the `fields` argument.
             allowed = set(fields)
@@ -85,6 +84,7 @@ class StudentSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Student
         fields = ('url', 'track_url', 'track', 'name', 'year_in_studies', 'remaining', 'courses')
+        read_only_fields = ('track', )
 
     def create(self, validated_data):
         logging.error(validated_data)
