@@ -12,17 +12,20 @@
       :allcourses="allcourses"
       @dragcourse="startDrag"
       @dropcourse="onDrop"
+      @clickclose="onClick"
     ></semester>
+
   </div>
 </template>
 
 <script>
 import Semester from "./Semester.vue";
+import YearSummary from "./YearSummary.vue";
 
 export default {
   props: ["year", "allcourses"],
 
-  components: { Semester },
+  components: { Semester, YearSummary },
 
   data() {
     return {
@@ -35,23 +38,29 @@ export default {
 
   setup(props) {
     const startDrag = (event, course) => {
-      console.log(event);
-      console.log(course);
       event.dataTransfer.dropEffect = "move";
       event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("id", course.id);
+      event.dataTransfer.setData("id", course.course_id);
     };
 
     const onDrop = (event, year, semester) => {
       const courseid = event.dataTransfer.getData("id");
-      const course = props.allcourses.find((course) => course.id == courseid);
+      const course = props.allcourses.find(
+        (course) => course.course_id == courseid
+      );
       course.year = year.id;
       course.semester = semester.id;
+    };
+
+    const onClick = (event, toRemove) => {
+      const index = props.allcourses.indexOf(toRemove);
+      props.allcourses.splice(index, 1);
     };
 
     return {
       startDrag,
       onDrop,
+      onClick,
     };
   },
 };
@@ -66,6 +75,7 @@ export default {
   padding-top: 1rem;
   padding-left: 0rem;
   padding-right: 0rem;
+  padding-bottom: 0.25rem;
   box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.1);
 }
 </style>

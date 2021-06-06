@@ -10,34 +10,38 @@
     <ul class="menu-list">
       <li
         class="list-item-style"
-        v-for="course in filterCourses"
-        :key="course.id"
+        v-for="course in filteredCourses"
+        :key="course.course_id"
       >
         <course-box
-          :name="course.name"
+          :course="course"
           class="drag-el"
           draggable="true"
           @dragstart="emitDrag($event, course)"
+          @clickclose="$emit('clickclose', $event, course)"
         ></course-box>
       </li>
     </ul>
   </div>
+  <semester-summary
+    :class="{ space: semester.id == '1' }"
+    :courses="filteredCourses"
+  ></semester-summary>
 </template>
 
 <script>
 import CourseBox from "./CourseBox.vue";
+import SemesterSummary from "./SemesterSummary.vue";
 
 export default {
   props: ["year", "semester", "allcourses"],
 
-  components: { CourseBox },
+  components: { CourseBox, SemesterSummary },
 
-  data() {
-    return {};
-  },
+  emits: ["dragcourse", "dropcourse", "clickclose"],
 
   computed: {
-    filterCourses() {
+    filteredCourses() {
       return this.allcourses
         .filter(
           (course) =>
@@ -61,7 +65,11 @@ export default {
 
 <style>
 .half-height {
-  min-height: 38vh;
+  min-height: 34vh;
+}
+
+.space {
+  padding-bottom: 1rem;
 }
 
 .list-item-style {

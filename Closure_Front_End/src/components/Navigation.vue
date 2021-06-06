@@ -37,8 +37,7 @@
 import axios from "axios";
 
 export default {
-
-  emits: ['clickcourse'],
+  emits: ["clickcourse"],
 
   data() {
     return {
@@ -52,7 +51,7 @@ export default {
     searchCourses() {
       axios
         .get(
-          "http://127.0.0.1:8000/api/v1/courses/?limit=15&offset=15&search=" +
+          "http://127.0.0.1:8000/api/v1/courses/?limit=6&offset=15&search=" +
             this.query,
           {
             headers: {
@@ -67,7 +66,7 @@ export default {
     emitClick(event, course) {
       this.hide = true;
       this.query = "";
-      this.$emit('clickcourse', event, course);
+      this.$emit("clickcourse", event, course);
     },
   },
 };
