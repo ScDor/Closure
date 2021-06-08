@@ -65,8 +65,8 @@ The aforementioned order is important, as some objects assume existence of other
 - To use the API, start the server with `python Closure_Project/manage.py runserver`.
 
 - The base API url is `https://<host>/api/v1`.
-- API documantion is availible in `https://<host>:8000/redoc/`
-- Try to use API with: `https://<host>:8000/swagger/`
+- API documantion is availible in `https://<host>/redoc/`
+- Try to use API with: `https://<host>/swagger/`
 
 
 ## Contributions ##
