@@ -9,7 +9,7 @@ router = routers.DefaultRouter()
 router.register(r'courses', views.CourseViewSet)
 router.register(r'course_groups', views.CourseGroupViewSet)
 router.register(r'students', views.StudentGroupViewSet)
-router.register(r'tracks', views.TrackGroupViewSet)
+router.register(r'tracks', views.TrackViewSet)
 
 schema_view = get_schema_view(
     openapi.Info(
