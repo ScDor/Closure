@@ -67,6 +67,7 @@ The aforementioned order is important, as some objects assume existence of other
 - The base API url is `https://<host>/api/v1`.
 - API documantion is availible in `https://<host>/redoc/`
 - Try to use API with: `https://<host>/swagger/`
+- When making real requests, always remember to add the Authrization header to the request.
 
 
 ## Contributions ##
