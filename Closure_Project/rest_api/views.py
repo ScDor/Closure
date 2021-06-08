@@ -1,5 +1,5 @@
 # Create your views here
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework import filters
 from rest_framework import viewsets
 from rest_framework.authentication import BasicAuthentication, TokenAuthentication
@@ -54,3 +54,4 @@ class TakeGroupViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = Take.objects.all().order_by('course')
     serializer_class = TakeSerializer
+
