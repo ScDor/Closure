@@ -130,7 +130,7 @@ def load_parsed_group(group_values: Dict) -> None:
 
 def load_parsed_groups_folder(folder_path: str = 'parsed_groups'):
     for f in tqdm(os.listdir(folder_path)):
-        path = os.path.join(folder_path,f)
+        path = os.path.join(folder_path, f)
         load_parsed_group(utils.load_json(path))
 
 

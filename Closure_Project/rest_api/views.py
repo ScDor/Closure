@@ -32,11 +32,11 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
 
 class StudentGroupViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
-    queryset = Student.objects.all().order_by('name')
+    queryset = Student.objects.all().order_by('user__first_name')
     serializer_class = StudentSerializer
-    filter_backends = (filters.SearchFilter, )
+    filter_backends = (filters.SearchFilter,)
     pagination_class = ResultSetPagination
-    search_fields = ('name', 'courses__name', '^courses__course_id')
+    search_fields = ('user__username', 'user__first_name', 'user__last_name', 'courses__name', '^courses__course_id')
 
 
 class TrackViewSet(viewsets.ModelViewSet):
@@ -54,4 +54,3 @@ class TakeGroupViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = Take.objects.all().order_by('course')
     serializer_class = TakeSerializer
-

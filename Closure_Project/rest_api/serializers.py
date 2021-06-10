@@ -1,5 +1,6 @@
 import logging
 
+from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from .models import Track, Course, Student, CourseGroup, Take, Hug
@@ -65,6 +66,13 @@ class TrackSerializer(DynamicFieldsModelSerializer):
                   'points_minor', 'points_additional_hug', 'comment', 'course_groups')
 
 
+# class UserSerializer(DynamicFieldsModelSerializer):
+#     class Meta:
+#         model = User
+#         fields = ('username', 'password', 'email', 'first_name', 'last_name')
+#         extra_kwargs = {'password': {'write_only': True}}
+
+
 class StudentSerializer(DynamicFieldsModelSerializer):
     courses = TakeSerializer(source='take_set', many=True)
     url = serializers.HyperlinkedRelatedField(source='id', view_name='student-detail',
@@ -75,20 +83,24 @@ class StudentSerializer(DynamicFieldsModelSerializer):
     track = TrackSerializer(fields=('track_number', 'name'), read_only=True)
     remaining = serializers.JSONField(read_only=True)
 
+    username = serializers.CharField(source='user.username')
+
     class Meta:
         model = Student
-        fields = ('url', 'track_url', 'track', 'name', 'year_in_studies', 'remaining', 'courses')
+        fields = ('username', 'url', 'track_url', 'track', 'year_in_studies', 'remaining', 'courses')
 
     def create(self, validated_data):
-        logging.error(validated_data)
+        username = validated_data.pop('username')
+        user = User.objects.get(username=username)
         take_set = validated_data.pop('take_set')
-        student = Student.objects.create(**validated_data)
+        student = Student.objects.create(user=user, **validated_data)
         for take in take_set:
             Take.objects.create(student=student, **take)
         return student
 
     def update(self, student: Student, validated_data):
         logging.error(validated_data)
+        user = validated_data.pop('username')
         take_set = validated_data.pop('take_set')
 
         student.name = validated_data.get('name', student.name)
@@ -101,3 +113,4 @@ class StudentSerializer(DynamicFieldsModelSerializer):
                                 semester=take['semester'])
 
         return student
+

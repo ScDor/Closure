@@ -167,15 +167,18 @@ ALL_COURSE_TYPES = REQUIRED_COURSE_TYPES + (CourseType.CORNER_STONE, CourseType.
 
 
 class Student(models.Model):
-    # user = models.OneToOneField(User, on_delete=models.CASCADE)
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     track = models.ForeignKey(Track, on_delete=models.CASCADE)
-    name = models.CharField(max_length=20)
     year_in_studies = models.IntegerField(choices=Year.choices)
     courses = models.ManyToManyField(Course, through='Take', blank=True)
 
+    def delete(self, using=None, keep_parents=False):
+        self.user.delete()
+        return super(self.__class__, self).delete(using, keep_parents)
+
     def __str__(self):
-        return ', '.join((self.name.title(),
+        return ', '.join((self.user.username,
+                          self.user.get_full_name(),
                           f'year={self.year_in_studies}',
                           f'track={self.track.track_number}',
                           f'took {len(self.courses.all())} courses'))

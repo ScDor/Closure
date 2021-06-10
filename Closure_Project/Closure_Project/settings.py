@@ -16,10 +16,8 @@ from six.moves.urllib import request
 from cryptography.x509 import load_pem_x509_certificate
 from cryptography.hazmat.backends import default_backend
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -33,19 +31,19 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 REST_FRAMEWORK = {
-   'DEFAULT_AUTHENTICATION_CLASSES': (
-       'rest_framework.authentication.TokenAuthentication',
-       'rest_framework.authentication.BasicAuthentication',
-       'rest_framework.authentication.SessionAuthentication',
-       'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
 
-   ),
-   'DEFAULT_PERMISSION_CLASSES': (
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAdminUser',
-   ),
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 
 }
-
 
 # Application definition
 
@@ -65,18 +63,17 @@ INSTALLED_APPS = [
 ]
 
 SWAGGER_SETTINGS = {
-   'SECURITY_DEFINITIONS': {
-      'Basic': {
+    'SECURITY_DEFINITIONS': {
+        'Basic': {
             'type': 'basic'
-      },
-      'Token': {
+        },
+        'Token': {
             'type': 'apiKey',
             'name': 'Authorization',
             'in': 'header'
-      }
-   }
+        }
+    }
 }
-
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -84,9 +81,16 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.RemoteUserMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware'
+    'corsheaders.middleware.CorsMiddleware',
+
+]
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'django.contrib.auth.backends.RemoteUserBackend',
 ]
 
 ROOT_URLCONF = 'Closure_Project.urls'
@@ -108,7 +112,6 @@ LOGGING = {
     },
 }
 
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -127,7 +130,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Closure_Project.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
@@ -137,6 +139,9 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+
+
 
 
 # Password validation
@@ -157,7 +162,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
@@ -171,7 +175,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
@@ -182,30 +185,16 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 AUTH0_DOMAIN = 'closure.eu.auth0.com'
 API_IDENTIFIER = 'https://closure'
-PUBLIC_KEY = None
-JWT_ISSUER = None
-
-if AUTH0_DOMAIN:
-    jsonurl = request.urlopen('https://' + AUTH0_DOMAIN + '/.well-known/jwks.json')
-    jwks = json.loads(jsonurl.read().decode('utf-8'))
-    cert = '-----BEGIN CERTIFICATE-----\n' + jwks['keys'][0]['x5c'][0] + '\n-----END CERTIFICATE-----'
-    certificate = load_pem_x509_certificate(cert.encode('utf-8'), default_backend())
-    PUBLIC_KEY = certificate.public_key()
-    JWT_ISSUER = 'https://' + AUTH0_DOMAIN + '/'
-
-
-def jwt_get_username_from_payload_handler(payload):
-    return 'auth0user'
-
 
 JWT_AUTH = {
-    'JWT_PAYLOAD_GET_USERNAME_HANDLER': jwt_get_username_from_payload_handler,
-    'JWT_PUBLIC_KEY': PUBLIC_KEY,
+    'JWT_PAYLOAD_GET_USERNAME_HANDLER':
+        'rest_api.utils.jwt_get_username_from_payload_handler',
+    'JWT_DECODE_HANDLER':
+        'rest_api.utils.jwt_decode_token',
     'JWT_ALGORITHM': 'RS256',
     'JWT_AUDIENCE': API_IDENTIFIER,
-    'JWT_ISSUER': JWT_ISSUER,
+    'JWT_ISSUER': AUTH0_DOMAIN,
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
