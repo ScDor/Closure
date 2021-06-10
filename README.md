@@ -61,6 +61,14 @@ The aforementioned order is important, as some objects assume existence of other
 1. If you don't have admin superuser, creat one with `python Closure_Project/manage.py createsuperuser`
 2. Use basic authentication with your username and passowrd created, or generate token with `python Closure_Project/manage.py drf_create_token` and add `{Autharization: Token <key>}` to request headers.
 
+### Using the API ###
+- To use the API, start the server with `python Closure_Project/manage.py runserver`.
+
+- The base API url is `https://<host>/api/v1`.
+- API documantion is availible in `https://<host>/redoc/`
+- Try to use API with: `https://<host>/swagger/`
+- When making real requests, always remember to add the Authrization header to the request.
+
 
 ## Contributions ##
 
