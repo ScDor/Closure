@@ -4,6 +4,9 @@
       <b>{{ year.name }}</b>
     </p>
 
+    <!-- each year has only 2 semesters, 
+    we still use a loop syntax to render them -->
+    
     <semester
       v-for="semester in semesters"
       :key="semester.id"
@@ -43,6 +46,9 @@ export default {
       event.dataTransfer.setData("id", course.course_id);
     };
 
+     /** 
+    * this method handles transferring courses from semester to semester   */
+    
     const onDrop = (event, year, semester) => {
       const courseid = event.dataTransfer.getData("id");
       const course = props.allcourses.find(
@@ -52,6 +58,10 @@ export default {
       course.semester = semester.id;
     };
 
+    /** 
+    * this method removes a certain course once it's X button is clicked
+    */
+    
     const onClick = (event, toRemove) => {
       const index = props.allcourses.indexOf(toRemove);
       props.allcourses.splice(index, 1);
