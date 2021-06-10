@@ -1,7 +1,7 @@
 <template>
-/* 
-* basically a menu, a (soon to be) analytics box, and the years themselves.
-*/
+<!--
+ basically a menu, a (soon to be) analytics box, and the years themselves.
+-->
 
   <nav class="navbar has-shadow is-dark">
     <div class="navbar-brand">
