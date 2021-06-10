@@ -1,6 +1,9 @@
 <template>
   <p class="menu-label">ניווט</p>
 
+
+  <!-- we will bind every key movement to the searchCourses method so it will update immediately -->
+  
   <div class="control has-icons-right">
     <input
       class="input is-dark"
@@ -48,6 +51,14 @@ export default {
   },
 
   methods: {
+  
+    /**
+    * this method uses the axios package to access our local database, and search
+    * courses according to the given query.
+    * notice that the drop down menu is hidden unless there are actual restults for the search.
+    * more on the implementation of the search on the backend part of the project.
+    */
+    
     searchCourses() {
       axios
         .get(
@@ -63,6 +74,11 @@ export default {
         .then((this.hide = !this.suggestions.length || this.query == ""));
     },
 
+    /**
+    * once a course is clicked, we need to transfer it's information up the component tree
+    * so the app could create a new coursebox for it
+    */
+    
     emitClick(event, course) {
       this.hide = true;
       this.query = "";
