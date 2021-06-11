@@ -1,4 +1,8 @@
 <template>
+<!--
+ basically a menu, a (soon to be) analytics box, and the years themselves.
+-->
+
   <nav class="navbar has-shadow is-dark">
     <div class="navbar-brand">
       <div class="navbar-item"><b>Closure()</b></div>
@@ -25,7 +29,7 @@
       
     </div>
   </nav>
-
+  
   <div dir="rtl">
     <section class="section section-style">
       <div class="columns is-variable is-2">
@@ -141,6 +145,13 @@ export default {
   },
 
   methods: {
+  
+    /**
+   * This method adds a new coursebox, by default to the first semester.
+   * requires an event (clicking on a course on the drop down menu in the navigation bar
+   * and the course itself.
+   */
+
     add(event, course) {
       this.allcourses.push({
         course_id: course.course_id,
