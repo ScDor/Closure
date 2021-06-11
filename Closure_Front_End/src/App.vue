@@ -3,16 +3,35 @@
     <div class="navbar-brand">
       <div class="navbar-item"><b>Closure()</b></div>
     </div>
+    <div class="navbar-start is-hidden-mobile is-hidden-touch">
+      <div class="navbar-item">
+        <div class="field is-grouped">
+          <p>נועה</p>
+          <span class="icon">
+            <i class="fas fa-user"></i>
+          </span>
+        </div>
+      </div>
+      <div class="navbar-item">
+        <div class="field is-grouped">
+          <p class="control">
+            <a class="button is-small is-dark menu-label">Log in</a>
+          </p>
+          <p class="control">
+            <a class="button is-small is-dark menu-label">Sign up</a>
+          </p>
+        </div>
+      </div>
+      
+    </div>
   </nav>
 
   <div dir="rtl">
     <section class="section section-style">
       <div class="columns is-variable is-2">
-        <!-- navigation -->
         <div class="column is-2 is-right is-hidden-mobile is-hidden-touch">
           <navigation @clickcourse="add"></navigation>
         </div>
-        <!-- all years -->
         <div class="column" v-for="year in years" :key="year">
           <year :year="year" :allcourses="allcourses"></year>
         </div>
@@ -24,11 +43,13 @@
 <script>
 import Year from "./components/Year.vue";
 import Navigation from "./components/Navigation.vue";
+import SignupForm from "./components/SignupForm.vue";
+import axios from "axios";
 
 export default {
   name: "Closure()",
 
-  components: { Navigation, Year },
+  components: { Navigation, Year, SignupForm },
 
   data() {
     return {
@@ -38,6 +59,8 @@ export default {
         { id: 3, name: "שנה ג" },
         { id: 4, name: "שנה ד" },
       ],
+
+      track: null,
 
       allcourses: [
         {
@@ -107,9 +130,18 @@ export default {
     };
   },
 
+  created() {
+    axios
+      .get("http://127.0.0.1:8000/api/v1/tracks/?track_number=3010", {
+        headers: {
+          Authorization: "Token 425fa39de10f02351c7043d0dbe34a4b31be7a27",
+        },
+      })
+      .then((response) => (this.track = response.data.results[0]));
+  },
+
   methods: {
     add(event, course) {
-      console.log(course);
       this.allcourses.push({
         course_id: course.course_id,
         name: course.name,
@@ -117,7 +149,6 @@ export default {
         year: 1,
         semester: 1,
       });
-      console.log(this.allcourses);
     },
   },
 };

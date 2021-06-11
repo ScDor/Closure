@@ -65,7 +65,7 @@ export default {
 
 <style>
 .half-height {
-  min-height: 34vh;
+  min-height: 36vh;
 }
 
 .space {

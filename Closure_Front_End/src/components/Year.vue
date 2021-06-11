@@ -14,18 +14,16 @@
       @dropcourse="onDrop"
       @clickclose="onClick"
     ></semester>
-
   </div>
 </template>
 
 <script>
 import Semester from "./Semester.vue";
-import YearSummary from "./YearSummary.vue";
 
 export default {
   props: ["year", "allcourses"],
 
-  components: { Semester, YearSummary },
+  components: { Semester },
 
   data() {
     return {
@@ -68,7 +66,8 @@ export default {
 
 <style>
 .full-height {
-  min-height: 88vh;
+  height: max-content;
+  overflow: auto;
 }
 
 .notification-style {
