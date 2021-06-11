@@ -43,7 +43,12 @@ export default {
     };
   },
 
-  methods: {
+  methods: /**
+   * this method uses the axios package to access our local database, and search
+   * courses according to the given query.
+   * notice that the drop down menu is hidden unless there are actual restults for the search.
+   * more on the implementation of the search on the backend part of the project.
+   */ {
     search() {
       axios
         .get(this.url + this.query, {
