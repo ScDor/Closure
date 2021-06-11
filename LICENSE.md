@@ -1,7 +1,7 @@
   
 # The MIT License
 
-Copyright (c) 2021 Closure() https://github.com/ScDor/Closure
+Copyright (c) 2021 scdor, ilanerukh, noabarlia, rbenjos https://github.com/ScDor/Closure
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
