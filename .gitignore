@@ -4,3 +4,4 @@
 /Closure_Project/Parser/*.json
 /Closure_Project/Parser/*.html
 /Closure_Project/rest_api/migrations/
+.DS_STORE
