@@ -99,7 +99,7 @@ class Track(models.Model):
             models.UniqueConstraint(fields=["track_number", "data_year"], name="track_year")]
 
     def __str__(self):
-        return f'#{self.track_number} {self.name} ({self.data_year})'
+        return f'{self.track_number} {self.name} ({self.data_year})'
 
     @property
     def total_points(self) -> int:
@@ -162,7 +162,8 @@ class CourseGroup(models.Model):
                          *(str(c) for c in self.courses.all())))
 
 
-REQUIRED_COURSE_TYPES = (CourseType.MUST, CourseType.FROM_LIST, CourseType.CHOICE)  # order matters! do not modify
+REQUIRED_COURSE_TYPES = (
+    CourseType.MUST, CourseType.FROM_LIST, CourseType.CHOICE)  # order matters! do not modify
 ALL_COURSE_TYPES = REQUIRED_COURSE_TYPES + (CourseType.CORNER_STONE, CourseType.SUPPLEMENTARY)
 
 
@@ -203,25 +204,39 @@ class Student(models.Model):
             counted.add(course)
             done[take.type] += course.points
 
-        result = {CourseType.MUST.name:
-                      {'required': track.points_must,
-                       'done': done[CourseType.MUST]},
+        result = {CourseType.MUST.name: {'required': track.points_must,
+                                         'done': done[CourseType.MUST]},
 
-                  CourseType.FROM_LIST.name:
-                      {'required': track.points_from_list,
-                       'done': done[CourseType.FROM_LIST]},
+                  CourseType.FROM_LIST.name: {'required': track.points_from_list,
+                                              'done': done[CourseType.FROM_LIST]},
 
-                  CourseType.CHOICE.name:
-                      {'required': track.points_choice,
-                       'done': done[CourseType.CHOICE]},
+                  CourseType.CHOICE.name: {'required': track.points_choice,
+                                           'done': done[CourseType.CHOICE]},
 
-                  CourseType.CORNER_STONE.name:
-                      {'required': track.points_corner_stones,
-                       'done': done[CourseType.CORNER_STONE]},
+                  CourseType.CORNER_STONE.name: {'required': track.points_corner_stones,
+                                                 'done': done[CourseType.CORNER_STONE]},
 
-                  CourseType.SUPPLEMENTARY.name:
-                      {'required': track.points_complementary,
-                       'done': done[CourseType.SUPPLEMENTARY]}}
+                  CourseType.SUPPLEMENTARY.name: {'required': track.points_complementary,
+                                                  'done': done[CourseType.SUPPLEMENTARY]}}
+
+        def trickle_down(trickle_from: CourseType, trickle_to: CourseType) -> None:
+            """
+            moves extra points between groups, for example, a student taking too many
+            FROM_LIST courses will have those points counted as CHOICE instead.
+
+            :param trickle_from: category from which points are moved
+            :param trickle_to:category to which points are moved
+            :return: None
+            """
+            extra = result[trickle_from.name]['done'] - result[trickle_from.name]['required']
+            if extra > 0:
+                result[trickle_from.name]['done'] -= extra
+                result[trickle_to.name]['done'] += extra
+
+        trickle_down(CourseType.MUST, CourseType.CHOICE)
+        trickle_down(CourseType.FROM_LIST, CourseType.CHOICE)
+        trickle_down(CourseType.CHOICE, CourseType.SUPPLEMENTARY)
+        trickle_down(CourseType.CORNER_STONE, CourseType.SUPPLEMENTARY)
 
         return result
 
