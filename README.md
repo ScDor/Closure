@@ -12,10 +12,12 @@ the Hebrew University of Jerusalem.
 
 NOTE: It's highly recommended to perform everything inside a venv.
 1. Clone this repo
-2. run `pip install -r requirements.txt`
-3. run `python Closure_Project/manage.py makemigrations rest_api` (the `python` command may be redundant if it's a globally-available command on your machine)
-4. run `python Closure_Project/manage.py migrate`
-5. run the django server with `python Closure_Project/manage.py runserver`
+2. run `python3 -m venv venv`
+3. for windows users: run `venv\Scripts\activate.bat`. for mac users: `run source venv/bin/activate` (you will get an indication for running inside a venv after you will run this command)
+4. run `pip install -r requirements.txt`
+5. run `python Closure_Project/manage.py makemigrations rest_api` (the `python` command may be redundant if it's a globally-available command on your machine)
+6. run `python Closure_Project/manage.py migrate`
+7. run the django server with `python Closure_Project/manage.py runserver`
 
 You now have a django instance with the database configured (yet blank)
 
