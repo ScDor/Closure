@@ -10,6 +10,7 @@ the Hebrew University of Jerusalem.
 
 ## Getting Started ##
 
+NOTE: It's highly recommended to perform everything inside a venv.
 1. Clone this repo
 2. run `pip install -r requirements.txt`
 3. run `python Closure_Project/manage.py makemigrations rest_api` (the `python` command may be redundant if it's a globally-available command on your machine)
