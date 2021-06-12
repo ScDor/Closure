@@ -12,12 +12,13 @@ the Hebrew University of Jerusalem.
 
 NOTE: It's highly recommended to perform everything inside a venv.
 1. Clone this repo
-2. run `python3 -m venv venv`
-3. for windows users: run `venv\Scripts\activate.bat`. for mac users: `run source venv/bin/activate` (you will get an indication for running inside a venv after you will run this command)
-4. run `pip install -r requirements.txt`
-5. run `python Closure_Project/manage.py makemigrations rest_api` (the `python` command may be redundant if it's a globally-available command on your machine)
-6. run `python Closure_Project/manage.py migrate`
-7. run the django server with `python Closure_Project/manage.py runserver`
+2. Run `python3 -m venv venv`
+3. Windows users: run `venv\Scripts\activate.bat`. Mac users: `run source venv/bin/activate` _(you will get an indication for running inside a venv after you will run this command)_
+4. Run `pip install -r requirements.txt`
+5. Run `python Closure_Project/manage.py makemigrations rest_api` _(the `python` command may be redundant if it's a globally-available command on your machine)_
+6. Run `python Closure_Project/manage.py migrate`
+7. On PyCharm, right-click the outer `Closure_Project` directory, choose `Mark Directory as` and click `Sources Root`. _(its icon will be colored cyan afterwards)_
+8. Start the django server with `python Closure_Project/manage.py runserver`
 
 You now have a django instance with the database configured (yet blank)
 
@@ -49,7 +50,7 @@ to get the relevant files, run `MoonDownloader.py`. The folders `tracks_html` an
 
 Downloading will take time! (the moon website is..._fragile_)
 
-Once you have both folders populated, run `OfflineParer.py`.
+Once you have both folders populated, run `OfflineParser.py`.
 
 Parsing happens in the following order:
 1. Parsing course details, parsed data is stored in `parsed_courses.json`
@@ -63,15 +64,15 @@ The aforementioned order is important, as some objects assume existence of other
 
 ### Generating auth ###
 1. If you don't have admin superuser, creat one with `python Closure_Project/manage.py createsuperuser`
-2. Use basic authentication with your username and passowrd created, or generate token with `python Closure_Project/manage.py drf_create_token` and add `{Autharization: Token <key>}` to request headers.
+2. Use basic authentication with your username and password created, or generate token with `python Closure_Project/manage.py drf_create_token` and add `{Autharization: Token <key>}` to request headers.
 
 ### Using the API ###
 - To use the API, start the server with `python Closure_Project/manage.py runserver`.
 
 - The base API url is `https://<host>/api/v1`.
-- API documantion is availible in `https://<host>/redoc/`
+- API documentation is available in `https://<host>/redoc/`
 - Try to use API with: `https://<host>/swagger/`
-- When making real requests, always remember to add the Authrization header to the request.
+- When making real requests, always remember to add the Authorization header to the request.
 
 
 ## Contributions ##
