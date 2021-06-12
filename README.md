@@ -13,7 +13,7 @@ the Hebrew University of Jerusalem.
 NOTE: It's highly recommended to perform everything inside a venv.
 1. Clone this repo
 2. Run `python3 -m venv venv`
-3. Windows users: run `venv\Scripts\activate.bat`. Mac users: run `source venv/bin/activate` _(you will get an indication for running inside a venv after you will run this command)_
+3. Windows users: run `venv\Scripts\activate.bat`. Mac users: run `source venv/bin/activate`. From now your commands are executed inside a virtual environment, make sure to run this command every time you want to run terminal commands related to `Closure()` again in the future 
 4. Run `pip install -r requirements.txt`
 5. Run `python Closure_Project/manage.py makemigrations rest_api` _(the `python` command may be redundant if it's a globally-available command on your machine)_
 6. Run `python Closure_Project/manage.py migrate`
