@@ -11,9 +11,10 @@ the Hebrew University of Jerusalem.
 ## Getting Started ##
 
 1. Clone this repo
-2. run `python Closure_Project/manage.py makemigrations rest_api`
-3. run `python Closure_Project/manage.py migrate`
-4. run the django server with `python Closure_Project/manage.py runserver`
+2. run `pip install -r requirements.txt`
+3. run `python Closure_Project/manage.py makemigrations rest_api` (the `python` command may be redundant if it's a globally-available command on your machine)
+4. run `python Closure_Project/manage.py migrate`
+5. run the django server with `python Closure_Project/manage.py runserver`
 
 You now have a django instance with the database configured (yet blank)
 
