@@ -10,7 +10,6 @@ the Hebrew University of Jerusalem.
 
 ## Getting Started ##
 
-NOTE: It's highly recommended to perform everything inside a venv.
 1. Clone this repo
 2. Run `python3 -m venv venv`
 3. Windows users: run `venv\Scripts\activate.bat`. Mac users: run `source venv/bin/activate`. Now, your commands are executed inside a virtual environment, make sure to run this command every time you want to run terminal commands related to `Closure()` again in the future.
@@ -46,11 +45,11 @@ Note:
 information from the Hebrew versions of the said websites.
 
 #### Downloading and parsing ####
-to get the relevant files, run `MoonDownloader.py`. The folders `tracks_html` and `course_details_html` will be created.
+To download the course files, run the `Parser/MoonDownloader.py` file. The folders `tracks_html` and `course_details_html` will be created.
 
 Downloading will take time! (the moon website is..._fragile_)
 
-Once you have both folders populated, run `OfflineParser.py`.
+Once you have both folders populated, run `Parser/OfflineParser.py`.
 
 Parsing happens in the following order:
 1. Parsing course details, parsed data is stored in `parsed_courses.json`
