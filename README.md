@@ -51,6 +51,14 @@ To download the course files, run the `Parser/MoonDownloader.py` file (make sure
 
 Downloading will take time! (the moon website is..._fragile_)
 
+#### Loading data offline ####
+incase of network errors with university site, you can load the data of all courses from a given file (HUJI mail needed for entrance)
+https://drive.google.com/file/d/1TQSQ--VWFKt0CCZlBOZRUxKuH6Y6u0DL/view?usp=sharing
+
+1. Download the zip file
+2. Extract it to Parser folder.
+3. in OfflineParser.py run 'load_all_dumped' function (Tip: if fetching corner-stone coursers takes a while, put that line as a comment and continue with out that data)
+
 #### Parsing the data ####
 Once you have both folders populated, run `Parser/OfflineParser.py`.
 
