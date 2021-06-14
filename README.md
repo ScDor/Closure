@@ -10,16 +10,18 @@ the Hebrew University of Jerusalem.
 
 ## Getting Started ##
 
-1. Clone this repo
-2. Run `python3 -m venv venv`
-3. Windows users: run `venv\Scripts\activate.bat`. Mac users: run `source venv/bin/activate`. Now, your commands are executed inside a virtual environment, make sure to run this command every time you want to run terminal commands related to `Closure()` again in the future.
-4. Run `pip install -r requirements.txt`
-5. Run `python Closure_Project/manage.py makemigrations rest_api` _(the `python` command may be redundant if it's a globally-available command on your machine)_
+1. Clone this repo.
+2. Run `python3 -m venv venv` to install a new Python virtual environment.
+3. Activate the virtual environment so your commands will be executed inside a virtual environment: 
+    - Windows: run `venv\Scripts\activate.bat`. 
+    - Mac OS/Linux: run `source venv/bin/activate`. <br> 
+4. Run `pip install -r requirements.txt` to install the project's dependencies.
+5. Run `python Closure_Project/manage.py makemigrations rest_api`
 6. Run `python Closure_Project/manage.py migrate`
-7. On PyCharm, right-click the outer `Closure_Project` directory, choose `Mark Directory as` and click `Sources Root`. _(its icon will be colored cyan afterwards)_
-8. Start the django server with `python Closure_Project/manage.py runserver`
+7. On PyCharm, right-click the outer `Closure_Project` directory, choose `Mark Directory as` and click `Sources Root` _(its icon will be colored cyan afterwards)_.
+8. Start the Django server with `python Closure_Project/manage.py runserver`
 
-You now have a django instance with the database configured (yet blank)
+You now have a django instance with the database configured (yet blank).
 
 The next step would be populating the database with `Course` information, so the whole ordeal
 can work.
@@ -44,11 +46,12 @@ Note:
 * The example parser provided in the `Parser` folder is configured to fetch and parse
 information from the Hebrew versions of the said websites.
 
-#### Downloading and parsing ####
-To download the course files, run the `Parser/MoonDownloader.py` file. The folders `tracks_html` and `course_details_html` will be created.
+#### Downloading the data ####
+To download the course files, run the `Parser/MoonDownloader.py` file (make sure venv is activated!). The folders `tracks_html` and `course_details_html` will be created.
 
 Downloading will take time! (the moon website is..._fragile_)
 
+#### Parsing the data ####
 Once you have both folders populated, run `Parser/OfflineParser.py`.
 
 Parsing happens in the following order:
