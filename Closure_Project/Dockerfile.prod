@@ -1,0 +1,79 @@
+## It supposed to reduce the image size, important for production
+
+###########
+# BUILDER #
+###########
+
+# pull official base image
+FROM python:3.9.5-slim as builder
+
+# set work directory
+WORKDIR /usr/src/Closure_Project
+
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# install psycopg2 dependencies
+RUN apt -y update \
+    && apt -y install libpq-dev \
+    && apt -y install netcat
+
+# lint
+RUN pip install --upgrade pip
+RUN pip install flake8
+COPY . .
+#RUN flake8 --ignore=E501,F401 /usr/src/Clousre_Project
+
+# install dependencies
+COPY ./requirements.txt .
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/Closure_Project/wheels -r requirements.txt
+
+
+#########
+# FINAL #
+#########
+
+# pull official base image
+FROM python:3.9.5-slim
+# create directory for the app user
+RUN mkdir -p /home/app
+
+# create the app user
+RUN addgroup --system app && adduser --system --group app
+
+# create the appropriate directories
+ENV HOME=/home/app
+ENV APP_HOME=/home/app/backend
+RUN mkdir $APP_HOME
+RUN mkdir $APP_HOME/staticfiles
+RUN mkdir $APP_HOME/mediafiles
+WORKDIR $APP_HOME
+
+# install dependencies
+RUN apt -y update  \
+    && apt -y install libpq-dev \
+    && apt -y install netcat
+
+COPY --from=builder /usr/src/Closure_Project/wheels /wheels
+COPY --from=builder /usr/src/Closure_Project/requirements.txt .
+RUN pip install --no-cache /wheels/*
+
+# copy entrypoint-prod.sh
+COPY ./entrypoint.sh $APP_HOME
+
+# copy project
+COPY . $APP_HOME
+
+# chown all the files to the app user
+RUN chown -R app:app $APP_HOME
+
+RUN export DOCKER_IMAGE_TAG=$(git rev-parse --short HEAD)
+
+ENV PYTHONPATH "${PYTHONPATH}:/home/app/backend/Clousre_Project"
+
+# change to the app user
+USER app
+
+# run entrypoint.prod.sh
+ENTRYPOINT ["/home/app/backend/entrypoint.sh"]

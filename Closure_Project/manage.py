@@ -3,8 +3,13 @@
 import os
 import sys
 
+import Closure_Project.settings
+
 
 def main():
+    import sys
+    print(Closure_Project.settings.DATABASES, file=sys.stderr)
+    print("!!!!!!!!!!!!!!!!!!!!!!!@#@!#@!#123")
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Closure_Project.settings')
     try:

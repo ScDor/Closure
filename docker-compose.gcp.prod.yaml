@@ -1,0 +1,59 @@
+# docker-compose.access.yml
+# Usage:
+#   docker-compose -f docker-compose.prod.yml -f docker-compose.gcp.prod.yml
+version: '3.7'
+services:
+  credenetials:
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS:
+        /tmp/keys/keyfile.json
+        - 'GCP_KEY_PATH=${GCP_KEY_PATH}'
+    volumes:
+      # Inject your specific service account keyfile into the container at runtime.
+      - ${GCP_KEY_PATH}:/tmp/keys/keyfile.json:ro
+  cloudrun:
+    image: gcr.io/closure-316619/closure
+    depends_on:
+      - credenetials
+  cloud_db:
+    #    env_file:
+    #      # These environment variables are used by your application.
+    #      # You may choose to reuse your production configuration as implied by this file,
+    #      # but an alternative database instance and user credentials is recommended.
+    #      - ./.env.prod
+    environment:
+      # These environment variables are used by your application.
+      # You may choose to reuse your production configuration as implied by this file,
+      # but an alternative database instance and user credentials is recommended.
+
+      - 'CLOUDSQL_CONNECTION_NAME=${CLOUDSQL_CONNECTION_NAME}'
+      - 'CLOUDSQL_USER=${CLOUDSQL_USER}'
+      - 'CLOUDSQL_PASSWORD=${CLOUDSQL_PASSWORD}'
+
+    volumes:
+      # Mount the volume for the cloudsql proxy.
+      - cloudsql:/cloudsql
+    depends_on:
+      - sql_proxy
+
+  sql_proxy:
+    environment:
+      - 'GCP_KEY_PATH=${GCP_KEY_PATH}'
+      - 'CLOUDSQL_CONNECTION_NAME=&{CLOUDSQL_CONNECTION_NAME}'
+    image: gcr.io/cloudsql-docker/gce-proxy:1.19.1
+    command:
+      - "/cloud_sql_proxy"
+      - "-dir=/cloudsql"
+      - "-instances=${CLOUDSQL_CONNECTION_NAME}"
+      - "-credential_file=/tmp/keys/keyfile.json"
+    # Allow the container to bind to the unix socket.
+    user: root
+    volumes:
+      - ${GCP_KEY_PATH}:/tmp/keys/keyfile.json:ro
+      - cloudsql:/cloudsql
+    depends_on:
+      - credenetials
+
+volumes:
+  # This empty property initializes a named volume.
+  cloudsql:

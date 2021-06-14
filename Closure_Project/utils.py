@@ -1,9 +1,26 @@
+import os
 import json
 import jwt
 import requests
 from django.contrib.auth import authenticate
 
-from Closure_Project.Closure_Project.settings import API_IDENTIFIER, AUTH0_DOMAIN
+from Closure_Project.settings import API_IDENTIFIER, AUTH0_DOMAIN
+
+
+def dump_json(o: object, filename: str) -> None:
+    with open(filename, 'w', encoding='utf8') as f:
+        json.dump(o, f, ensure_ascii=False)
+
+
+def load_json(filename: str):
+    with open(filename, 'r', encoding='utf8') as f:
+        return json.load(f)
+
+
+def setup_django_pycharm():
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Closure_Project.settings")
+    import django
+    django.setup()
 
 
 def jwt_get_username_from_payload_handler(payload):

@@ -2,7 +2,6 @@ import os
 from typing import List, Tuple, Dict
 
 from tqdm import tqdm
-
 import utils
 from CornerStoneParser import fetch_insert_corner_stones_into_db
 from MoonParser import parse_course_detail_page, NothingToParseException, parse_moon, \
@@ -11,10 +10,14 @@ from MoonParser import parse_course_detail_page, NothingToParseException, parse_
 LOGGED_NOT_PARSED = 'bad.txt'
 LOGGED_PARSED = 'good.txt'
 
+BASE_DIR = 'static/parsed'
+
 utils.setup_django_pycharm()
 from rest_api.models import Course, Track, CourseGroup
 
-COURSE_DUMP = 'parsed_courses.json'
+COURSE_DUMP = f'{BASE_DIR}/parsed_courses.json'
+TRACK_DUMP = f'{BASE_DIR}/parsed_tracks'
+GROUPS_DUMP = f'{BASE_DIR}/parsed_groups'
 
 
 def parse_track_folder(html_folder: str, data_year: int, dump: bool = False) -> \
@@ -103,7 +106,7 @@ def load_parsed_track(track_values: Dict) -> None:
     Track.objects.update_or_create(**track_values)
 
 
-def load_parsed_track_folder(folder: str = 'parsed_tracks') -> None:
+def load_parsed_track_folder(folder: str = TRACK_DUMP) -> None:
     for f in tqdm(os.listdir(folder)):
         load_parsed_track(utils.load_json(os.path.join(folder, f)))
 
@@ -128,7 +131,7 @@ def load_parsed_group(group_values: Dict) -> None:
     group.save()
 
 
-def load_parsed_groups_folder(folder_path: str = 'parsed_groups'):
+def load_parsed_groups_folder(folder_path: str = GROUPS_DUMP):
     for f in tqdm(os.listdir(folder_path)):
         path = os.path.join(folder_path, f)
         load_parsed_group(utils.load_json(path))
@@ -169,4 +172,4 @@ def load_all_dumped():
 
 
 if __name__ == '__main__':
-    parse_dump_load_all()
+    load_all_dumped()
