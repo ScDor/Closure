@@ -51,6 +51,12 @@ To download the course files, run the `Parser/MoonDownloader.py` file (make sure
 
 Downloading will take time! (the moon website is..._fragile_)
 
+#### Loading data offline ####
+In case of network issues when downloading (or, to save yourself time), it's possible to load the data of all courses and tracks. 
+1. Download the [7z dump file](https://drive.google.com/file/d/1TQSQ--VWFKt0CCZlBOZRUxKuH6Y6u0DL/view?usp=sharing) (HUJI account required)
+2. Extract it into the `Parser` folder
+3. Run `OfflineParser.py -> load_all_dumped()` _(Tip: if fetching corner-stone coursers gets stuck, comment out that line and continue with out that data, there's an [open issue](https://github.com/ScDor/Closure/issues/4))_
+
 #### Parsing the data ####
 Once you have both folders populated, run `Parser/OfflineParser.py`.
 
