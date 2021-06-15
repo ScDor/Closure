@@ -6,11 +6,18 @@ from os import path
 
 import requests
 
+def get_data_with_retry(url, max_retries=5):
+    for i in range(max_retries):
+        get = requests.get(url)
+        text = get.text
+        if text is not None and 'timeout' not in text:
+            return get
+        sleep(1)
+
 
 def download_course(override_existing_files: bool, i: int):
     html_path = f'course_details_html/{i}.html'
     if not override_existing_files and path.exists(html_path):
-        print(i)
         return
 
     url = f'http://moon.cc.huji.ac.il/nano/pages/wfrCourse.aspx?' \
@@ -19,7 +26,7 @@ def download_course(override_existing_files: bool, i: int):
           f'courseId={i}'
 
     with open(html_path, 'wb') as f:
-        f.write(requests.get(url).content)
+        f.write(get_data_with_retry(url, 5).content)
     print(i)
 
 
@@ -34,18 +41,8 @@ def download_track(override_existing_files: bool, i: int):
           f'faculty=2&' \
           f'maslulId=2{i}'
 
-    text = None
-    get = None
-
-    while text is None or 'timeout' in text:  # todo use requests retry instead
-        get = requests.get(url)
-        text = get.text
-        if 'timeout' in text:
-            print(f'({i})')
-            sleep(5)
-
     with open(html_path, 'wb') as f:
-        f.write(get.content)
+        f.write(get_data_with_retry(url, max_retries=5).content)
     print(i)
 
 
@@ -70,7 +67,7 @@ def download_all_tracks(override_existing_files=False):
 
 
 def download_all():
-    # download_all_courses()
+    download_all_courses()
     download_all_tracks()
 
 
