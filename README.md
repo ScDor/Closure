@@ -8,6 +8,17 @@ This project is part of
 the [Open Source Software Workshop](https://shnaton.huji.ac.il/index.php/NewSyl/67118/2/) at
 the Hebrew University of Jerusalem.
 
+
+## Table of Contents
+
+- [Running Instructions](#instructions)
+- [Example on HUJI DB](#HUJIex)
+- [Generating auth](#generatingAuth)
+- [How to use the API?](#usetheapi)
+- [Contribution details](#contribute)
+
+
+<a name="instructions"/>
 ## Getting Started ##
 
 1. Clone this repo.
@@ -29,6 +40,7 @@ can work.
 See the `Parser` folder, or read the following subsection to learn more about the data
 structures used.
 
+<a name="HUJIex"/>
 ### Populating the DB: HUJI Parser as example ###
 
 The Hebrew University of Jerusalem serves course information as follows:
@@ -45,6 +57,7 @@ Note:
 * It is important to parse courses before parsing tracks. When parsing a track, the parser validates the relevant courses already exist in the database. 
 * The example parser provided in the `Parser` folder is configured to fetch and parse
 information from the Hebrew versions of the said websites.
+
 
 #### Downloading the data ####
 To download the course files, run the `Parser/MoonDownloader.py` file (make sure venv is activated!). The folders `tracks_html` and `course_details_html` will be created.
@@ -70,10 +83,12 @@ Parsing happens in the following order:
 
 The aforementioned order is important, as some objects assume existence of others (e.g. `CourseGroup` and `Course` objects).
 
+<a name="generatingAuth"/>
 ### Generating auth ###
 1. If you don't have admin superuser, creat one with `python Closure_Project/manage.py createsuperuser`
 2. Use basic authentication with your username and password created, or generate token with `python Closure_Project/manage.py drf_create_token` and add `{Autharization: Token <key>}` to request headers.
 
+<a name="usetheapi"/>
 ### Using the API ###
 - To use the API, start the server with `python Closure_Project/manage.py runserver`.
 
@@ -82,7 +97,7 @@ The aforementioned order is important, as some objects assume existence of other
 - Try to use API with: `https://<host>/swagger/`
 - When making real requests, always remember to add the Authorization header to the request.
 
-
+<a name="contribute"/>
 ## Contributions ##
 
 Feel free to PR or open issues.
