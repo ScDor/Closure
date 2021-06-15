@@ -169,5 +169,5 @@ def load_all_dumped():
 
 
 if __name__ == '__main__':
-    load_all_dumped()
+    parse_dump_load_all()
 
