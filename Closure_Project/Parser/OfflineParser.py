@@ -116,14 +116,17 @@ def parse_course_details_folder(dump: bool) -> List[Dict]:
     return results
 
 
-def load_parsed_track(track_values: Dict) -> None:
-    # print('inserting track #' + str(track_values['track_number']))
-    Track.objects.update_or_create(**track_values)
-
-
 def load_parsed_track_folder(folder: str = str(TRACK_DUMP_FOLDER_PATH)) -> None:
-    for f in tqdm(os.listdir(folder), desc=f"Loading parsed tracks from {folder}"):
-        load_parsed_track(utils.load_json(os.path.join(folder, f)))
+
+    track_file_paths = Path(folder).glob("*.json")
+    track_dicts = [utils.load_json(str(path)) for path in track_file_paths]
+
+    existing_track_numbers = [t["track_number"] for t in track_dicts]
+    _, delete_dict = Track.objects.filter(track_number__in=existing_track_numbers).delete()
+    print(f"Deleted and re-created conflicting track, the resulting deletion counts: {delete_dict} ")
+
+    tracks = [Track(**dic) for dic in track_dicts]
+    Track.objects.bulk_create(tracks)
 
 
 def load_parsed_group(group_values: Dict) -> None:
@@ -168,8 +171,11 @@ def load_dumped_courses(only_add_new: bool, courses_json_file: str = str(COURSE_
         existing_ids = {v[1] for v in Course.objects.values_list()}
         parsed = [p for p in parsed if p and p['course_id'] not in existing_ids]
 
-    for c in tqdm(parsed):
-        load_parsed_course(c)
+    existing_course_ids = [c['course_id'] for c in parsed]
+    _ , delete_dict = Course.objects.filter(course_id__in=existing_course_ids).delete()
+    print(f"Deleted and re-created conflicting courses, the resulting deletion counts: {delete_dict} ")
+    objects = [Course(**dic) for dic in parsed]
+    Course.objects.bulk_create(objects)
 
 
 def parse_dump_load_all():
@@ -201,6 +207,5 @@ def load_from_internet():
 
 
 if __name__ == '__main__':
-    parse_dump_load_all()
     load_all_dumped()
 
