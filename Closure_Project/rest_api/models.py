@@ -168,15 +168,14 @@ ALL_COURSE_TYPES = REQUIRED_COURSE_TYPES + (CourseType.CORNER_STONE, CourseType.
 
 
 class Student(models.Model):
-    # user = models.OneToOneField(User, on_delete=models.CASCADE)
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     track = models.ForeignKey(Track, on_delete=models.CASCADE)
-    name = models.CharField(max_length=20)
     year_in_studies = models.IntegerField(choices=Year.choices)
     courses = models.ManyToManyField(Course, through='Take', blank=True)
 
     def __str__(self):
-        return ', '.join((self.name.title(),
+        return ', '.join((self.user.username,
+                          self.user.get_full_name(),
                           f'year={self.year_in_studies}',
                           f'track={self.track.track_number}',
                           f'took {len(self.courses.all())} courses'))
@@ -254,14 +253,5 @@ class Take(models.Model):
 
     @property
     def type(self) -> CourseType:
-        if self.course.is_corner_stone:
-            return CourseType.CORNER_STONE
-
-        cg_set = self.student.track.coursegroup_set
-        matching_cg = cg_set.filter(courses__id=self.course.id).all()
-        types = {cg.course_type for cg in matching_cg}
-        for course_type in [CourseType.MUST, CourseType.FROM_LIST, CourseType.CHOICE]:
-            if course_type in types:
-                return course_type
-
-        return CourseType.SUPPLEMENTARY
+        from rest_api.utils import get_course_type
+        return get_course_type(self.student.track, self.course)
