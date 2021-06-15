@@ -1,5 +1,14 @@
 import re
-from typing import List
+import sys
+from pathlib import Path
+from typing import List, Optional
+
+
+CURRENT_DIR = Path(__file__).parent
+
+sys.path.append(str(CURRENT_DIR.parent))
+sys.path.append(str(CURRENT_DIR.parent))
+sys.path.append(str(CURRENT_DIR.parent.parent))
 
 import requests
 from bs4 import BeautifulSoup
@@ -11,6 +20,8 @@ utils.setup_django_pycharm()
 
 from rest_api.models import Course
 
+CORNER_STONE_ID_FILENAME = "corner_stone_ids.json"
+CORNER_STONE_ID_FILE_PATH = CURRENT_DIR / CORNER_STONE_ID_FILENAME
 
 def _parse_side_menu_urls(url: str):
     """
@@ -75,7 +86,9 @@ def _parse_corner_stones(url: str) -> List[int]:
     return result
 
 
-def fetch_parse_corner_stones():
+def fetch_parse_corner_stones(id_file: Optional[str] = str(CORNER_STONE_ID_FILE_PATH)):
+    """ Fetches the course IDs of corner stones, saving them
+        at the given file path."""
     spirit = r'https://ap.huji.ac.il/%D7%A7%D7%95%D7%A8%D7%A1%D7%99%D7%9D-%D7%A8%D7%95%D7%97-2'
     social = r'https://ap.huji.ac.il/%D7%A7%D7%95%D7%A8%D7%A1%D7%99%D7%9D-%D7%97%D7%91%D7%A8' \
              r'%D7%94'
@@ -85,25 +98,26 @@ def fetch_parse_corner_stones():
                 r'%A8%D7%90%D7%9C-0'
     experimental = r'https://ap.huji.ac.il/%D7%94%D7%AA%D7%97%D7%95%D7%9D-%D7%94%D7%A0%D7%99' \
                    r'%D7%A1%D7%95%D7%99%D7%99'
-    result = []
+    result = set()
 
-    result.extend(_parse_corner_stones(spirit))
-    result.extend(_parse_corner_stones(social))
-    result.extend(_parse_corner_stones(experimental))
-    result.extend(_parse_corner_stones(democracy))
+    result.update(_parse_corner_stones(spirit))
+    result.update(_parse_corner_stones(social))
+    result.update(_parse_corner_stones(experimental))
+    result.update(_parse_corner_stones(democracy))
 
-    return result
+    utils.dump_json(list(result), id_file)
 
 
-def fetch_insert_corner_stones_into_db() -> None:
+def update_corner_stone_status(id_file: str = str(CORNER_STONE_ID_FILE_PATH)) -> None:
     """
-    fetches corner stones from the website, and sets `is_corner_stone=True` to relevant ones.
+    Updates the corner stone status of pre-existing courses via a file of corner stone course IDs.
     """
     old_corner_stones = {c.course_id for c in Course.objects.filter(is_corner_stone=True)}
     print(f'before parsing, {len(Course.objects.filter(is_corner_stone=True))} '
           f'courses are marked as corner stone')
 
-    parsed = fetch_parse_corner_stones()
+
+    parsed = utils.load_json(id_file)
 
     for course_id in parsed:
         course = Course.objects.get(course_id=course_id)
@@ -117,4 +131,5 @@ def fetch_insert_corner_stones_into_db() -> None:
 
 
 if __name__ == '__main__':
-    fetch_insert_corner_stones_into_db()
+    fetch_parse_corner_stones()
+    update_corner_stone_status()

@@ -1,12 +1,24 @@
 import os
+import sys
+import io
+from pathlib import Path
+import zipfile
+import requests
 from typing import List, Tuple, Dict
-
+import tempfile
 from tqdm import tqdm
+from django.db import transaction
+CURRENT_DIR = Path(__file__).parent
+
+sys.path.append(str(CURRENT_DIR.parent))
+sys.path.append(str(CURRENT_DIR.parent.parent))
+sys.path.append(str(CURRENT_DIR.parent.parent))
+
 
 import utils
-from CornerStoneParser import fetch_insert_corner_stones_into_db
+from CornerStoneParser import fetch_parse_corner_stones,  update_corner_stone_status, CORNER_STONE_ID_FILENAME
 from MoonParser import parse_course_detail_page, NothingToParseException, parse_moon, \
-    NoTrackParsedException
+    NoTrackParsedException, PARSED_TRACKS_FOLDER_NAME, PARSED_GROUPS_FOLDER_NAME
 
 LOGGED_NOT_PARSED = 'bad.txt'
 LOGGED_PARSED = 'good.txt'
@@ -14,7 +26,13 @@ LOGGED_PARSED = 'good.txt'
 utils.setup_django_pycharm()
 from rest_api.models import Course, Track, CourseGroup
 
-COURSE_DUMP = 'parsed_courses.json'
+
+PARSE_RESULT_FOLDER = CURRENT_DIR
+
+COURSE_DUMP_FILENAME = 'parsed_courses.json'
+COURSE_DUMP_FILE_PATH = PARSE_RESULT_FOLDER / COURSE_DUMP_FILENAME
+TRACK_DUMP_FOLDER_PATH = PARSE_RESULT_FOLDER / PARSED_TRACKS_FOLDER_NAME
+GROUP_DUMP_FOLDER_PATH = PARSE_RESULT_FOLDER / PARSED_GROUPS_FOLDER_NAME
 
 
 def parse_track_folder(html_folder: str, data_year: int, dump: bool = False) -> \
@@ -78,7 +96,7 @@ def parse_course_details_folder(dump: bool) -> List[Dict]:
     """
     Parses a folder of html files for courses, returning the course details as dictionary
     :param write_log_files: log (append) parsing staus to LOGGED_PARSED,LOGGED_NOT_PARSED
-    :param dump: should dump into COURSE_DUMP, for faster (no need to parse) loading later
+    :param dump: should dump into COURSE_DUMP_FILE, for faster (no need to parse) loading later
     :return: list of dictionaries representing courses
     """
     print('parsing course detail folder')
@@ -89,11 +107,11 @@ def parse_course_details_folder(dump: bool) -> List[Dict]:
 
     nonempty_paths = [p for p in all_file_paths if os.stat(p).st_size != 29_589]
 
-    for file_path in tqdm(nonempty_paths):
+    for file_path in tqdm(nonempty_paths, desc="Parsing "):
         results.append(_parse_course_details_html(file_path))
 
     if dump:
-        utils.dump_json(results, COURSE_DUMP)
+        utils.dump_json(results, str(COURSE_DUMP_FILE_PATH))
 
     return results
 
@@ -103,8 +121,8 @@ def load_parsed_track(track_values: Dict) -> None:
     Track.objects.update_or_create(**track_values)
 
 
-def load_parsed_track_folder(folder: str = 'parsed_tracks') -> None:
-    for f in tqdm(os.listdir(folder)):
+def load_parsed_track_folder(folder: str = str(TRACK_DUMP_FOLDER_PATH)) -> None:
+    for f in tqdm(os.listdir(folder), desc=f"Loading parsed tracks from {folder}"):
         load_parsed_track(utils.load_json(os.path.join(folder, f)))
 
 
@@ -128,9 +146,9 @@ def load_parsed_group(group_values: Dict) -> None:
     group.save()
 
 
-def load_parsed_groups_folder(folder_path: str = 'parsed_groups'):
-    for f in tqdm(os.listdir(folder_path)):
-        path = os.path.join(folder_path,f)
+def load_parsed_groups_folder(folder: str = str(GROUP_DUMP_FOLDER_PATH)):
+    for f in tqdm(os.listdir(folder), desc=f"Loading parsed groups from {folder}"):
+        path = os.path.join(folder,f)
         load_parsed_group(utils.load_json(path))
 
 
@@ -139,10 +157,11 @@ def load_parsed_course(course_values: Dict) -> None:
                                     defaults=course_values)
 
 
-def load_dumped_courses(only_add_new: bool) -> None:
-    print('loading parsed courses to db')
+def load_dumped_courses(only_add_new: bool, courses_json_file: str = str(COURSE_DUMP_FILE_PATH)) -> None:
+    print(f"loading parsed courses from {courses_json_file}")
+
     # noinspection PyTypeChecker
-    parsed = [c for c in utils.load_json(COURSE_DUMP)
+    parsed = [c for c in utils.load_json(courses_json_file)
               if c is not None]  # some are None because of parsing issues
 
     if only_add_new:
@@ -155,19 +174,33 @@ def load_dumped_courses(only_add_new: bool) -> None:
 
 def parse_dump_load_all():
     parse_course_details_folder(dump=True)
-    fetch_insert_corner_stones_into_db()
+    fetch_parse_corner_stones()
     parse_track_folder('tracks_html', 2021, True)  # parses groups too
-
     load_all_dumped()
 
 
-def load_all_dumped():
-    load_dumped_courses(False)
-    fetch_insert_corner_stones_into_db()
-    load_parsed_track_folder()
-    load_parsed_groups_folder()
+@transaction.atomic()
+def load_all_dumped(folder: Path = CURRENT_DIR):
+    load_dumped_courses(only_add_new=False, courses_json_file=str(folder / COURSE_DUMP_FILENAME))
+    update_corner_stone_status(id_file=str(folder / CORNER_STONE_ID_FILENAME))
+    load_parsed_track_folder(folder=str(folder / PARSED_TRACKS_FOLDER_NAME))
+    load_parsed_groups_folder(folder=str(folder / PARSED_GROUPS_FOLDER_NAME))
+
+@transaction.atomic
+def load_from_internet():
+    print("Downloading zipped data")
+    res = requests.get("https://storage.googleapis.com/closure_kb_parsed_data/parse_data_v2.zip")
+    print("Extracting zipped data")
+    with (zipfile.ZipFile(io.BytesIO(res.content)) as zip,
+          tempfile.TemporaryDirectory(prefix="parse_state") as temp_dir):
+        temp_dir = Path(temp_dir)
+        zip.extractall(path=temp_dir)
+        print("Done extracting zipped data, loading data into DB")
+        load_all_dumped(temp_dir)   
+        
 
 
 if __name__ == '__main__':
     parse_dump_load_all()
+    load_all_dumped()
 

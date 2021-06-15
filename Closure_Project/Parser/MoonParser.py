@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import re
 from datetime import datetime
 from typing import List, Tuple, Dict
@@ -93,6 +94,14 @@ COMPLEMENTARY = 'לימודים משלימים'
 ADDITIONAL_HUG = 'חוג נוסף'
 MINOR = 'חטיבה'
 
+# Parser output paths
+CURRENT_DIR = Path(__file__).parent
+
+PARSED_TRACKS_FOLDER_NAME = "parsed_tracks"
+PARSED_TRACKS_FOLDER_PATH = CURRENT_DIR / PARSED_TRACKS_FOLDER_NAME
+
+PARSED_GROUPS_FOLDER_NAME = "parsed_groups"
+PARSED_GROUPS_FOLDER_PATH = CURRENT_DIR / PARSED_GROUPS_FOLDER_NAME
 
 def parse_track_name(soup: BeautifulSoup) -> str:
     """
@@ -287,9 +296,8 @@ def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
     previous_type = None  # becomes current_type on 'וגם'
 
     if dump:
-        for folder in ['parsed_tracks', 'parsed_groups']:
-            if not os.path.exists(folder):
-                os.mkdir(folder)
+        for folder in [PARSED_TRACKS_FOLDER_PATH, PARSED_GROUPS_FOLDER_PATH]:
+            folder.mkdir(parents=True, exist_ok=True)
 
     # parse track first
     for table in reversed(df_list):
@@ -301,7 +309,7 @@ def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
                                                track_comment,
                                                data_year)
                 if dump:
-                    utils.dump_json(track_values, f'parsed_tracks/{track_id}.json')
+                    utils.dump_json(track_values, str(PARSED_TRACKS_FOLDER_PATH / f"{track_id}.json"))
                 break
 
             except NotImplementedError as e:
@@ -390,8 +398,8 @@ def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
             group_value_list.append(group_values)
             if dump:
                 utils.dump_json(group_values,
-                                f'parsed_groups/'
-                                f'{track_id}_y{current_year}_{index_in_track_year}.json')
+                                str(PARSED_GROUPS_FOLDER_PATH / 
+                                    f'{track_id}_y{current_year}_{index_in_track_year}.json'))
 
             current_comment = None  # reset after using in group_values
             index_in_track_year += 1
