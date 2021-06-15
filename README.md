@@ -11,14 +11,15 @@ the Hebrew University of Jerusalem.
 
 ## Table of Contents
 
-- [Running Instructions](#instructions)
-- [Example on HUJI DB](#HUJIex)
-- [Generating auth](#generatingAuth)
-- [How to use the API?](#usetheapi)
-- [Contribution details](#contribute)
+- [Setting up django](#instructions)
+- [Polulating the DB](#HUJIex)
+- [Authenticating](#generatingAuth)
+- [API Usage](#usetheapi)
+- [Contributions](#contribute)
 
 
 <a name="instructions"/>
+
 ## Getting Started ##
 
 1. Clone this repo.
@@ -41,6 +42,7 @@ See the `Parser` folder, or read the following subsection to learn more about th
 structures used.
 
 <a name="HUJIex"/>
+
 ### Populating the DB: HUJI Parser as example ###
 
 The Hebrew University of Jerusalem serves course information as follows:
@@ -84,11 +86,13 @@ Parsing happens in the following order:
 The aforementioned order is important, as some objects assume existence of others (e.g. `CourseGroup` and `Course` objects).
 
 <a name="generatingAuth"/>
+
 ### Generating auth ###
 1. If you don't have admin superuser, creat one with `python Closure_Project/manage.py createsuperuser`
 2. Use basic authentication with your username and password created, or generate token with `python Closure_Project/manage.py drf_create_token` and add `{Autharization: Token <key>}` to request headers.
 
 <a name="usetheapi"/>
+
 ### Using the API ###
 - To use the API, start the server with `python Closure_Project/manage.py runserver`.
 
@@ -98,6 +102,7 @@ The aforementioned order is important, as some objects assume existence of other
 - When making real requests, always remember to add the Authorization header to the request.
 
 <a name="contribute"/>
+
 ## Contributions ##
 
 Feel free to PR or open issues.
