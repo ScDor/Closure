@@ -13,6 +13,6 @@ def load_json(filename: str):
 
 
 def setup_django_pycharm():
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Closure_Project.Closure_Project.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project_settings.settings")
     import django
     django.setup()
