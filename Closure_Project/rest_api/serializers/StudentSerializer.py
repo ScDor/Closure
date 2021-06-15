@@ -23,7 +23,7 @@ class StudentSerializer(DynamicFieldsModelSerializer):
 
     def create(self, validated_data):
         take_set = validated_data.pop('take_set')
-        username = validated_data.pop('username')
+        username = validated_data.pop('user')['username']
         user = get_object_or_404(User, username=username)
         student = Student.objects.create(user=user, **validated_data)
         for take in take_set:
