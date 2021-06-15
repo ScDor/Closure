@@ -26,3 +26,11 @@ node_modules/
 /Closure_Front_End/.browserslistrc
 /Closure_Front_End/babel.config.js
 /Closure_Front_End/*.json
+/Closure_Project/staticfiles/
+/Closure_Project/Closure_Project/migrations/
+
+# This file should only be accessible via the secret manager
+/Closure_Project/.env
+/Closure_Project/.env.*
+!/Closure_Project/.env.example
+__pycache__/
