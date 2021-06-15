@@ -48,7 +48,7 @@ class StudentGroupViewSet(viewsets.ModelViewSet):
     serializer_class = StudentSerializer
     filter_backends = (filters.SearchFilter,)
     pagination_class = ResultSetPagination
-    search_fields = ('username', 'courses__name', '^courses__course_id')
+    search_fields = ('user__username', 'courses__name', '^courses__course_id')
 
 
 class TrackViewSet(viewsets.ModelViewSet):

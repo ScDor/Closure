@@ -25,7 +25,9 @@ class StudentSerializer(DynamicFieldsModelSerializer):
         take_set = validated_data.pop('take_set')
         username = validated_data.pop('user')['username']
         user = get_object_or_404(User, username=username)
-        student = Student.objects.create(user=user, **validated_data)
+        student, created = Student.objects.update_or_create(user=user, **validated_data)
+        if not created:
+            student.courses.clear()
         for take in take_set:
             Take.objects.create(student=student, **take)
         return student
