@@ -21,4 +21,5 @@ class ResultSetPagination(LimitOffsetPagination):
                     self.max_limit
                 )
             except KeyError:
-                self.default_limit
+                pass
+        return self.default_limit
