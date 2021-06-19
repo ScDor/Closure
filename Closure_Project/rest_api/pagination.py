@@ -2,7 +2,8 @@ from django.core.exceptions import BadRequest
 from rest_framework.pagination import LimitOffsetPagination
 
 
-def _validate_limit(integer_string, max_value):
+def _validate_limit(integer_string: str, max_value: int):
+    """ ensures the requested number of results doesn't exceed the maximal number allowed """
     num = int(integer_string)
     if num <= 0 or num > max_value:
         raise BadRequest(f'limit must be between 1 and {max_value}')
