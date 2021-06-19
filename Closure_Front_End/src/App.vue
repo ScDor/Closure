@@ -135,8 +135,9 @@ export default {
   },
 
   created() {
+    console.log(`API URL: ${process.env.VUE_APP_API_URL}`);
     axios
-      .get("http://127.0.0.1:8000/api/v1/tracks/?track_number=3010", {
+      .get(`${process.env.VUE_APP_API_URL}/api/v1/tracks/?track_number=3010`, {
         headers: {
           Authorization: "Token 425fa39de10f02351c7043d0dbe34a4b31be7a27",
         },
