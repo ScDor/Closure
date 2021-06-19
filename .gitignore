@@ -5,3 +5,8 @@
 /Closure_Project/Parser/*.html
 /Closure_Project/rest_api/migrations/
 .DS_STORE
+/Closure_Front_End/node_modules/
+/Closure_Front_End/dist/
+/Closure_Front_End/.browserslistrc
+/Closure_Front_End/babel.config.js
+/Closure_Front_End/*.json
