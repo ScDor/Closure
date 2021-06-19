@@ -16,12 +16,15 @@ node_modules/
 /Closure_Project/.env
 /Closure_Project/.env.*
 !/Closure_Project/.env.example
+Closure_Project/token.txt
 
 # migrations - eventually will need to enable them
 /Closure_Project/rest_api/migrations/
 
 
 # frontend
+=======
+/Closure_Front_End/node_modules/
 /Closure_Front_End/dist/
 /Closure_Front_End/.browserslistrc
 /Closure_Front_End/babel.config.js
