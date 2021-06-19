@@ -61,7 +61,8 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
-print(f"Allowed hosts are {ALLOWED_HOSTS}")
+AUTH0_DOMAIN = env('AUTH0_DOMAIN')
+API_IDENTIFIER = env('API_IDENTIFIER')
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -96,6 +97,7 @@ INSTALLED_APPS = [
     'corsheaders'
 ]
 
+
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'Basic': {
@@ -108,6 +110,28 @@ SWAGGER_SETTINGS = {
         }
     }
 }
+
+OAUTH2_SWAGGER_CLIENT_ID = env("AUTH0_SWAGGER_CLIENT_ID", default=None)
+OAUTH2_SWAGGER_CLIENT_SECRET = env("AUTH0_SWAGGER_CLIENT_SECRET", default=None)
+OAUTH2_SWAGGER_REDIRECT_URL = env("AUTH0_REDIRECT_URL", default=None)
+
+
+if all([OAUTH2_SWAGGER_CLIENT_ID, OAUTH2_SWAGGER_CLIENT_SECRET]):
+    SWAGGER_SETTINGS["SECURITY_DEFINITIONS"]["Auth0 - OAuth2"] = {
+            'type': 'oauth2',
+            'authorizationUrl': f"{AUTH0_DOMAIN}/authorize",
+            'tokenUrl': f"{AUTH0_DOMAIN}/oauth/token/",
+            'flow': 'accessCode',
+            'scopes': {
+            }
+    }
+    if OAUTH2_SWAGGER_REDIRECT_URL:
+        SWAGGER_SETTINGS["OAUTH2_REDIRECT_URL"] = OAUTH2_SWAGGER_REDIRECT_URL
+    SWAGGER_SETTINGS["OAUTH2_CONFIG"] = {
+        'clientId': OAUTH2_SWAGGER_CLIENT_ID,
+        'clientSecret': OAUTH2_SWAGGER_CLIENT_SECRET,
+        'appName': 'Auth0 Swagger for Closure'
+    }
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -125,6 +149,7 @@ ROOT_URLCONF = 'project_settings.urls'
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 CORS_ALLOWED_ORIGIN_REGEXES = env.list("CORS_ALLOWED_ORIGIN_REGEXES", default=[])
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
 if not DEBUG:
     CSRF_COOKIE_SECURE = True
@@ -231,8 +256,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 
-AUTH0_DOMAIN = env('AUTH0_DOMAIN')
-API_IDENTIFIER = env('API_IDENTIFIER')
 
 JWT_AUTH = {
     'JWT_PAYLOAD_GET_USERNAME_HANDLER':
