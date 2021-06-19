@@ -28,9 +28,8 @@ the Hebrew University of Jerusalem.
 3. Activate the virtual environment so your commands will be executed inside a virtual environment: 
     - Windows: run `venv\Scripts\activate.bat`. 
     - Mac OS/Linux: run `source venv/bin/activate`. <br> 
-- 
-4 Run `pip install --upgrade pip` 
-5.Run `pip install -r requirements.txt` to install the project's dependencies.
+4  Run `pip install --upgrade pip` 
+5. Run `pip install -r requirements.txt` to install the project's dependencies.
 6. Run `python Closure_Project/manage.py makemigrations rest_api`
 7. Run `python Closure_Project/manage.py migrate`
 8. On PyCharm, right-click the outer `Closure_Project` directory, choose `Mark Directory as` and click `Sources Root` _(its icon will be colored cyan afterwards)_.
