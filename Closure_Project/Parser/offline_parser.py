@@ -4,8 +4,8 @@ from typing import List, Tuple, Dict
 from tqdm import tqdm
 
 import utils
-from CornerStoneParser import fetch_insert_corner_stones_into_db
-from MoonParser import parse_course_detail_page, NothingToParseException, parse_moon, \
+from corner_stone_parser import fetch_insert_corner_stones_into_db
+from moon_parser import parse_course_detail_page, NothingToParseException, parse_moon, \
     NoTrackParsedException
 
 LOGGED_NOT_PARSED = 'bad.txt'

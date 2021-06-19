@@ -62,7 +62,7 @@ class TrackViewSet(viewsets.ModelViewSet):
     search_fields = ('name', '^track_number')
 
     @action(detail=True, methods=['GET'], url_path='get_course_type/(?P<course_pk>[^/.]+)')
-    def get_course_type(self, request, course_pk, pk=None):
+    def get_course_type(self, request, course_pk: int, pk=None):  # pylint: disable=invalid-name,unused-argument
         track = self.get_object()
         course = get_object_or_404(Course, pk=course_pk)
         return Response({'type': get_course_type(track, course)})

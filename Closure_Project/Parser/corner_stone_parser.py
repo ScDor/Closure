@@ -1,3 +1,6 @@
+"""
+Parses CornerStone courses from HUJI's website
+"""
 import re
 from typing import List
 
@@ -7,9 +10,8 @@ from urllib3.exceptions import NewConnectionError
 
 import utils
 
-utils.setup_django_pycharm()
-
-from rest_api.models import Course
+utils.setup_django_pycharm()  # pylint: disable=no-member
+from rest_api.models import Course  # pylint: disable=import-error,wrong-import-order
 
 
 def _parse_side_menu_urls(url: str):
@@ -42,13 +44,13 @@ def _parse_corner_stone_page(base_url: str, page_num: int = 0) -> List[int]:
     url = base_url if page_num == 0 else f'{base_url}?page={page_num}'
     try:
         soup = BeautifulSoup(requests.get(url).text, 'html.parser')
-        for a in soup.findAll('a'):
+        for tag in soup.findAll('a'):
             # parsed format:
             # "67925 | NAND to Tetris Workshop", optionally followed by "| <Professor's name>"
-            search = re.search(r'(\d{3,6})\s*[|:-]\s*([^|\n\r\t]+)', str(a.text))
+            search = re.search(r'(\d{3,6})\s*[|:-]\s*([^|\n\r\t]+)', str(tag.text))
             if search:
-                course_id, course = search.groups()
-                # ignoring `course` as sometimes it is the professor's name (website mistake)
+                course_id, _ = search.groups()
+                # ignoring the 2nd argument as sometimes it is the professor's name
                 course_ids.append(int(course_id))
 
         if course_ids:
@@ -63,12 +65,12 @@ def _parse_corner_stone_page(base_url: str, page_num: int = 0) -> List[int]:
     return course_ids
 
 
-def _parse_corner_stones(url: str) -> List[int]:
+def _parse_corner_stones(in_url: str) -> List[int]:
     """
     :param url: url to a page representing corner stone courses given by some faculty
     :return: list of integer course identifiers
     """
-    urls = _parse_side_menu_urls(url)
+    urls = _parse_side_menu_urls(in_url)
     result = []
     for url in urls:
         result += _parse_corner_stone_page(url)
@@ -76,6 +78,9 @@ def _parse_corner_stones(url: str) -> List[int]:
 
 
 def fetch_parse_corner_stones():
+    """
+    fetches courses from the website
+    """
     spirit = r'https://ap.huji.ac.il/%D7%A7%D7%95%D7%A8%D7%A1%D7%99%D7%9D-%D7%A8%D7%95%D7%97-2'
     social = r'https://ap.huji.ac.il/%D7%A7%D7%95%D7%A8%D7%A1%D7%99%D7%9D-%D7%97%D7%91%D7%A8' \
              r'%D7%94'

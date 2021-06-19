@@ -1,3 +1,4 @@
+""" parses data from the HUJI moon website"""
 import os
 import re
 from datetime import datetime
@@ -8,8 +9,8 @@ from bs4 import BeautifulSoup
 
 import utils
 
-utils.setup_django_pycharm()
-from rest_api.models import Semester, CourseType
+utils.setup_django_pycharm()  # pylint: disable=no-member,wrong-import-position
+from rest_api.models import Semester, CourseType  # pylint: disable=no-member,import-error
 
 TRACK_NAME_PATTERN = re.compile(r'מסלול\s+(.+)\(\d{4}\)')
 MIN_POINTS_PATTERN = re.compile(r'לפחות\s*(\d+)\s*נ')
@@ -205,13 +206,13 @@ def _parse_track_df(df: pd.DataFrame, track_id: int, track_name: str, track_comm
     must = from_list = choice = corner_stones = complementary = minor = additional_hug = 0
     point_columns = [i for i, c in enumerate(df.columns) if 'כ נקודות' in c]
 
-    for i, r in df.iterrows():
-        category = r[0]
+    for _, row in df.iterrows():
+        category = row[0]
 
         if 'סה\"כ' in category:
             continue
 
-        raw_points = [r[i] for i in point_columns]
+        raw_points = [row[i] for i in point_columns]
 
         for raw_point in raw_points:
             if not raw_point or pd.isnull(raw_point):  # no need to take Nan or 0 value
@@ -317,7 +318,7 @@ def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
 
         if table.shape == (1, 1):  # one-cell table
             if txt in IGNORABLE_TITLES or 'סה"כ' in txt:
-                if txt in {'וגם', 'או'}:  # todo handle alternatives
+                if txt in {'וגם', 'או'}:
                     current_type = previous_type
                 continue
 
