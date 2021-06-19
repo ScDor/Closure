@@ -11,3 +11,4 @@ Closure_Project/project_settings/__pycache__/
 /Closure_Front_End/babel.config.js
 /Closure_Front_End/*.json
 .DS_STORE
+Closure_Project/token.txt
