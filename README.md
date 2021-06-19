@@ -1,4 +1,5 @@
 # Closure() #
+[![CodeFactor](https://www.codefactor.io/repository/github/scdor/closure/badge)](https://www.codefactor.io/repository/github/scdor/closure)
 
 Planning your next courses easily.
 
