@@ -1,11 +1,27 @@
-/Closure_Project/db.sqlite3
-/venv/
+venv/
+*.sqlite3
+__pycache__/
+node_modules/
+.DS_STORE
+
+# parser stuff
 /Closure_Project/Parser/tracks/
 /Closure_Project/Parser/*.json
 /Closure_Project/Parser/*.html
+
+# backend static files(swagger, etc...)
+/Closure_Project/staticfiles/
+
+# Sensitive files
+/Closure_Project/.env
+/Closure_Project/.env.*
+!/Closure_Project/.env.example
+
+# migrations - eventually will need to enable them
 /Closure_Project/rest_api/migrations/
-.DS_STORE
-/Closure_Front_End/node_modules/
+
+
+# frontend
 /Closure_Front_End/dist/
 /Closure_Front_End/.browserslistrc
 /Closure_Front_End/babel.config.js
