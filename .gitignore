@@ -1,5 +1,6 @@
 /Closure_Project/db.sqlite3
 /venv/
+Closure_Project/project_settings/__pycache__/
 /Closure_Project/Parser/tracks/
 /Closure_Project/Parser/*.json
 /Closure_Project/Parser/*.html
@@ -9,3 +10,4 @@
 /Closure_Front_End/.browserslistrc
 /Closure_Front_End/babel.config.js
 /Closure_Front_End/*.json
+.DS_STORE

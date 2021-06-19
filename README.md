@@ -8,20 +8,40 @@ This project is part of
 the [Open Source Software Workshop](https://shnaton.huji.ac.il/index.php/NewSyl/67118/2/) at
 the Hebrew University of Jerusalem.
 
+
+## Table of Contents
+
+- [Setting up django](#instructions)
+- [Polulating the DB](#HUJIex)
+- [Authenticating](#generatingAuth)
+- [API Usage](#usetheapi)
+- [Contributions](#contribute)
+
+
+<a name="instructions"/>
+
 ## Getting Started ##
 
-1. Clone this repo
-2. run `python Closure_Project/manage.py makemigrations rest_api`
-3. run `python Closure_Project/manage.py migrate`
-4. run the django server with `python Closure_Project/manage.py runserver`
+1. Clone this repo.
+2. Run `python3 -m venv venv` to install a new Python virtual environment.
+3. Activate the virtual environment so your commands will be executed inside a virtual environment: 
+    - Windows: run `venv\Scripts\activate.bat`. 
+    - Mac OS/Linux: run `source venv/bin/activate`. <br> 
+4. Run `pip install -r requirements.txt` to install the project's dependencies.
+5. Run `python Closure_Project/manage.py makemigrations rest_api`
+6. Run `python Closure_Project/manage.py migrate`
+7. On PyCharm, right-click the outer `Closure_Project` directory, choose `Mark Directory as` and click `Sources Root` _(its icon will be colored cyan afterwards)_.
+8. Start the Django server with `python Closure_Project/manage.py runserver`
 
-You now have a django instance with the database configured (yet blank)
+You now have a django instance with the database configured (yet blank).
 
 The next step would be populating the database with `Course` information, so the whole ordeal
 can work.
 
 See the `Parser` folder, or read the following subsection to learn more about the data
 structures used.
+
+<a name="HUJIex"/>
 
 ### Populating the DB: HUJI Parser as example ###
 
@@ -40,12 +60,20 @@ Note:
 * The example parser provided in the `Parser` folder is configured to fetch and parse
 information from the Hebrew versions of the said websites.
 
-#### Downloading and parsing ####
-to get the relevant files, run `MoonDownloader.py`. The folders `tracks_html` and `course_details_html` will be created.
+
+#### Downloading the data ####
+To download the course files, run the `Parser/MoonDownloader.py` file (make sure venv is activated!). The folders `tracks_html` and `course_details_html` will be created.
 
 Downloading will take time! (the moon website is..._fragile_)
 
-Once you have both folders populated, run `OfflineParer.py`.
+#### Loading data offline ####
+In case of network issues when downloading (or, to save yourself time), it's possible to load the data of all courses and tracks. 
+1. Download the [7z dump file](https://drive.google.com/file/d/1TQSQ--VWFKt0CCZlBOZRUxKuH6Y6u0DL/view?usp=sharing) (HUJI account required)
+2. Extract it into the `Parser` folder
+3. Run `OfflineParser.py -> load_all_dumped()` _(Tip: if fetching corner-stone coursers gets stuck, comment out that line and continue with out that data, there's an [open issue](https://github.com/ScDor/Closure/issues/4))_
+
+#### Parsing the data ####
+Once you have both folders populated, run `Parser/OfflineParser.py`.
 
 Parsing happens in the following order:
 1. Parsing course details, parsed data is stored in `parsed_courses.json`
@@ -57,18 +85,23 @@ Parsing happens in the following order:
 
 The aforementioned order is important, as some objects assume existence of others (e.g. `CourseGroup` and `Course` objects).
 
+<a name="generatingAuth"/>
+
 ### Generating auth ###
 1. If you don't have admin superuser, creat one with `python Closure_Project/manage.py createsuperuser`
-2. Use basic authentication with your username and passowrd created, or generate token with `python Closure_Project/manage.py drf_create_token` and add `{Autharization: Token <key>}` to request headers.
+2. Use basic authentication with your username and password created, or generate token with `python Closure_Project/manage.py drf_create_token` and add `{Autharization: Token <key>}` to request headers.
+
+<a name="usetheapi"/>
 
 ### Using the API ###
 - To use the API, start the server with `python Closure_Project/manage.py runserver`.
 
 - The base API url is `https://<host>/api/v1`.
-- API documantion is availible in `https://<host>/redoc/`
+- API documentation is available in `https://<host>/redoc/`
 - Try to use API with: `https://<host>/swagger/`
-- When making real requests, always remember to add the Authrization header to the request.
+- When making real requests, always remember to add the Authorization header to the request.
 
+<a name="contribute"/>
 
 ## Contributions ##
 
