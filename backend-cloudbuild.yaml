@@ -32,7 +32,7 @@ steps:
         "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}:latest",
         "--cache-from",
         "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}:latest",
-        ".",
+        "Closure_Project",
       ]
 
   - id: "push image"
