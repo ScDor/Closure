@@ -1,0 +1,6 @@
+{
+  "domain": "closure-testing.us.auth0.com",
+  "client_id": "fhmDBFYeR8ZADbpWyl7pyUqRccDZt9Xb",
+  "redirect_uri": "http://localhost:8080",
+  "cacheLocation": "localstorage" 
+}
