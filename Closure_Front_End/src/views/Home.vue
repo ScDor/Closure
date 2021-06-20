@@ -7,7 +7,8 @@
             <navigation @clickcourse="add"></navigation>
           </div>
           <div class="column" v-for="year in years" :key="year">
-            <year :year="year" :allcourses="allcourses"></year>
+            <year :year="year" :allcourses="allcourses" 
+                  @courseMoved="moveCourse" @courseDeleted="deleteCoruse" />
           </div>
         </div>
       </section>
@@ -23,12 +24,10 @@
 <script>
 import Year from "../components/Year.vue";
 import Navigation from "../components/Navigation.vue";
-import SignupForm from "../components/SignupForm.vue";
-import axios from "axios";
 
 export default {
   name: "Closure()",
-  components: { Navigation, Year, SignupForm },
+  components: { Navigation, Year },
   data() {
     return {
       years: [
@@ -107,15 +106,11 @@ export default {
     };
   },
   created() {
-    axios
-      .get("http://127.0.0.1:8000/api/v1/tracks/?track_number=3010", {
-        headers: {
-          Authorization: "Token 425fa39de10f02351c7043d0dbe34a4b31be7a27",
-        },
-      })
-      .then((response) => (this.track = response.data.results[0]));
     if (this.$auth.isAuthenticated.value) {
-      console.log(this.$auth.getIdTokenClaims().then((response) => response));
+      this.$auth.getIdTokenClaims().then(console.log, console.error);
+      this.$http.get("tracks/?track_number=3010").then(response => {
+        this.track = response.data.results[0]
+      })
     }
   },
   methods: {
@@ -133,6 +128,17 @@ export default {
         semester: 1,
       });
     },
+
+    /** Moves a course to a new year and semester, given by their IDs */
+    moveCourse({course, newYear, newSemester}) {
+      course.year = newYear
+      course.semester = newSemester
+    },
+    /** Deletes a course from all years */
+    deleteCoruse(course) {
+      const index = this.allcourses.indexOf(course);
+      this.allcourses.splice(index, 1);
+    }
   },
 };
 </script>
