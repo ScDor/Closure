@@ -61,7 +61,11 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
-print(f"Allowed hosts are {ALLOWED_HOSTS}")
+# Auth0 related config
+AUTH0_DOMAIN = env('AUTH0_DOMAIN')
+API_IDENTIFIER = env('API_IDENTIFIER')
+SPA_CLIENT_ID=env('SPA_CLIENT_ID')
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -231,8 +235,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 
-AUTH0_DOMAIN = env('AUTH0_DOMAIN')
-API_IDENTIFIER = env('API_IDENTIFIER')
 
 JWT_AUTH = {
     'JWT_PAYLOAD_GET_USERNAME_HANDLER':

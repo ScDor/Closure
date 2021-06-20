@@ -112,11 +112,15 @@ export const setupAuth = async (options, callbackRedirect) => {
 
   watchEffect(async () => {
     if (client.isAuthenticated()) {
-      const accessToken = await client.getTokenSilently();
-      console.log(`Authenticated, cur access token is ${accessToken}`)
-      http.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`
+      const idTokenClaims = await client.getIdTokenClaims();
+      if (!idTokenClaims) {
+        return;
+      }
+      const idToken = idTokenClaims.__raw;
+      console.log(`Client is authenticated`)
+      http.defaults.headers.common["Authorization"] = `Bearer ${idToken}`
     } else {
-      console.log(`No longer authenticated`)
+      console.log(`Client is not authenticated`)
       delete http.defaults.headers.headers.common["Authorization"]
     }
   });
