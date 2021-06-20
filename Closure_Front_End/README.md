@@ -21,6 +21,23 @@ simply run `Closure_Front_End/windows_setup.bat` as administrator.
    
    (This is unnecessary if you ran the Windows install script) 
 
+4. There are various settings at `Closure_Front_End/.env`, if you wish to override them, it is
+   recommended you create a file `Closure_Front_End/.env.local`, which will be loaded after the `.env`.
+   
+   Likewise, for production, there is `Closure_Front_End/.env.production`, which is currently geared for
+   cloud deployment. 
+   
+   <a name="localProd"></a>If you wish to create a production build but run it locally(with an API that runs locally),
+   it is recommended you create a `Closure_Front_End/.env.production.local` file
+
+
+### Some notes about .env
+
+- [Read this](https://cli.vuejs.org/guide/mode-and-env.html#modes) to learn more about how .env files are loaded
+
+- Unlike the backend, it is OK to commit .env files as they contain no secrets. However,
+  you should only commit things if you change the format of the file(add/remove fields, add comments, etc),
+  and not because you adapted it to your own machine, for that purpose use `.env.local` files
 
 ## Running in Development mode
 
@@ -32,11 +49,21 @@ The server supports hot-reloading, that is, any change in the code would be auto
 ## Compiling for production
 
 You can run `npm run build` within the `Closure_Front_End` folder to create an optimized and minified version of the code, which by default will
-appear at the `dist` folder. You can then serve this folder with any web-server. For quickly previewing the production build locally, you can use Python's standard http-server module, by running:
+appear at the `dist` folder. 
+
+ You can then serve this folder with any web-server. For quickly previewing the production build locally, 
+ after having done the [appropriate configuration](#localProd), you can use Python's standard http-server module, by running:
 
 `python -m http.server --directory dist 8080`
 
 And then visting http://localhost:8080
 
 ## Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+- See [Configuration Reference](https://cli.vuejs.org/config/) on how to configure `Closure_Front_End/vue.config.js`
+
+- See the included comments within the `.env` file
+
+- ESLint is included, and will emit errors for various lint errors, even
+  during serving. It is possible to turn them off(not recommended) or downgrade
+  them into warnings by configuring it within the `package.json` file, or via
+  some other ways, [as explained here](https://eslint.org/docs/user-guide/configuring/)

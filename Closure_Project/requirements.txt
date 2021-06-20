@@ -25,3 +25,4 @@ google-cloud-secret-manager==2.4.0
 google-auth==1.30.0
 django-storages[google]==1.11.1
 django-environ==0.4.5
+Collectfast==2.2.0

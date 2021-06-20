@@ -29,22 +29,23 @@ steps:
       [
         "build",
         "-t",
-        "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}:latest",
+        "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}:$COMMIT_SHA",
         "--cache-from",
         "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}:latest",
-        ".",
+        "./Closure_Project",
       ]
 
   - id: "push image"
     name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}"]
+    args: ["push", "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}:$COMMIT_SHA"]
 
+  # Apply DB migrations (e.g, filling the initial database, creating a superuser)
   - id: "apply migrations"
     name: "gcr.io/google-appengine/exec-wrapper"
     args:
       [
         "-i",
-        "gcr.io/$PROJECT_ID/${_SERVICE_NAME}",
+        "gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA",
         "-s",
         "${PROJECT_ID}:${_REGION}:${_INSTANCE_NAME}",
         "-e",
@@ -55,12 +56,13 @@ steps:
         "migrate",
       ]
 
+  # Deploy static files created by Django (swagger/redoc assets, etc..)
   - id: "collect static"
     name: "gcr.io/google-appengine/exec-wrapper"
     args:
       [
         "-i",
-        "gcr.io/$PROJECT_ID/${_SERVICE_NAME}",
+        "gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA",
         "-s",
         "${PROJECT_ID}:${_REGION}:${_INSTANCE_NAME}",
         "-e",
@@ -74,6 +76,23 @@ steps:
         "--no-input",
       ]
 
+  # Deploy container image to Cloud Run
+  - id: "deploy to cloud run"
+    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+    - "run"
+    - "deploy"
+    - "${_SERVICE_NAME}"
+    - "--image"
+    - "gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA"
+    - "--region"
+    - "${_REGION}"
+    - "--platform"
+    - "managed"
+
+
+
 substitutions:
   _INSTANCE_NAME: closure-postgres
   _REGION: europe-west1
@@ -81,5 +100,5 @@ substitutions:
   _SECRET_SETTINGS_NAME: django_settings
 
 images:
-  - "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}"
+  - "gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA"
 # [END cloudrun_django_cloudmigrate]

@@ -90,6 +90,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'collectfast',
     'django.contrib.staticfiles',
     'rest_api.apps.RestApiConfig',
     'rest_framework',
@@ -219,6 +220,7 @@ GS_BUCKET_NAME = env("GS_BUCKET_NAME", default=None)
 if GS_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
     STATICFILES_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+    COLLECTFAST_STRATEGY = "collectfast.strategies.gcloud.GoogleCloudStrategy"
     GS_DEFAULT_ACL = "publicRead"
     
 STATIC_URL = "/static/"
