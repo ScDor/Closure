@@ -1,5 +1,6 @@
 import createAuth0Client from '@auth0/auth0-spa-js'
 import { computed, reactive, watchEffect } from 'vue'
+import axios from 'axios'
 
 let client
 const state = reactive({
@@ -103,6 +104,23 @@ export const setupAuth = async (options, callbackRedirect) => {
     ...options,
   })
 
+
+  let http = axios.create({
+    baseURL: process.env.VUE_APP_API_URL
+  })
+  window.closureAxios = http
+
+  watchEffect(async () => {
+    if (client.isAuthenticated()) {
+      const accessToken = await client.getTokenSilently();
+      console.log(`Authenticated, cur access token is ${accessToken}`)
+      http.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`
+    } else {
+      console.log(`No longer authenticated`)
+      delete http.defaults.headers.headers.common["Authorization"]
+    }
+  });
+
   try {
     // If the user is returning to the app after authentication
     
@@ -130,6 +148,7 @@ export const setupAuth = async (options, callbackRedirect) => {
   return {
     install: (app) => {
       app.config.globalProperties.$auth = authPlugin
+      app.config.globalProperties.$http = http
     },
   }
 }
