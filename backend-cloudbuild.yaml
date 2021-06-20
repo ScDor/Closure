@@ -75,6 +75,7 @@ steps:
         "2",
         "--no-input",
       ]
+
   # Deploy container image to Cloud Run
   - id: "deploy to cloud run"
     name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -82,9 +83,9 @@ steps:
     args:
     - "run"
     - "deploy"
-    - "${_SERVICE-NAME}"
+    - "${_SERVICE_NAME}"
     - "--image"
-    - "gcr.io/$PROJECT_ID/${_SERVICE-NAME}:$COMMIT_SHA"
+    - "gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA"
     - "--region"
     - "${_REGION}"
     - "--platform"
