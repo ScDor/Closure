@@ -9,14 +9,16 @@ node_modules/
 /Closure_Project/Parser/*.json
 /Closure_Project/Parser/*.html
 
-# backend static files(swagger, etc...)
-/Closure_Project/staticfiles/
 
 # Sensitive files
 /Closure_Project/.env
 /Closure_Project/.env.*
 !/Closure_Project/.env.example
-Closure_Project/token.txt
+
+# backend
+/Closure_Project/token.txt
+/Closure_Project/staticfiles/
+/Closure_Project/Closure_Project/migrations/
 
 # migrations - eventually will need to enable them
 /Closure_Project/rest_api/migrations/
@@ -25,15 +27,10 @@ Closure_Project/token.txt
 # frontend
 =======
 /Closure_Front_End/node_modules/
+/Closure_Front_End/auth_config.json
 /Closure_Front_End/dist/
-/Closure_Front_End/.browserslistrc
-/Closure_Front_End/babel.config.js
-/Closure_Front_End/*.json
-/Closure_Project/staticfiles/
-/Closure_Project/Closure_Project/migrations/
 
 # This file should only be accessible via the secret manager
 /Closure_Project/.env
 /Closure_Project/.env.*
 !/Closure_Project/.env.example
-__pycache__/
