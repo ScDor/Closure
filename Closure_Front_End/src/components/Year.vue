@@ -25,6 +25,7 @@ import Semester from "./Semester.vue";
 
 export default {
   props: ["year", "allcourses"],
+  emits: ["courseMoved", "courseDeleted"],
 
   components: { Semester },
 
@@ -33,16 +34,17 @@ export default {
       semesters: [
         { id: 1, name: "סמסטר א" },
         { id: 2, name: "סמסטר ב" },
-      ],
+      ]
     };
   },
 
-  setup(props) {
+  setup(props, { emit }) {
     const startDrag = (event, course) => {
       event.dataTransfer.dropEffect = "move";
       event.dataTransfer.effectAllowed = "move";
       event.dataTransfer.setData("id", course.course_id);
     };
+
 
      /** 
     * this method handles transferring courses from semester to semester   */
@@ -52,8 +54,7 @@ export default {
       const course = props.allcourses.find(
         (course) => course.course_id == courseid
       );
-      course.year = year.id;
-      course.semester = semester.id;
+      emit("courseMoved", {course, newYear: year.id, newSemester: semester.id})
     };
 
     /** 
@@ -61,14 +62,13 @@ export default {
     */
     
     const onClick = (event, toRemove) => {
-      const index = props.allcourses.indexOf(toRemove);
-      props.allcourses.splice(index, 1);
+      emit("courseDeleted", toRemove)
     };
 
     return {
       startDrag,
       onDrop,
-      onClick,
+      onClick
     };
   },
 };
