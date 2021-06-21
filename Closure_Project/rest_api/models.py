@@ -169,15 +169,15 @@ ALL_COURSE_TYPES = REQUIRED_COURSE_TYPES + (CourseType.CORNER_STONE, CourseType.
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    track = models.ForeignKey(Track, on_delete=models.CASCADE)
-    year_in_studies = models.IntegerField(choices=Year.choices)
+    track = models.ForeignKey(Track, on_delete=models.CASCADE, null=True, blank=False, default=None)
+    year_in_studies = models.IntegerField(choices=Year.choices, default=Year.FIRST)
     courses = models.ManyToManyField(Course, through='Take', blank=True)
 
     def __str__(self):
         return ', '.join((self.user.username,
                           self.user.get_full_name(),
                           f'year={self.year_in_studies}',
-                          f'track={self.track.track_number}',
+                          f'track={self.track.track_number if self.track else "None"}',
                           f'took {len(self.courses.all())} courses'))
 
     @property

@@ -25,7 +25,7 @@ export default {
         window.addEventListener("message", this.handleEvent, false);
     },
 
-    destroyed: function() {
+    unmounted: function() {
         window.removeEventListener("message", this.handleEvent);
     },
 
@@ -56,6 +56,7 @@ export default {
 
         handleCourses: function(courses) {
             // TODO: update the 'Take' resource via API
+            console.log(courses)
         }
     },
     

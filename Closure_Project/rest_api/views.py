@@ -71,3 +71,11 @@ class TakeGroupViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = Take.objects.all().order_by('course')
     serializer_class = TakeSerializer
+
+class StudentTakeViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = Take.objects.all().order_by('course')
+    serializer_class = TakeSerializer
+
+    def get_queryset(self):
+        return self.request.user.courses.all()
