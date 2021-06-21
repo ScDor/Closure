@@ -18,8 +18,6 @@ import utils
 
 utils.setup_django_pycharm()
 
-from rest_api.models import Course
-
 CORNER_STONE_ID_FILENAME = "corner_stone_ids.json"
 CORNER_STONE_ID_FILE_PATH = CURRENT_DIR / CORNER_STONE_ID_FILENAME
 
@@ -108,28 +106,5 @@ def fetch_parse_corner_stones(id_file: Optional[str] = str(CORNER_STONE_ID_FILE_
     utils.dump_json(list(result), id_file)
 
 
-def update_corner_stone_status(id_file: str = str(CORNER_STONE_ID_FILE_PATH)) -> None:
-    """
-    Updates the corner stone status of pre-existing courses via a file of corner stone course IDs.
-    """
-    old_corner_stones = {c.course_id for c in Course.objects.filter(is_corner_stone=True)}
-    print(f'before parsing, {len(Course.objects.filter(is_corner_stone=True))} '
-          f'courses are marked as corner stone')
-
-
-    parsed = utils.load_json(id_file)
-
-    for course_id in parsed:
-        course = Course.objects.get(course_id=course_id)
-        course.is_corner_stone = True
-        course.save(update_fields=['is_corner_stone'])
-
-    new_corner_stones = {c.course_id for c in Course.objects.filter(is_corner_stone=True)
-                         if c.course_id not in old_corner_stones}
-    print(f'after parsing, {len(new_corner_stones)} new courses marked as corner stone: '
-          f'{new_corner_stones}')
-
-
 if __name__ == '__main__':
     fetch_parse_corner_stones()
-    update_corner_stone_status()
