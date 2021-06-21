@@ -1,25 +1,17 @@
 import re
-import sys
 from pathlib import Path
 from typing import List, Optional
 
-
 CURRENT_DIR = Path(__file__).parent
-
-sys.path.append(str(CURRENT_DIR.parent))
-sys.path.append(str(CURRENT_DIR.parent))
-sys.path.append(str(CURRENT_DIR.parent.parent))
 
 import requests
 from bs4 import BeautifulSoup
 from urllib3.exceptions import NewConnectionError
-
-import utils
-
-utils.setup_django_pycharm()
+from .utils import dump_json
 
 CORNER_STONE_ID_FILENAME = "corner_stone_ids.json"
 CORNER_STONE_ID_FILE_PATH = CURRENT_DIR / CORNER_STONE_ID_FILENAME
+
 
 def _parse_side_menu_urls(url: str):
     """
@@ -103,7 +95,7 @@ def fetch_parse_corner_stones(id_file: Optional[str] = str(CORNER_STONE_ID_FILE_
     result.update(_parse_corner_stones(experimental))
     result.update(_parse_corner_stones(democracy))
 
-    utils.dump_json(list(result), id_file)
+    dump_json(list(result), id_file)
 
 
 if __name__ == '__main__':

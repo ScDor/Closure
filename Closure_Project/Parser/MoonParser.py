@@ -7,9 +7,8 @@ from typing import List, Tuple, Dict
 import pandas as pd
 from bs4 import BeautifulSoup
 
-import utils
+from .utils import dump_json
 
-utils.setup_django_pycharm()
 from rest_api.models import Semester, CourseType
 
 TRACK_NAME_PATTERN = re.compile(r'מסלול\s+(.+)\(\d{4}\)')
@@ -309,7 +308,7 @@ def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
                                                track_comment,
                                                data_year)
                 if dump:
-                    utils.dump_json(track_values, str(PARSED_TRACKS_FOLDER_PATH / f"{track_id}.json"))
+                    dump_json(track_values, str(PARSED_TRACKS_FOLDER_PATH / f"{track_id}.json"))
                 break
 
             except NotImplementedError as e:
@@ -397,7 +396,7 @@ def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
 
             group_value_list.append(group_values)
             if dump:
-                utils.dump_json(group_values,
+                dump_json(group_values,
                                 str(PARSED_GROUPS_FOLDER_PATH / 
                                     f'{track_id}_y{current_year}_{index_in_track_year}.json'))
 

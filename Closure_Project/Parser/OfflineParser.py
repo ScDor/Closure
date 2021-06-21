@@ -3,18 +3,15 @@ from pathlib import Path
 from typing import List, Tuple, Dict
 from tqdm import tqdm
 
-
 CURRENT_DIR = Path(__file__).parent
 
-
-import utils
-from CornerStoneParser import fetch_parse_corner_stones
-from MoonParser import parse_course_detail_page, NothingToParseException, parse_moon, \
+from .utils import dump_json
+from .CornerStoneParser import fetch_parse_corner_stones
+from .MoonParser import parse_course_detail_page, NothingToParseException, parse_moon, \
     NoTrackParsedException, PARSED_TRACKS_FOLDER_NAME, PARSED_GROUPS_FOLDER_NAME
 
 LOGGED_NOT_PARSED = 'bad.txt'
 LOGGED_PARSED = 'good.txt'
-
 
 PARSE_RESULT_FOLDER = CURRENT_DIR
 
@@ -23,9 +20,9 @@ COURSE_DUMP_FILE_PATH = PARSE_RESULT_FOLDER / COURSE_DUMP_FILENAME
 TRACK_DUMP_FOLDER_PATH = PARSE_RESULT_FOLDER / PARSED_TRACKS_FOLDER_NAME
 GROUP_DUMP_FOLDER_PATH = PARSE_RESULT_FOLDER / PARSED_GROUPS_FOLDER_NAME
 
-
 PARSED_DATA_ZIP_PATH = CURRENT_DIR / "parse_data.zip"
 PARSED_DATA_ZIP_URL = "https://storage.googleapis.com/closure_kb_parsed_data/parse_data.zip"
+
 
 def parse_track_folder(html_folder: str, data_year: int, dump: bool = False) -> \
         Tuple[List[Dict],
@@ -103,7 +100,7 @@ def parse_course_details_folder(dump: bool) -> List[Dict]:
         results.append(_parse_course_details_html(file_path))
 
     if dump:
-        utils.dump_json(results, str(COURSE_DUMP_FILE_PATH))
+        dump_json(results, str(COURSE_DUMP_FILE_PATH))
 
     return results
 
