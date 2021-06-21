@@ -55,7 +55,6 @@ class TrackViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = Track.objects.all().order_by('track_number')
     serializer_class = TrackSerializer
-    authentication_classes = (TokenAuthentication, BasicAuthentication)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filter_fields = ('name', 'track_number')
     pagination_class = ResultSetPagination
