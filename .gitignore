@@ -30,8 +30,3 @@ node_modules/
 /Closure_Front_End/dist/
 # Since frontend .env contains no secrets, they can be committed,
 /Closure_Front_End/.env*.local
-
-# This file should only be accessible via the secret manager
-/Closure_Project/.env
-/Closure_Project/.env.*
-!/Closure_Project/.env.example

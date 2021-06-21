@@ -128,6 +128,17 @@ class Track(models.Model):
 
         return str(value_dictionary)
 
+    @property
+    def requirements(self):
+        groups = self.coursegroup_set.all()
+        required_by_type = {k: set() for k in REQUIRED_COURSE_TYPES}
+
+        for group in groups:
+            group_courses = list(group.courses.all())
+
+            required_by_type[group.course_type].update(group_courses)
+        return required_by_type
+
 
 class CourseGroup(models.Model):
     track = models.ForeignKey(Track, on_delete=models.CASCADE)
