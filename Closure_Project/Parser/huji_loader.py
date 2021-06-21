@@ -5,11 +5,11 @@ from pathlib import Path
 from typing import Dict, Union, IO
 from tqdm import tqdm
 import tempfile
+import json
 
 import requests
 from django.db import transaction
 
-from Parser import utils
 from Parser.CornerStoneParser import CORNER_STONE_ID_FILENAME, CORNER_STONE_ID_FILE_PATH
 from Parser.MoonParser import PARSED_TRACKS_FOLDER_NAME, PARSED_GROUPS_FOLDER_NAME
 from Parser.OfflineParser import TRACK_DUMP_FOLDER_PATH, GROUP_DUMP_FOLDER_PATH, COURSE_DUMP_FILE_PATH, CURRENT_DIR, \
@@ -17,10 +17,10 @@ from Parser.OfflineParser import TRACK_DUMP_FOLDER_PATH, GROUP_DUMP_FOLDER_PATH,
 from rest_api.models import Track, CourseGroup, Course
 
 
-def load_parsed_track_folder(folder: str = str(TRACK_DUMP_FOLDER_PATH)) -> None:
+def import_tracks(folder: str = str(TRACK_DUMP_FOLDER_PATH)) -> None:
 
     track_file_paths = Path(folder).glob("*.json")
-    track_dicts = [utils.load_json(str(path)) for path in track_file_paths]
+    track_dicts = [load_json(str(path)) for path in track_file_paths]
 
     existing_track_numbers = [t["track_number"] for t in track_dicts]
     _, delete_dict = Track.objects.filter(track_number__in=existing_track_numbers).delete()
@@ -30,7 +30,7 @@ def load_parsed_track_folder(folder: str = str(TRACK_DUMP_FOLDER_PATH)) -> None:
     Track.objects.bulk_create(tracks)
 
 
-def load_parsed_group(group_values: Dict) -> None:
+def import_course_group(group_values: Dict) -> None:
     track_id = group_values['track_id']
     track = Track.objects.get(track_number=track_id)
     del group_values['track_id']
@@ -50,17 +50,17 @@ def load_parsed_group(group_values: Dict) -> None:
     group.save()
 
 
-def load_parsed_groups_folder(folder: str = str(GROUP_DUMP_FOLDER_PATH)):
+def import_course_groups(folder: str = str(GROUP_DUMP_FOLDER_PATH)):
     for f in tqdm(os.listdir(folder), desc=f"Loading parsed groups from {folder}"):
         path = os.path.join(folder,f)
-        load_parsed_group(utils.load_json(path))
+        import_course_group(load_json(path))
 
 
-def load_dumped_courses(only_add_new: bool, courses_json_file: str = str(COURSE_DUMP_FILE_PATH)) -> None:
+def import_courses(only_add_new: bool, courses_json_file: str = str(COURSE_DUMP_FILE_PATH)) -> None:
     print(f"loading parsed courses from {courses_json_file}")
 
     # noinspection PyTypeChecker
-    parsed = [c for c in utils.load_json(courses_json_file)
+    parsed = [c for c in load_json(courses_json_file)
               if c is not None]  # some are None because of parsing issues
 
     if only_add_new:
@@ -82,8 +82,7 @@ def update_corner_stone_status(id_file: str = str(CORNER_STONE_ID_FILE_PATH)) ->
     print(f'before parsing, {len(Course.objects.filter(is_corner_stone=True))} '
           f'courses are marked as corner stone')
 
-
-    parsed = utils.load_json(id_file)
+    parsed = load_json(id_file)
 
     for course_id in parsed:
         course = Course.objects.get(course_id=course_id)
@@ -95,12 +94,13 @@ def update_corner_stone_status(id_file: str = str(CORNER_STONE_ID_FILE_PATH)) ->
     print(f'after parsing, {len(new_corner_stones)} new courses marked as corner stone: '
           f'{new_corner_stones}')
 
+
 @transaction.atomic()
-def load_all_dumped(folder: Path = CURRENT_DIR):
-    load_dumped_courses(only_add_new=False, courses_json_file=str(folder / COURSE_DUMP_FILENAME))
+def load_everything(folder: Path = CURRENT_DIR):
+    import_courses(only_add_new=False, courses_json_file=str(folder / COURSE_DUMP_FILENAME))
     update_corner_stone_status(id_file=str(folder / CORNER_STONE_ID_FILENAME))
-    load_parsed_track_folder(folder=str(folder / PARSED_TRACKS_FOLDER_NAME))
-    load_parsed_groups_folder(folder=str(folder / PARSED_GROUPS_FOLDER_NAME))
+    import_tracks(folder=str(folder / PARSED_TRACKS_FOLDER_NAME))
+    import_course_groups(folder=str(folder / PARSED_GROUPS_FOLDER_NAME))
 
 
 def load_from_zip(zip_file: Union[IO[bytes], os.PathLike[str]] = PARSED_DATA_ZIP_PATH):
@@ -110,7 +110,7 @@ def load_from_zip(zip_file: Union[IO[bytes], os.PathLike[str]] = PARSED_DATA_ZIP
         print("Extracting zipped data")
         zipf.extractall(path=temp_dir)
         print("Done extracting zipped data, loading data into DB")
-        load_all_dumped(temp_dir)
+        load_everything(temp_dir)
 
 
 def load_from_internet(url: str = PARSED_DATA_ZIP_URL):
@@ -121,7 +121,18 @@ def load_from_internet(url: str = PARSED_DATA_ZIP_URL):
     load_from_zip(io.BytesIO(res.content))
 
 
+def setup_django_pycharm():
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project_settings.settings")
+    import django
+    django.setup()
+
+
+def load_json(filename: str):
+    with open(filename, 'r', encoding='utf8') as f:
+        return json.load(f)
+
+
 if __name__ == "__main__":
-    utils.setup_django_pycharm()
+    setup_django_pycharm()
     load_from_zip()
 

@@ -7,12 +7,4 @@ def dump_json(o: object, filename: str) -> None:
         json.dump(o, f, ensure_ascii=False)
 
 
-def load_json(filename: str):
-    with open(filename, 'r', encoding='utf8') as f:
-        return json.load(f)
 
-
-def setup_django_pycharm():
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project_settings.settings")
-    import django
-    django.setup()
