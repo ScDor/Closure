@@ -408,13 +408,53 @@ class NothingToParseException(BaseException):
     pass
 
 
+def _parse_requirement_df(table: pd.DataFrame, current_course_id: int) -> \
+        List[Dict[str, int]]:
+    """
+    parses course id and min_grades of a requirement table dataframe
+    """
+    return [{'course_id': row[1][0], 'min_grade': row[1][4]} for row in table.T.items()
+            if int(row[1][0]) != current_course_id]  # 67101 is prerequisite to 67101? 🤦
+
+
+def parse_prerequisites(html_body: str, current_course_id: int) -> List[List[Dict[str, int]]]:
+    if 'tblGroupsCourseLev\"' not in html_body:
+        return []
+
+    titles = [row[0][0] for row in pd.read_html(html_body, attrs={'id': 'tblGroupsCourseLev'})]
+
+    parsed_prerequisites = []
+
+    for i in range(len(titles)):
+        try:
+            df_list = pd.read_html(html_body,
+                                   attrs={'id': f'lstGroupsCourseLev_grdCourses_{i}'})
+
+            # an empty df_list indicates a title without following courses,
+            # that's fine and is ignored.
+            parsed_prerequisites.append(
+                _parse_requirement_df(df_list[0], current_course_id) if df_list else []
+            )
+
+        except ValueError as e:
+            if str(e) == 'No tables found':
+                break
+            if str(e) == 'cannot convert float NaN to integer':
+                break
+            else:
+                raise e
+
+    assert len(parsed_prerequisites) in [0, len(titles)]
+    return parsed_prerequisites
+
+
 def parse_course_detail_page(html_body: str, data_year: int) -> Dict:
     """
     parses course details from pages such as
     http://moon.cc.huji.ac.il/nano/pages/wfrCourse.aspx?faculty=2&year=2021&courseId=67118
     :param html_body: html body
     :param data_year: year to which data is relevant
-    :return: Course
+    :return: values used to create a course object
     """
     soup = BeautifulSoup(html_body, 'html5lib')
     try:
@@ -448,7 +488,9 @@ def parse_course_detail_page(html_body: str, data_year: int) -> Dict:
                         soup.find('span', {'id': 'lblRemark'}).text.split('\n'))
     is_given = soup.find('span', {'id': 'lbllearnedNow'}).text == ''
 
+    prerequisites = parse_prerequisites(html_body, course_id)
+
     # use these kwargs to perform get_or_update()
     return {'course_id': course_id, 'data_year': data_year, 'name': name,
             'semester': semester, 'is_given_this_year': is_given, 'points': points,
-            'comment': comment}
+            'comment': comment, 'prerequisites': prerequisites}
