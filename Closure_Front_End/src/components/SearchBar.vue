@@ -29,8 +29,6 @@
 </template>
 
 <script>
-import axios from "axios";
-
 export default {
   props: ["placeholder", "url"],
   emits: ["clicksuggestion"],
@@ -50,12 +48,7 @@ export default {
    * more on the implementation of the search on the backend part of the project.
    */ {
     search() {
-      axios
-        .get(this.url + this.query, {
-          headers: {
-            Authorization: "Token 425fa39de10f02351c7043d0dbe34a4b31be7a27",
-          },
-        })
+      this.$http.get(this.url + this.query)
         .then((response) => (this.suggestions = response.data.results))
         .then((this.hide = !this.suggestions.length || this.query == ""));
     },

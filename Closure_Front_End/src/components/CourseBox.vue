@@ -2,7 +2,7 @@
   <div class="box box-style">
     <div class="media">
       <span class="icon is-small is-right is-size-7">
-        <i class="fas fa-circle"></i>
+        <i class="fas fa-circle" :class="colorMatch()"></i>
       </span>
 
       <div class="media-content">
@@ -25,6 +25,14 @@
 <script>
 export default {
   props: ["course"],
+
+  methods: {
+    colorMatch() {
+      if (this.course.type == 1) return "must";
+      if (this.course.type == 2) return "choose_from_list";
+      return "choice";
+    },
+  },
 };
 </script>
 
@@ -39,11 +47,23 @@ export default {
   box-shadow: 1px 1px 1px 0px rgb(231, 231, 231);
 }
 
-.icon {
+.media-left .icon {
   opacity: 30%;
 }
 
 .fa-times-circle:hover {
   cursor: pointer;
+}
+
+.must {
+  color: #bc87d0;
+}
+
+.choose_from_list {
+  color: #fbaf5d;
+}
+
+.choice {
+  color: #f06eaa;
 }
 </style>
