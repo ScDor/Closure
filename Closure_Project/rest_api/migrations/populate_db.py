@@ -13,8 +13,8 @@ def import_parsed_data(apps, schema_editor):
     if not PARSER_FOLDER.exists():
         raise ValueError("Parser folder missing")
     sys.path.append(str(PARSER_FOLDER))
-    from OfflineParser import load_from_internet
-    load_from_internet()
+    from OfflineParser import load_from_zip
+    load_from_zip()
     
 class Migration(migrations.Migration):
 

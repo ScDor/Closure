@@ -4,7 +4,7 @@ import io
 from pathlib import Path
 import zipfile
 import requests
-from typing import List, Tuple, Dict
+from typing import IO, List, Tuple, Dict, Union
 import tempfile
 from tqdm import tqdm
 from django.db import transaction
@@ -34,6 +34,9 @@ COURSE_DUMP_FILE_PATH = PARSE_RESULT_FOLDER / COURSE_DUMP_FILENAME
 TRACK_DUMP_FOLDER_PATH = PARSE_RESULT_FOLDER / PARSED_TRACKS_FOLDER_NAME
 GROUP_DUMP_FOLDER_PATH = PARSE_RESULT_FOLDER / PARSED_GROUPS_FOLDER_NAME
 
+
+PARSED_DATA_ZIP_PATH = CURRENT_DIR / "parse_data.zip"
+PARSED_DATA_ZIP_URL = "https://storage.googleapis.com/closure_kb_parsed_data/parse_data.zip"
 
 def parse_track_folder(html_folder: str, data_year: int, dump: bool = False) -> \
         Tuple[List[Dict],
@@ -123,7 +126,7 @@ def load_parsed_track_folder(folder: str = str(TRACK_DUMP_FOLDER_PATH)) -> None:
 
     existing_track_numbers = [t["track_number"] for t in track_dicts]
     _, delete_dict = Track.objects.filter(track_number__in=existing_track_numbers).delete()
-    print(f"Deleted and re-created conflicting track, the resulting deletion counts: {delete_dict} ")
+    print(f"Deleted and re-created conflicting tracks, the resulting deletion counts: {delete_dict} ")
 
     tracks = [Track(**dic) for dic in track_dicts]
     Track.objects.bulk_create(tracks)
@@ -192,20 +195,27 @@ def load_all_dumped(folder: Path = CURRENT_DIR):
     load_parsed_track_folder(folder=str(folder / PARSED_TRACKS_FOLDER_NAME))
     load_parsed_groups_folder(folder=str(folder / PARSED_GROUPS_FOLDER_NAME))
 
-@transaction.atomic
-def load_from_internet():
-    print("Downloading zipped data")
-    res = requests.get("https://storage.googleapis.com/closure_kb_parsed_data/parse_data_v2.zip")
-    print("Extracting zipped data")
-    with (zipfile.ZipFile(io.BytesIO(res.content)) as zip,
+
+def load_from_zip(zip_file: Union[IO[bytes], os.PathLike[str]] = PARSED_DATA_ZIP_PATH):
+    with (zipfile.ZipFile(zip_file) as zip,
           tempfile.TemporaryDirectory(prefix="parse_state") as temp_dir):
         temp_dir = Path(temp_dir)
+        print("Extracting zipped data")
         zip.extractall(path=temp_dir)
         print("Done extracting zipped data, loading data into DB")
         load_all_dumped(temp_dir)   
+
+
+
+def load_from_internet(url: str = PARSED_DATA_ZIP_URL):
+    print("Downloading zipped data")
+    res = requests.get(url)
+    if not res.ok:
+        raise Exception(f"Couldn't retrieve zip_file from GCS bucket: {res.status_code} - {res.text}")
+    load_from_zip(io.BytesIO(res.content))
         
 
 
 if __name__ == '__main__':
-    load_all_dumped()
+    load_from_zip()
 
