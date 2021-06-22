@@ -28,7 +28,7 @@ def jwt_get_username_from_payload_handler(payload):
     authenticate(remote_user=username)
     return username
 
-@lru_cache
+@lru_cache(maxsize=1)
 def get_jwks():
     return requests.get('https://{}/.well-known/jwks.json'.format(AUTH0_DOMAIN)).json()
 
