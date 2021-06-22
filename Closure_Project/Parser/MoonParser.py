@@ -413,6 +413,7 @@ def _parse_requirement_df(table: pd.DataFrame, current_course_id: int) -> \
     """
     parses course id and min_grades of a requirement table dataframe
     """
+    table = table[table[0].notna()]
     return [{'course_id': row[1][0], 'min_grade': row[1][4]} for row in table.T.items()
             if int(row[1][0]) != current_course_id]  # 67101 is prerequisite to 67101? 🤦
 

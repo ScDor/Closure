@@ -3,6 +3,7 @@ from typing import List, Tuple, Dict
 
 from tqdm import tqdm
 
+import rest_api.models
 import utils
 from CornerStoneParser import fetch_insert_corner_stones_into_db
 from MoonParser import parse_course_detail_page, NothingToParseException, parse_moon, \
@@ -12,7 +13,7 @@ LOGGED_NOT_PARSED = 'bad.txt'
 LOGGED_PARSED = 'good.txt'
 
 utils.setup_django_pycharm()
-from rest_api.models import Course, Track, CourseGroup
+from rest_api.models import Course, Track, CourseGroup, PrerequisiteList
 
 COURSE_DUMP = 'parsed_courses.json'
 
@@ -77,7 +78,6 @@ def _parse_course_details_html(file_path: str) -> Dict:
 def parse_course_details_folder(dump: bool) -> List[Dict]:
     """
     Parses a folder of html files for courses, returning the course details as dictionary
-    :param write_log_files: log (append) parsing staus to LOGGED_PARSED,LOGGED_NOT_PARSED
     :param dump: should dump into COURSE_DUMP, for faster (no need to parse) loading later
     :return: list of dictionaries representing courses
     """
@@ -130,27 +130,64 @@ def load_parsed_group(group_values: Dict) -> None:
 
 def load_parsed_groups_folder(folder_path: str = 'parsed_groups'):
     for f in tqdm(os.listdir(folder_path)):
-        path = os.path.join(folder_path,f)
+        path = os.path.join(folder_path, f)
         load_parsed_group(utils.load_json(path))
 
 
 def load_parsed_course(course_values: Dict) -> None:
+    if 'prerequisites' in course_values:
+        del course_values['prerequisites']
+
     Course.objects.update_or_create(course_id=course_values['course_id'],
                                     defaults=course_values)
+
+
+def _load_prerequisites_single(course_id: int, data_year: int,
+                               prerequisites: List[List[dict]]):
+    # prerequisite_values format example:
+    # [
+    #   [{"course_id": 67504, "min_grade": 0}], [{"course_id": 67577, "min_grade": 0}],
+    #   [{"course_id": 80420, "min_grade": 0}, {"course_id": 80430, "min_grade": 0}]
+    # ]
+    prerequisites = list(filter(None, prerequisites))
+    if not prerequisites:
+        return
+
+    course = Course.objects.get(course_id=course_id, data_year=data_year)
+    prerequisite_group_object = PrerequisiteList.objects.create()
+
+    for prerequisite_group in prerequisites:
+        for req_course in prerequisite_group:
+            prerequisite_course_id = req_course['course_id']
+            try:
+                course_object = Course.objects.get(course_id=prerequisite_course_id,
+                                                   data_year=data_year)
+                prerequisite_group_object.take_one_of.add(course_object)
+            except rest_api.models.Course.DoesNotExist:
+                print(f'Warning! course #{prerequisite_course_id} is a prerequisite for #'
+                      f'{course_id} but does not exist in the system! Skipping prerequisite')
+        prerequisite_group_object.save()
+    course.save()
 
 
 def load_dumped_courses(only_add_new: bool) -> None:
     print('loading parsed courses to db')
     # noinspection PyTypeChecker
-    parsed = [c for c in utils.load_json(COURSE_DUMP)
-              if c is not None]  # some are None because of parsing issues
+    parsed = [value for value in utils.load_json(COURSE_DUMP)
+              if value is not None]  # some are None because of parsing issues
 
     if only_add_new:
         existing_ids = {v[1] for v in Course.objects.values_list()}
         parsed = [p for p in parsed if p and p['course_id'] not in existing_ids]
 
-    for c in tqdm(parsed):
-        load_parsed_course(c)
+    # for course_values in tqdm(parsed):
+    #     load_parsed_course(course_values)
+
+    for course_values in tqdm(parsed):
+        # separate loop on purpose, as all courses must exist to create prerequisites
+        _load_prerequisites_single(course_id=course_values['course_id'],
+                                   data_year=course_values['data_year'],
+                                   prerequisites=course_values['prerequisites'])
 
 
 def parse_dump_load_all():
@@ -169,5 +206,4 @@ def load_all_dumped():
 
 
 if __name__ == '__main__':
-    parse_dump_load_all()
-
+    load_dumped_courses(False)

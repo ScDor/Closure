@@ -1,9 +1,10 @@
 # Create your models here.
-import uuid
 from enum import Enum
 
 from django.contrib.auth.models import User
 from django.db import models
+
+from rest_api.prerequisite_list_model import PrerequisiteList
 
 
 class Faculty(Enum):
@@ -61,6 +62,7 @@ class Course(models.Model):
     points = models.FloatField()
     is_corner_stone = models.BooleanField(null=True)
     comment = models.CharField(max_length=255, blank=True)
+    prerequisites = models.ManyToManyField(PrerequisiteList)
 
     class Meta:
         unique_together = ('course_id', 'data_year')
@@ -170,7 +172,7 @@ class CourseGroup(models.Model):
         return ','.join((str(self.track),
                          str(self.course_type),
                          requirement,
-                         *(str(c) for c in self.courses.all())))
+                         *(str(course) for course in self.courses.all())))
 
 
 REQUIRED_COURSE_TYPES = (
