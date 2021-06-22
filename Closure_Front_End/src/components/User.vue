@@ -84,12 +84,9 @@ export default {
 .user li {
   margin: 1.5rem;
 }
-<<<<<<< HEAD
 
 .user .field {
   font-size: 0.75rem;
   margin: 0.75rem;
 }
-=======
->>>>>>> d27714e2a47eeac13ed8d6347227abdece8df10e
 </style>
