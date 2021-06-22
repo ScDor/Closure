@@ -1,13 +1,36 @@
-/Closure_Project/db.sqlite3
-/venv/
-Closure_Project/project_settings/__pycache__/
+venv/
+*.sqlite3
+__pycache__/
+node_modules/
+.DS_STORE
+
+# parser stuff
 /Closure_Project/Parser/tracks/
 /Closure_Project/Parser/*.json
 /Closure_Project/Parser/*.html
+
+
+# Sensitive files
+/Closure_Project/.env
+/Closure_Project/.env.*
+!/Closure_Project/.env.example
+
+# backend
+/Closure_Project/token.txt
+/Closure_Project/staticfiles/
+/Closure_Project/Closure_Project/migrations/
+
+# migrations - eventually will need to enable them
 /Closure_Project/rest_api/migrations/
+
+# frontend
+=======
 /Closure_Front_End/node_modules/
 /Closure_Front_End/dist/
-/Closure_Front_End/.browserslistrc
-/Closure_Front_End/babel.config.js
-/Closure_Front_End/*.json
-.DS_STORE
+# Since frontend .env contains no secrets, they can be committed,
+/Closure_Front_End/.env*.local
+
+# This file should only be accessible via the secret manager
+/Closure_Project/.env
+/Closure_Project/.env.*
+!/Closure_Project/.env.example

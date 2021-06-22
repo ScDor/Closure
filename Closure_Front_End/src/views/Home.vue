@@ -7,7 +7,8 @@
             <navigation @clickcourse="add"></navigation>
           </div>
           <div class="column" v-for="year in years" :key="year">
-            <year :year="year" :allcourses="allcourses"></year>
+            <year :year="year" :allcourses="allcourses"
+                  @courseMoved="moveCourse" @courseDeleted="deleteCoruse" />
           </div>
         </div>
       </section>
@@ -155,8 +156,13 @@ export default {
       ],
     };
   },
-
   created() {
+    if (this.$auth.isAuthenticated.value) {
+      this.$auth.getIdTokenClaims().then(console.log, console.error);
+      this.$http.get("tracks/?track_number=3010").then(response => {
+        this.track = response.data.results[0]
+      })
+    }
     /** if the user is loged in, then fetching his data from DB, else doing nothing */
     // if (this.$auth.isAuthenticated.value) {
     //   this.getUsername().then(function (username) {
@@ -221,6 +227,17 @@ export default {
         year: 1,
         points: course.points,
       });
+    },
+
+    /** Moves a course to a new year and semester, given by their IDs */
+    moveCourse({course, newYear, newSemester}) {
+      course.year = newYear
+      course.semester = newSemester
+    },
+    /** Deletes a course from all years */
+    deleteCoruse(course) {
+      const index = this.allcourses.indexOf(course);
+      this.allcourses.splice(index, 1);
     },
   },
 };
