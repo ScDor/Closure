@@ -29,21 +29,35 @@ env = environ.Env(
 # Attempt to load the Project ID into the environment, safely failing on error.
 try:
     _, os.environ["GOOGLE_CLOUD_PROJECT"] = google.auth.default()
-except google.exceptions.DefaultCredentialsError:
+except google.auth.exceptions.DefaultCredentialsError:
     pass
 
 env_file_path = env.str("ENV_PATH", str(BASE_DIR / ".env"))
 
 if os.path.isfile(env_file_path):
     env.read_env(env_file_path)
+    print(f"Using .env file")
+elif os.environ.get("CI", False) or os.environ.get("TRAMPOLINE_CI", False):
+    placeholder = (
+        "SECRET_KEY=1337\n"
+        f"DATABASE_URL=sqlite:///test_db.sqlite3\n"
+        "ALLOWED_HOSTS=http://localhost:8000\n"
+        "AUTH0_DOMAIN=NOTUSED\n"
+        "API_IDENTIFIER=NOTUSED\n"
+        "SPA_CLIENT_ID=NOTUSED\n"
+    )
+    print(f"Using CI env with the following contents:\n{placeholder}")
+    env.read_env(io.StringIO(placeholder))
 elif os.environ.get("GOOGLE_CLOUD_PROJECT", None):
     # Pull secrets from Secret Manager
     project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 
-    client = secretmanager.SecretManagerServiceClient()
+
     # SETTINGS_NAME is the key of the secret
     settings_name = os.environ.get("SETTINGS_NAME", "django_settings")
     name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
+    print(f"Using .env from GCP project '{project_id}' located within secret '{name}'")
+    client = secretmanager.SecretManagerServiceClient()
     payload = client.access_secret_version(name=name).payload.data.decode("UTF-8")
 
     env.read_env(io.StringIO(payload))
