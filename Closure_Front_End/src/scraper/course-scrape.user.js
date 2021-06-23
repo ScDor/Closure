@@ -1,101 +1,117 @@
 // ==UserScript==
 // @name     HUJI Registered Course Scraper
 // @version  1
+// @author Daniel Kerbel
 // @grant    none
 // @match https://www.huji.ac.il/dataj/controller/*STUZIYUNIM*
 // ==/UserScript==
 
 'use strict'
 
-// TODO: determine this url dynamically
-const IFRAME_ORIGIN = "http://localhost:8080"
-const IFRAME_URL = `${IFRAME_ORIGIN}/scrape`;
+console.log(`Scrape script initialized`)
 
- 
-const iframe = attachStatusIframe();
-const postParseEntry = (entry) => {
-  iframe.contentWindow.postMessage({
-    "type": "gotCourse",
-    "course": entry
-  }, IFRAME_ORIGIN);
+// TODO: determine this url at build time
+const FRONTEND_ORIGIN = "http://localhost:8094"
+
+
+
+
+/**
+ * This function tries to find the Window object of the front-end website that (supposedly) opened this website.
+ * 
+ * This is done by recursively traversing the chain of all openers - this is required because the process of
+ * logging into HUJI's personal information website and reaching the personal grades website may involve several pop-ups.
+ * 
+ * Because of cross-origin security, we cannot simply invoke the `opener.origin` property, so we use a simple
+ * handshaking protocol to determine which opener belongs to the front-end
+ */
+function findFrontendOpener() {
+  let opener = window.opener
+  let level = 0
+  if (!opener) {
+    window.alert(`You must run this script from the pop-up given by our site`)
+  }
+  while (opener) {
+    level++
+    try {
+      console.log(`Trying to communicate with level ${level}`)
+      opener.postMessage({
+        type: "tryHook", level
+      }, FRONTEND_ORIGIN)
+    } catch (e) {
+      console.error(`Error while trying to post message: ${e}`)
+    }
+    opener = opener.opener
+  }
 }
 
 
-window.addEventListener("message", async function(event) {
-  if (event.origin != IFRAME_ORIGIN) {
-    console.error(`Got message ${JSON.stringify(event.data)} from unkwnon origin ${event.origin}`)
+
+let opener = null
+
+async function messageHandler(event) {
+  console.log(`Got message ${JSON.stringify(event)}`)
+  if (event.origin != FRONTEND_ORIGIN) {
+    console.error(`Got message ${JSON.stringify(event.data)} from unknown origin ${event.origin}`)
     return
   }
-  if (event.data == "start") {
-    event.source.postMessage("started", IFRAME_ORIGIN)
-    await beginScrape()
-    event.source.postMessage("finishedParsing", IFRAME_ORIGIN)
+  if (event.data === "hooked") {
+    opener = event.source 
+    console.log(`Hooked into frontend.`)
   }
-})
+  if (event.data === "start") {
+    event.source.postMessage("started", FRONTEND_ORIGIN)
+    await beginScrape()
+    event.source.postMessage("finishedParsing", FRONTEND_ORIGIN)
+  }
+
+}
+
+
+
+function postParseEntry(entry) {
+  opener.postMessage({
+    "type": "gotCourse",
+    "course": entry
+  }, FRONTEND_ORIGIN);
+}
+
+
+if (isRunningInGradesPage()) {
+    findFrontendOpener()
+}
 
 async function beginScrape() {
 
-  if (!isRunningInRegisteredCoursesPage()) {
+  if (!isRunningInGradesPage()) {
     console.error("HUJI registered course scraper script ran on incorrect page");
     return;
   }
 
   try {
     const docs = await getDocumentsForAllYears();
-    iframe.contentWindow.postMessage({
+    opener.postMessage({
       "type": "gotDocs",
       "numDocs": docs.length
-    }, IFRAME_ORIGIN);
+    }, FRONTEND_ORIGIN);
 
     const courses = (await Promise.all(docs.map(getCoursesForDocument))).flat()
     console.log(`A total of ${courses.length} documents were parsed from ${docs.length} documents.`);
   }
   catch (err) {
     console.error(err)
-    iframe.contentWindow.postMessage({
+    opener.postMessage({
       "type": "error",
       "errorMessage": err.message
-    }, IFRAME_ORIGIN);
+    }, FRONTEND_ORIGIN);
   }
 
 }
 
 /**
- * Creates an iframe for communication with our front-end as well as visually displaying
- * the script's status
- * @returns {HTMLIFrameElement} IFrame element
- */
-function attachStatusIframe() {
-  const iframe = document.createElement("iframe");
-  window.vueFrame = iframe;
-  iframe.style.overflow = "hidden";
-  iframe.style.marginTop = "5em";
-  iframe.style.position = "fixed";
-  iframe.style.width = "100%";
-  iframe.style.height = "40%";
-  iframe.style.backgroundColor = "transparent !important"
-  // iframe.style.border = 0;
-
-  iframe.scrolling = "no";
-  iframe.allowTransparency  = true;
-  iframe.id = "courseScrapeIframe";
-  iframe.src = IFRAME_URL;
-  // iframe.style.cssText = `
-  //   position: fixed;
-  //   left: 50%;
-  //   background-color: transparent !important;
-  //   top: 50%;
-  //   transform: translate(-50%, -50%);
-  // `
-
-  document.body.prepend(iframe);
-  return iframe
-}
-
-/**
  * @returns {boolean} Are we currently on a registered courses page
  */
-function isRunningInRegisteredCoursesPage() {
+function isRunningInGradesPage() {
   const title = document.querySelectorAll(".gen_title");
   for (const elm of title) {
     if (elm.textContent.includes("פרוט קורסים וציונים")) {
@@ -251,3 +267,14 @@ const TKUFA_TO_SEMESTER = {
   1: "FIRST",
   2: "SECOND",
 }
+
+window.addEventListener("load", function() {
+  if (!isRunningInGradesPage()) {
+    console.warn(`Script is not running within the grades page`)
+    return
+  }
+  window.addEventListener("message", messageHandler);
+  console.log(`Attached message handler`)
+  findFrontendOpener()
+
+})

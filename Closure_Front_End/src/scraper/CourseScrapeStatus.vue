@@ -14,6 +14,15 @@
           <span>אימות</span>
        </button>
 
+      <span>{{status}}</span>
+
+      <button class="button is-primary is-large" v-if="status === 'notHooked'" @click="openUni">
+          <!-- <span class="icon">
+              <i class="fas fa-lock"></i>
+          </span> -->
+          <span>פתח אוניברסיטה</span>
+       </button>
+
 
       <button class="button is-primary is-large" v-if="status === 'waiting' && $auth.isAuthenticated.value" @click="start">התחלה</button>
       </div>
@@ -70,11 +79,6 @@ const ALLOWED_MESSAGE_ORIGINS = [HUJI_ORIGIN, `${location.protocol}//${location.
 
 export default {
     created: function() {
-        if (window.parent === window) {
-            this.status = "error"
-            this.errorMessage = "This page must be ran within HUJI User registration page"
-            return;
-        }
         window.addEventListener("message", this.handleEvent, false);
     },
 
@@ -83,7 +87,14 @@ export default {
     },
     methods: {
         start: function() {
-            window.parent.postMessage("start", HUJI_ORIGIN)
+            this.ref.postMessage("start", HUJI_ORIGIN)
+        },
+        openUni: function() {
+            const winRef = window.open("https://www.huji.ac.il/dataj/controller/!92DE8E041B23BAFFCA1BFB95B571EBC3/stu/STU-STUZIYUNIM?winsub=yes&safa=H", "_blank")
+            if (!winRef) {
+                this.error = `חלה שגיאה בפתיחת האתר, אם יש לך חוסם חלונות קופצים או פרסומות, אנא בטל/י אותו.`
+                return
+            }
         },
         handleEvent: function(event) {
             if (!ALLOWED_MESSAGE_ORIGINS.includes(event.origin)) {
@@ -93,6 +104,14 @@ export default {
 
 
             const msg = event.data;
+            if (msg.type === "tryHook") {
+                this.status = msg.type
+                console.log(`Got hook attempt from HUJI at level ${msg.level}`)
+                event.source.postMessage("hooked", HUJI_ORIGIN)
+                console.log(`responded with hooked message.`)
+                this.status = "hooked"
+                this.ref = event.source
+            }
             if (msg === "started" || msg === "finishedParsing") {
                 this.status = msg
             }
@@ -163,10 +182,11 @@ export default {
     },
     data: function() {
         return {
-            "status": "waiting",
+            "status": "notHooked",
             "notifications": [],
             "courses": [],
-            "error": ""
+            "error": "",
+            "ref": null
         }
     },
 

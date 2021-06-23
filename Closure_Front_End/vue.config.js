@@ -9,10 +9,11 @@ module.exports = {
           'template': 'public/index.html',
           'filename': 'index.html'
       },
-      scrape_iframe: {
-          'entry': 'src/course-scrape-iframe.js',
-          'template': 'public/course-scrape-iframe.html',
-          'filename': 'course-scrape-iframe.html'
+      scrape_huji: {
+          'entry': 'src/scraper/course-scrape.user.js',
+          'chunks': []
+          // 'template': 'public/course-scrape.user.html',
+          // 'filename': 'course-scrape-user.html'
       }
-  }
+  },
 }
