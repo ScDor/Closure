@@ -207,7 +207,7 @@ async function parseCourseTable(tbody, docYear) {
       "year": docYear,
       "points": Number.parseInt(entry["נקודות זכות"][0])
     }
-    if (entry["סטטיסטיקות"]) {
+    if (entry["סטטיסטיקות"].length === 2) {
       engEntry.statistics_url = entry["סטטיסטיקות"][1]
       const urlParams = new URLSearchParams(engEntry.statistics_url)
       let [year, semester] = [ urlParams.get("yearlimud"), urlParams.get("tkufa")]
