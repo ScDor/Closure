@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import Settings from '../views/Settings.vue'
-import CourseScrapeStatus from '@/CourseScrapeStatus.vue'
+import { routeGuard } from '@/auth/index.js'
 
 const routes = [
   {
@@ -12,7 +12,8 @@ const routes = [
   {
     path: '/settings',
     name: 'Settings',
-    component: Settings
+    component: Settings,
+    beforeEnter: routeGuard
   },
   {
     path: '/scrape',
