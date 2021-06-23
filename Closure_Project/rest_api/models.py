@@ -3,7 +3,17 @@ import uuid
 from enum import Enum
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import models
+
+
+def _validate_non_negative_number(value):
+    """ ensures that the given value is non-negative"""
+    if value < 0:
+        raise ValidationError(
+            message='Invalid value: %(value)s is a negative number',
+            params={'value': value},
+        )
 
 
 class Faculty(Enum):
@@ -134,7 +144,7 @@ class CourseGroup(models.Model):
     course_type = models.CharField(max_length=20, choices=CourseType.choices)
     year_in_studies = models.IntegerField()
     index_in_track_year = models.IntegerField()
-    required_course_count = models.IntegerField(null=True)
+    required_course_count = models.IntegerField(null=True, validators=[_validate_non_negative_number])
     required_points = models.IntegerField(null=True)
     comment = models.CharField(max_length=255, null=True)
     courses = models.ManyToManyField(Course)
