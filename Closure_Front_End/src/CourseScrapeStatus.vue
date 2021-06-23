@@ -6,6 +6,9 @@
           Error: {{ errorMessage }}
       </div>
 
+    <div v-for="course in courses" :key="course['קורס']">
+        <span>{{ course['קורס'] }}</span>
+    </div>
 
     <div v-for="notif in notifications" :key="notif.id" class="notification">
         Notification: {{notif.contents }}
@@ -28,7 +31,6 @@ export default {
     unmounted: function() {
         window.removeEventListener("message", this.handleEvent);
     },
-
     methods: {
         handleEvent: function(event) {
             if (!ALLOWED_MESSAGE_ORIGINS.includes(event.origin)) {
@@ -44,28 +46,31 @@ export default {
                 this.errorMessage = msg.errorMessage;
             }
 
-            if (msg.type === "gotCourses") {
-                console.log(`gotCourses message`);
-                this.notifications.push({
-                    "id": this.notifications.length,
-                    "contents": `Detected ${msg.courses.length} courses`
-                })
-                this.handleCourses(msg.courses);
+            if (msg.type === "gotCourse") {
+                this.handleCourse(msg.course)
             }
         },
 
-        handleCourses: function(courses) {
-            // TODO: update the 'Take' resource via API
-            console.log(courses)
+        handleCourse: async function(course) {
+            if (!course.semester) {
+                await this.tryFillSemesterFromShnaton(course)
+            }
+            this.courses.push(course)
+        },
+        tryFillSemesterFromShnaton: async function(course) {
+            const res = await this.$http(`/courses/${course["סמל קורס"]}`)
+            console.log(`${res}`)
         }
     },
     
     data: function() {
         return {
             "status": "Initializing",
-            "notifications": []
+            "notifications": [],
+            "courses": []
         }
     },
+
 }
 </script>
 

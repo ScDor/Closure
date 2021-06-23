@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import Settings from '../views/Settings.vue'
-
+import CourseScrapeStatus from '@/CourseScrapeStatus.vue'
 
 const routes = [
   {
@@ -14,6 +14,11 @@ const routes = [
     name: 'Settings',
     component: Settings
   },
+  {
+    path: '/scrape',
+    name: 'Scrape',
+    component: CourseScrapeStatus
+  }
 ]
 
 const router = createRouter({
