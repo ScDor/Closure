@@ -9,7 +9,18 @@
 
 // TODO: determine this url dynamically
 const IFRAME_ORIGIN = "http://localhost:8080"
-const IFRAME_URL = `${IFRAME_ORIGIN}/course-scrape-iframe.html`;
+// const IFRAME_URL = `${IFRAME_ORIGIN}/course-scrape-iframe.html`;
+const IFRAME_URL = `${IFRAME_ORIGIN}/scrape`;
+
+ 
+const iframe = attachStatusIframe();
+const postParseEntry = (entry) => {
+  iframe.contentWindow.postMessage({
+    "type": "gotCourse",
+    "course": entry
+  }, IFRAME_ORIGIN);
+}
+
 
 /**
  * An asynchronous function that drives this script, which includes:
@@ -25,21 +36,15 @@ async function start() {
     return;
   }
 
-  const iframe = attachStatusIframe();
-
   try {
     const docs = await getDocumentsForAllYears();
     iframe.contentWindow.postMessage({
       "type": "gotDocs",
       "numDocs": docs.length
     }, IFRAME_ORIGIN);
-    const courses = await Promise.all(docs.flatMap(getCoursesForDocument));
-    console.log(`Fetched ${courses.length} `);
-    iframe.contentWindow.postMessage({
-      "type": "gotCourses",
-      "courses": courses
-    }, IFRAME_ORIGIN);
-    console.log(`A total of ${courses.length} courses were parsed`);
+
+    const courses = (await Promise.all(docs.map(getCoursesForDocument))).flat()
+    console.log(`A total of ${courses.length} documents were parsed from ${docs.length} documents.`);
   }
   catch (err) {
     console.error(err)
@@ -158,13 +163,7 @@ async function getCoursesForDocument(doc) {
   // find all tables containing registered courses(there may be several depending on num of chugs)
   const tdElements = [...xpathQuery(doc, "//tbody[tr[td[contains(text(), 'סמל קורס')]]]")]
 
-  const courses = []
-  for (const tbody of tdElements) {
-    const tableResults = await parseCourseTable(tbody, docYear)
-    courses.push(...tableResults)
-  }
-
-  return courses
+  return await Promise.all(tdElements.map(tbody => parseCourseTable(tbody, docYear)))
 }
 
 
@@ -195,64 +194,19 @@ async function parseCourseTable(tbody, docYear) {
       return [elm.innerText]
     })
     if (fields.length !== columns.length) {
-      console.warn(`Mismatch between header(${columns.length} entries) and row(${fields.length} entries)`)
+      console.error(`Mismatch between header(${columns.length} entries) and row(${fields.length} entries)`)
       continue
     }
     const entry = columns.reduce((obj, key, keyIx) => ({ ...obj, [key]: fields[keyIx] }), {})
     entry.year = docYear
     tryFillSemesterFromStatisticsURL(entry, docYear)
-    if (!entry.semester) {
-      await tryFillSemesterFromShnaton(entry)
-    }
-
+    postParseEntry(entry)
     console.log(entry)
     rows.push(entry)
   }
   return rows
 }
 
-/**
- * Tries filling semester information for given entry via Shnaton, unless Course is offered
- * in both semesters.
- * @param {CourseParseResult} entry 
- * @returns 
- */
-async function tryFillSemesterFromShnaton(entry) {
-  const shntaonUrlHref = entry['סמל קורס'][1]
-  if (!shntaonUrlHref) {
-    console.warn(`Could not find shntaon URL for entry ${JSON.stringify(entry)}`)
-    return
-  }
-  const shnatonUrlMatch = shntaonUrlHref.match(/openWinD\('(.*)'\)/)
-  if (!shnatonUrlMatch) {
-    console.error(`Could not extract shntaon URL from href ${shntaonUrlHref}`)
-    return
-  }
-
-  const docRes = await fetch(shntaonUrlHref)
-  if (!docRes.ok) {
-    const errText = await docRes.text()
-    console.error(`Couldn't retrieve shnaton for entry ${JSON.stringify(entry)}: ${docRes.status} - ${errText}`)
-    return
-  }
-  const doc = await responseToDocument(docRes)
-  const semesterStrings = [...xpathQuery(doc, "//td[@class='courseTD text' and contains(text(), 'סמסטר')]")]
-  if (semesterStrings.length != 1) {
-    console.error(`Couldn't find semester in shntaon URL ${shnatonUrlMatch}`)
-    return;
-  }
-  const semesterString = semesterStrings[0].textContent
-
-  if (semesterString == "סמסטר א'") { 
-    entry.semester == 1
-  }
-  else if (semesterString == "סמסטר ב'") { 
-    entry.semester == 2 
-  }
-  else {
-    console.log(`Ambiguous semester \"${semesterString}" for entry ${JSON.stringify(entry)}`)
-  }
-}
 
 /**
  * Tries filling semester information from link to statistics page.
