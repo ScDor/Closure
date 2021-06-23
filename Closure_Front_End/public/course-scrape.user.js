@@ -29,7 +29,7 @@ window.addEventListener("message", async function(event) {
   if (event.data == "start") {
     event.source.postMessage("started", IFRAME_ORIGIN)
     await beginScrape()
-    event.source.postMessage("finished", IFRAME_ORIGIN)
+    event.source.postMessage("finishedParsing", IFRAME_ORIGIN)
   }
 })
 
@@ -67,13 +67,27 @@ async function beginScrape() {
  */
 function attachStatusIframe() {
   const iframe = document.createElement("iframe");
+  window.vueFrame = iframe;
   iframe.style.overflow = "hidden";
+  iframe.style.marginTop = "5em";
+  iframe.style.position = "fixed";
   iframe.style.width = "100%";
-  iframe.style.height = "400";
+  iframe.style.height = "40%";
+  iframe.style.backgroundColor = "transparent !important"
+  // iframe.style.border = 0;
+
   iframe.scrolling = "no";
-  iframe.style.border = 0;
+  iframe.allowTransparency  = true;
   iframe.id = "courseScrapeIframe";
   iframe.src = IFRAME_URL;
+  // iframe.style.cssText = `
+  //   position: fixed;
+  //   left: 50%;
+  //   background-color: transparent !important;
+  //   top: 50%;
+  //   transform: translate(-50%, -50%);
+  // `
+
   document.body.prepend(iframe);
   return iframe
 }
@@ -202,7 +216,7 @@ async function parseCourseTable(tbody, docYear) {
     }
     const entry = columns.reduce((obj, key, keyIx) => ({ ...obj, [key]: fields[keyIx] }), {})
     const engEntry = {
-      "course_id": entry["סמל קורס"][0],
+      "course_id": Number.parseInt(entry["סמל קורס"][0]),
       "name": entry["קורס"][0],
       "year": docYear,
       "points": Number.parseInt(entry["נקודות זכות"][0])
@@ -217,9 +231,9 @@ async function parseCourseTable(tbody, docYear) {
       if (!year || !semester) {
         console.error(`Couldn't determine year and/or semester from statistics URL ${engEntry.statistics_url}`)
       } else {
-        engEntry.semester = semester
+        engEntry.semester = TKUFA_TO_SEMESTER[semester]
         if (year !== docYear) {
-          console.warn(`Mismatch between statistics URL year(=${year}) and doc year(=${docYear})`)
+          console.error(`Mismatch between statistics URL year(=${year}) and doc year(=${docYear})`)
           engEntry.year = docYear
         }
       }
@@ -230,4 +244,10 @@ async function parseCourseTable(tbody, docYear) {
     rows.push(engEntry)
   }
   return rows
+}
+
+
+const TKUFA_TO_SEMESTER = {
+  1: "FIRST",
+  2: "SECOND",
 }
