@@ -1,6 +1,6 @@
 <template>
   <!-- basically a menu, a (soon to be) analytics box, and the years themselves. -->
-  <nav class="navbar has-shadow is-dark">
+  <nav class="navbar has-shadow is-dark" v-if="!$route.meta.hideNavbar">
     <div class="navbar-brand">
       <router-link class="navbar-item" to="/"><b>Closure()</b></router-link>
     </div>

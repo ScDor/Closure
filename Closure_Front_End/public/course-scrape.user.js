@@ -9,7 +9,6 @@
 
 // TODO: determine this url dynamically
 const IFRAME_ORIGIN = "http://localhost:8080"
-// const IFRAME_URL = `${IFRAME_ORIGIN}/course-scrape-iframe.html`;
 const IFRAME_URL = `${IFRAME_ORIGIN}/scrape`;
 
  
@@ -22,14 +21,19 @@ const postParseEntry = (entry) => {
 }
 
 
-/**
- * An asynchronous function that drives this script, which includes:
- * - Creating a status iframe within the Closure website
- * - Fetching the courses documents for all available years
- * - Parsing those documents into a list of courses
- * - Notifying the iframe of those courses, which shall then POST them to the backend.
- */
-async function start() {
+window.addEventListener("message", async function(event) {
+  if (event.origin != IFRAME_ORIGIN) {
+    console.error(`Got message ${JSON.stringify(event.data)} from unkwnon origin ${event.origin}`)
+    return
+  }
+  if (event.data == "start") {
+    event.source.postMessage("started", IFRAME_ORIGIN)
+    await beginScrape()
+    event.source.postMessage("finished", IFRAME_ORIGIN)
+  }
+})
+
+async function beginScrape() {
 
   if (!isRunningInRegisteredCoursesPage()) {
     console.error("HUJI registered course scraper script ran on incorrect page");
@@ -169,8 +173,7 @@ async function getCoursesForDocument(doc) {
 
 /** 
  * A parsed course entry contains fields such as course number, course name, points and statistics.
- * Each field contains either just 1 element(the text content) or 2 elements(text content, and href)
- * @typedef {Record<string, [any] | [any, any]>} CourseParseResult */
+ * @typedef {Record<string, any>} CourseParseResult */
 
 
 /**
@@ -198,45 +201,33 @@ async function parseCourseTable(tbody, docYear) {
       continue
     }
     const entry = columns.reduce((obj, key, keyIx) => ({ ...obj, [key]: fields[keyIx] }), {})
+    const engEntry = {
+      "course_id": entry["סמל קורס"][0],
+      "name": entry["קורס"][0],
+      "year": docYear,
+      "points": Number.parseInt(entry["נקודות זכות"][0])
+    }
+    if (entry["סטטיסטיקות"]) {
+      engEntry.statistics_url = entry["סטטיסטיקות"][1]
+      const urlParams = new URLSearchParams(engEntry.statistics_url)
+      let [year, semester] = [ urlParams.get("yearlimud"), urlParams.get("tkufa")]
+      year = Number.parseInt(year)
+      semester = Number.parseInt(semester)
+      
+      if (!year || !semester) {
+        console.error(`Couldn't determine year and/or semester from statistics URL ${engEntry.statistics_url}`)
+      } else {
+        engEntry.semester = semester
+        if (year !== docYear) {
+          console.warn(`Mismatch between statistics URL year(=${year}) and doc year(=${docYear})`)
+          engEntry.year = docYear
+        }
+      }
+    }
     entry.year = docYear
-    tryFillSemesterFromStatisticsURL(entry, docYear)
-    postParseEntry(entry)
-    console.log(entry)
-    rows.push(entry)
+    postParseEntry(engEntry)
+    // console.log(entry)
+    rows.push(engEntry)
   }
   return rows
 }
-
-
-/**
- * Tries filling semester information from link to statistics page.
- * @param {CourseParseResult} entry See {@link parseCourseTable}
- * @param docYear The year in the document from which this entry is parsed, used
- *                for sanity checking.
- */
-function tryFillSemesterFromStatisticsURL(entry, docYear) {
-    // the year and semester aren't explicit table cells(although year is known from page),
-    // but they can be derived from the statistics URL structure
-    const statsUrl = entry['סטטיסטיקות'][1]
-    if (!statsUrl) {
-      console.log(`Entry ${JSON.stringify(entry)} has no statistics`)
-      return;
-    }
-    const statsParams = new URLSearchParams(statsUrl)
-
-    const year = Number.parseInt(statsParams.get('yearlimud'))
-    const semester = Number.parseInt(statsParams.get('tkufa'))
-
-    if (!year || !semester) {
-      console.error(`Entry ${JSON.stringify(entry)} has a statistics URL with no year/semester params: ${statsUrl}`)
-      return
-    }
-
-    if (year != docYear) {
-      console.warn(`Entry ${JSON.stringify(entry)} has year ${year} while the document's year is ${docYear}`)
-    }
-
-    entry.semester = semester
-}
-
-window.addEventListener('load', start)
