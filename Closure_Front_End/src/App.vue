@@ -1,6 +1,6 @@
 <template>
   <!-- basically a menu, a (soon to be) analytics box, and the years themselves. -->
-  <nav class="navbar has-shadow is-dark" v-if="!$route.meta.hideNavbar">
+  <nav class="navbar has-shadow is-dark" >
     <div class="navbar-brand">
       <router-link class="navbar-item" to="/"><b>Closure()</b></router-link>
     </div>
@@ -16,6 +16,12 @@
             <span class="icon is-small is-right">
               <i class="fas fa-user-cog"></i>
             </span>
+          </router-link>
+          <router-link
+            class="button is-small is-dark"
+            to="/scrape"
+          >
+            <button class="button is-small is-dark menu-label">Import HUJI Data</button>
           </router-link>
           <div v-if="!$auth.loading.value">
             <button

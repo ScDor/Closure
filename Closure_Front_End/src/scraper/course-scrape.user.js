@@ -57,14 +57,11 @@ async function messageHandler(event) {
   }
   if (event.data === "hooked") {
     opener = event.source 
-    console.log(`Hooked into frontend.`)
-  }
-  if (event.data === "start") {
+    console.log(`Hooked into frontend, starting scrape`)
     event.source.postMessage("started", FRONTEND_ORIGIN)
     await beginScrape()
     event.source.postMessage("finishedParsing", FRONTEND_ORIGIN)
   }
-
 }
 
 

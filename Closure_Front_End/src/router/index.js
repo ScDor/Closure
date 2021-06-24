@@ -19,8 +19,7 @@ const routes = [
   {
     path: '/scrape',
     name: 'Scrape',
-    component: CourseScrapeStatus,
-    meta: { hideNavbar: true }
+    component: CourseScrapeStatus
   }
 ]
 

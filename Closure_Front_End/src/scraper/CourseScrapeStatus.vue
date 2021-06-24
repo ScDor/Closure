@@ -7,13 +7,6 @@
       </div>
 
       <div class="has-text-centered">
-      <button class="button is-primary is-large" v-if="!$auth.isAuthenticated.value" @click="authenticate">
-          <span class="icon">
-              <i class="fas fa-lock"></i>
-          </span>
-          <span>אימות</span>
-       </button>
-
       <span>{{status}}</span>
 
       <button class="button is-primary is-large" v-if="status === 'notHooked'" @click="openUni">
@@ -23,8 +16,6 @@
           <span>פתח אוניברסיטה</span>
        </button>
 
-
-      <button class="button is-primary is-large" v-if="status === 'waiting' && $auth.isAuthenticated.value" @click="start">התחלה</button>
       </div>
 
       <div v-if="status === 'finishedParsing' && !canSend">
@@ -86,9 +77,6 @@ export default {
         window.removeEventListener("message", this.handleEvent);
     },
     methods: {
-        start: function() {
-            this.ref.postMessage("start", HUJI_ORIGIN)
-        },
         openUni: function() {
             const winRef = window.open("https://www.huji.ac.il/dataj/controller/!92DE8E041B23BAFFCA1BFB95B571EBC3/stu/STU-STUZIYUNIM?winsub=yes&safa=H", "_blank")
             if (!winRef) {
