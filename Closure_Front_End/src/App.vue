@@ -53,7 +53,7 @@ export default {
     // Log the user out
     logout() {
       this.$auth.logout({
-        returnTo: window.location.origin,
+        returnTo: process.env.VUE_APP_AUTH0_REDIRECT_URI
       });
     },
   },
