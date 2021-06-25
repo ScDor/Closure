@@ -26,6 +26,7 @@ node_modules/
 # migrations - eventually will need to enable them
 /Closure_Project/rest_api/migrations/
 
+
 # frontend
 =======
 /Closure_Front_End/node_modules/

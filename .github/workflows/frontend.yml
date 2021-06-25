@@ -1,0 +1,43 @@
+
+name: Vue CI
+
+on: [push, pull_request]
+
+
+jobs:
+  build:
+
+    defaults:
+      run:
+        working-directory: './Closure_Front_End'
+
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        node-version: ['14', '16']
+
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Node v${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+    - uses: actions/cache@v2
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-v${{ matrix.node-version }}-${{ hashFiles('Closure_Front_End/**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-v${{ matrix.node-version }}
+
+    - name: Install Dependencies
+      run: npm ci
+
+
+    - name: Run unit tests
+      run: npm run test:unit
+
+    - name: Run ESLint
+      run: npm run lint
+      if: always()

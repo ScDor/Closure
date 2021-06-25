@@ -3,8 +3,9 @@ import json
 import jwt
 import requests
 from django.contrib.auth import authenticate
+from functools import lru_cache
 
-from project_settings.settings import API_IDENTIFIER, AUTH0_DOMAIN
+from project_settings.settings import AUTH0_DOMAIN, SPA_CLIENT_ID
 
 
 def get_course_type(track: Track, course: Course) -> CourseType:
@@ -22,14 +23,18 @@ def get_course_type(track: Track, course: Course) -> CourseType:
 
 
 def jwt_get_username_from_payload_handler(payload):
+
     username = payload.get('sub').replace('|', '.')
     authenticate(remote_user=username)
     return username
 
+@lru_cache(maxsize=1)
+def get_jwks():
+    return requests.get('https://{}/.well-known/jwks.json'.format(AUTH0_DOMAIN)).json()
 
 def jwt_decode_token(token):
     header = jwt.get_unverified_header(token)
-    jwks = requests.get('https://{}/.well-known/jwks.json'.format(AUTH0_DOMAIN)).json()
+    jwks = get_jwks()
     public_key = None
     for jwk in jwks['keys']:
         if jwk['kid'] == header['kid']:
@@ -39,4 +44,4 @@ def jwt_decode_token(token):
         raise Exception('Public key not found.')
 
     issuer = 'https://{}/'.format(AUTH0_DOMAIN)
-    return jwt.decode(token, public_key, audience=API_IDENTIFIER, issuer=issuer, algorithms=['RS256'])
+    return jwt.decode(token, public_key, audience=SPA_CLIENT_ID, issuer=issuer, algorithms=['RS256'])
