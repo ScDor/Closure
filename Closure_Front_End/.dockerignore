@@ -1,0 +1,17 @@
+.gcloudignore
+# If you would like to upload your .git directory, .gitignore file or files
+# from your .gitignore file, remove the corresponding line
+# below: 
+.git 
+.gitignore
+
+.vscode/
+.idea/
+
+
+
+# .env files are OK as they don't contain secrets, but don't include local ones
+# (multiple env files also OK, because which one is used depends on NODE_ENV)
+.env*.local
+node_modules/
+dist/

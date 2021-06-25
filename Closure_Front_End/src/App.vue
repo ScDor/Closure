@@ -42,8 +42,28 @@
 </template>
 
 <script>
+
 export default {
   name: "App",
+
+  data() {
+    return {
+      username: "",
+      student: null,
+    };
+  },
+
+  created() {
+    /** if the user is loged in, then fetching his data from DB, else doing nothing */
+    if (this.$auth.isAuthenticated.value) {
+      this.$auth
+        .getIdTokenClaims()
+        .then((response) => (this.username = response.nickname));
+
+      this.$http.get(`students/${this.username}`)
+        .then((response) => this.student = response);
+    }
+  },
 
   methods: {
     // Log the user in
@@ -53,7 +73,7 @@ export default {
     // Log the user out
     logout() {
       this.$auth.logout({
-        returnTo: window.location.origin,
+        returnTo: process.env.VUE_APP_AUTH0_REDIRECT_URI
       });
     },
   },

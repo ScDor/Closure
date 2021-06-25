@@ -1,4 +1,4 @@
-FROM node:16-alpine
+FROM node:16
 
 # make the 'app' folder the current working directory
 WORKDIR /app
