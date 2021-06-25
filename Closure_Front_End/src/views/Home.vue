@@ -7,7 +7,7 @@
             <navigation @clickcourse="add"></navigation>
           </div>
           <div class="column" v-for="year in years" :key="year">
-            <year :year="year" :allcourses="allcourses"
+            <year :year="year" :allcourses="allcourses" 
                   @courseMoved="moveCourse" @courseDeleted="deleteCoruse" />
           </div>
         </div>
@@ -24,7 +24,6 @@
 <script>
 import Year from "../components/Year.vue";
 import Navigation from "../components/Navigation.vue";
-import axios from "axios";
 
 export default {
   name: "Closure()",
@@ -37,121 +36,71 @@ export default {
         { id: 3, name: "שנה ג" },
         { id: 4, name: "שנה ד" },
       ],
-
-      username: "placehoder",
-      student: {
-        username: "string",
-        track_pk: 28,
-        year_in_studies: 1,
-        courses: [
-          {
-            pk: 0,
-            year_in_studies: 1,
-            semester: "FIRST",
-          },
-        ],
-      },
-
+      track: null,
+      student: null,
       allcourses: [
         {
-          pk: 5837,
-          course_id: 67315,
-          name: "סדנת תכנות בשפות C ו- ++C",
-          semester: 1,
-          year: 2,
-          points: 4,
-          type: 1,
-        },
-        {
-          pk: 7208,
-          course_id: 80131,
-          name: "חשבון אינפיניטסימלי (1)",
-          semester: 1,
-          year: 1,
+          course_id: 1,
+          name: "חשבון אינפיניטסימלי 1",
           points: 7,
-          type: 1,
-        },
-        {
-          pk: 7209,
-          course_id: 80132,
-          name: "חשבון אינפיניטסימלי (2)",
-          semester: 2,
           year: 1,
-          points: 7,
-          type: 1,
-        },
-        {
-          pk: 7211,
-          course_id: 80134,
-          name: "אלגברה ליניארית (1)",
           semester: 1,
-          year: 1,
-          points: 6,
-          type: 1,
         },
         {
-          pk: 7212,
-          course_id: 80135,
-          name: "אלגברה ליניארית (2)",
-          semester: 2,
+          course_id: 2,
+          name: "מבוא למדעי המחשב",
+          points: 7,
           year: 1,
-          points: 6,
-          type: 1,
+          semester: 1,
         },
         {
-          pk: 7220,
-          course_id: 80181,
+          course_id: 3,
+          name: "אלגברה ליניארית 1",
+          points: 6,
+          year: 1,
+          semester: 1,
+        },
+        {
+          course_id: 4,
           name: "מתמטיקה דיסקרטית",
-          semester: 1,
+          points: 5,
           year: 1,
-          points: 5,
-          type: 1,
+          semester: 1,
         },
         {
-          pk: 5844,
-          course_id: 67392,
-          name: "מבוא לקריפטוגרפיה ואבטחת תוכנה",
+          course_id: 5,
+          name: "חשבון אינפיניטסימלי 2",
+          points: 7,
+          year: 1,
           semester: 2,
-          year: 2,
+        },
+        {
+          course_id: 6,
+          name: "C / C++",
           points: 4,
-          type: 2,
+          year: 1,
+          semester: 2,
         },
         {
-          pk: 5854,
-          course_id: 67506,
-          name: "מסדי נתונים",
-          semester: 1,
-          year: 3,
-          points: 5,
-          type: 2,
+          course_id: 7,
+          name: "אלגברה ליניארית 2",
+          points: 6,
+          year: 1,
+          semester: 2,
         },
         {
-          pk: 5888,
-          course_id: 67609,
-          name: "גרפיקה ממוחשבת",
-          semester: 1,
-          year: 3,
-          points: 5,
-          year: 3,
-          type: 3,
-        },
-        {
-          pk: 5951,
-          course_id: 67829,
-          name: "עיבוד ספרתי של תמונות",
-          semester: "1",
-          year: 3,
+          course_id: 8,
+          name: "מבני נתונים",
           points: 4,
-          type: 2,
+          year: 1,
+          semester: 2,
         },
         {
-          pk: 5960,
-          course_id: 67842,
-          name: "מבוא לבינה מלאכותית",
-          semester: "2",
-          year: 3,
-          points: 5,
-          type: 2,
+          course_id: 9,
+          name: "אבן פינה קיקיונית כלשהי",
+          points: 2,
+          year: 1,
+          semester: 2,
         },
       ],
     };
@@ -163,56 +112,8 @@ export default {
         this.track = response.data.results[0]
       })
     }
-    /** if the user is loged in, then fetching his data from DB, else doing nothing */
-    // if (this.$auth.isAuthenticated.value) {
-    //   this.getUsername().then(function (username) {
-    //     axios
-    //       .get("http://127.0.0.1:8000/api/v1/students/?search=" + username, {
-    //         headers: {
-    //           Authorization: "Token 0782d1d5118827d8f32cdeaddde60a8bb53d7625",
-    //         },
-    //       })
-    //       .then((response) => (this.student = response))
-    //       .then((response) => this.createAllCourses(response));
-    //   });
-    // }
   },
-
   methods: {
-    getUsername() {
-      return this.$auth
-        .getIdTokenClaims()
-        .then((response) => response.nickname);
-    },
-
-    /** fetch all student's courses from the DB and store them in allcourses */
-    createAllCourses(student) {
-      for (course in student.courses) {
-        const course_info = course.course;
-        this.allcourses.push({
-          pk: course.pk,
-          course_id: course_info.course_id,
-          name: course_info.name,
-          semester: this.getSemester(course_info),
-          year: course.year_in_studies,
-          points: course.course.points,
-          type: this.getType(course),
-        });
-      }
-    },
-
-    getSemester(course) {
-      if (course.semester == "FIRST") return 1;
-      return 2;
-    },
-
-    getType(course) {
-      console.log(course);
-      if (course.type == "MUST") return 1;
-      if (course.type == "CHOOSE_FROM_LIST") return 2;
-      return 3;
-    },
-
     /**
      * This method adds a new coursebox, by default to the first semester.
      * requires an event (clicking on a course on the drop down menu in the navigation bar
@@ -220,12 +121,11 @@ export default {
      */
     add(event, course) {
       this.allcourses.push({
-        pk: course.pk,
         course_id: course.course_id,
         name: course.name,
-        semester: 1,
-        year: 1,
         points: course.points,
+        year: 1,
+        semester: 1,
       });
     },
 
@@ -238,7 +138,7 @@ export default {
     deleteCoruse(course) {
       const index = this.allcourses.indexOf(course);
       this.allcourses.splice(index, 1);
-    },
+    }
   },
 };
 </script>
