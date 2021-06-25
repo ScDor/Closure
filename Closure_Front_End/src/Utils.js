@@ -8,7 +8,7 @@ function validateStatusCode (statusCode) {
 }
 
 /**
- * pop out an alert with generic error message. we call it when there was an error while performing an operation.
+ * pops out an alert with generic error message. We call it when there was an error while performing an HTTP call.
  */
 function popOutStatusCodeError(){
     alert("Error occurred. Couldn't perform the operation.")
