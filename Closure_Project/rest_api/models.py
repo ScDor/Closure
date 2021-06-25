@@ -132,7 +132,7 @@ class Track(models.Model):
 class CourseGroup(models.Model):
     track = models.ForeignKey(Track, on_delete=models.CASCADE)
     course_type = models.CharField(max_length=20, choices=CourseType.choices)
-    year_in_studies = models.IntegerField(choices=Year.choices)
+    year_in_studies = models.IntegerField()
     index_in_track_year = models.IntegerField()
     required_course_count = models.IntegerField(null=True)
     required_points = models.IntegerField(null=True)

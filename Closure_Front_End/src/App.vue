@@ -42,8 +42,34 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   name: "App",
+
+  data() {
+    return {
+      username: "",
+      student: null,
+    };
+  },
+
+  created() {
+    /** if the user is loged in, then fetching his data from DB, else doing nothing */
+    if (this.$auth.isAuthenticated.value) {
+      this.$auth
+        .getIdTokenClaims()
+        .then((response) => (this.username = response.nickname));
+
+      axios
+        .get("http://127.0.0.1:8000/api/v1/students/" + this.username, {
+          headers: {
+            Authorization: "Token 0782d1d5118827d8f32cdeaddde60a8bb53d7625",
+          },
+        })
+        .then((response) => this.student = response);
+    }
+  },
 
   methods: {
     // Log the user in

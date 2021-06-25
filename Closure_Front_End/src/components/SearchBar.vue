@@ -53,7 +53,7 @@ export default {
       axios
         .get(this.url + this.query, {
           headers: {
-            Authorization: "Token 425fa39de10f02351c7043d0dbe34a4b31be7a27",
+            Authorization: "Token 0782d1d5118827d8f32cdeaddde60a8bb53d7625",
           },
         })
         .then((response) => (this.suggestions = response.data.results))
