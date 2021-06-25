@@ -24,6 +24,7 @@
 <script>
 import Year from "../components/Year.vue";
 import Navigation from "../components/Navigation.vue";
+import Utils from "../Utils.js"
 
 export default {
   name: "Closure()",
@@ -108,9 +109,12 @@ export default {
   created() {
     if (this.$auth.isAuthenticated.value) {
       this.$auth.getIdTokenClaims().then(console.log, console.error);
-      this.$http.get("tracks/?track_number=3010").then(response => {
+      this.$http.get("tracks/?track_number=3010",
+      {validateStatus: Utils.validateStatusCode(status)}
+      ).then(response => {
         this.track = response.data.results[0]
       })
+      .catch (Utils.popOutStatusCodeError);
     }
   },
   methods: {

@@ -30,6 +30,7 @@
 
 <script>
 import axios from "axios";
+import Utils from "../Utils.js"
 
 export default {
   props: ["placeholder", "url"],
@@ -55,9 +56,11 @@ export default {
           headers: {
             Authorization: "Token 425fa39de10f02351c7043d0dbe34a4b31be7a27",
           },
+          validateStatus: Utils.validateStatusCode(status)
         })
         .then((response) => (this.suggestions = response.data.results))
-        .then((this.hide = !this.suggestions.length || this.query == ""));
+        .then((this.hide = !this.suggestions.length || this.query == ""))
+        .catch (Utils.popOutStatusCodeError);
     },
 
     emitClick(event, sugg) {
