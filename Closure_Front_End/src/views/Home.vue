@@ -131,7 +131,6 @@ export default {
           semester: 1,
           year: 3,
           points: 5,
-          year: 3,
           type: 3,
         },
         {
@@ -174,7 +173,7 @@ export default {
 
     /** fetch all student's courses from the DB and store them in allcourses */
     createAllCourses(student) {
-      for (course in student.courses) {
+      for (const course of student.courses) {
         const course_info = course.course;
         this.allcourses.push({
           pk: course.pk,
