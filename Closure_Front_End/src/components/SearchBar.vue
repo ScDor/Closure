@@ -29,7 +29,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import Utils from "../Utils.js"
 
 export default {
