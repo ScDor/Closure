@@ -4,11 +4,15 @@ import jwt
 import requests
 from django.contrib.auth import authenticate
 from functools import lru_cache
+from typing import Optional
 
 from project_settings.settings import AUTH0_DOMAIN, SPA_CLIENT_ID
 
 
-def get_course_type(track: Track, course: Course) -> CourseType:
+def get_course_type(track: Track, course: Course) -> Optional[CourseType]:
+    if not track:
+        return None
+
     if course.is_corner_stone:
         return CourseType.CORNER_STONE
 
@@ -24,7 +28,7 @@ def get_course_type(track: Track, course: Course) -> CourseType:
 
 def jwt_get_username_from_payload_handler(payload):
 
-    username = payload.get('sub').replace('|', '.')
+    username = payload.get('nickname')
     authenticate(remote_user=username)
     return username
 

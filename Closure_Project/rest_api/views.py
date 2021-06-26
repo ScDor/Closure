@@ -1,11 +1,12 @@
 # Create your views here
-from rest_framework.decorators import action
+from django.db.models import Case, When
 from rest_framework import filters
 from rest_framework import viewsets
-from rest_framework.authentication import BasicAuthentication, TokenAuthentication
+from rest_framework.authentication import TokenAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
+
 from .models import Course, Student, CourseGroup, Track, Take
 from .pagination import ResultSetPagination
 
@@ -15,24 +16,60 @@ from .serializers.StudentSerializer import StudentSerializer
 from .serializers.TrackSerializer import TrackSerializer
 from .serializers.TakeSerializer import TakeSerializer
 
-from rest_api.utils import get_course_type
-from django.shortcuts import get_object_or_404
-
 
 class CourseViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = Course.objects.all().order_by('course_id')
     serializer_class = CourseSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filter_fields = ('course_id', 'data_year',)
+    filter_fields = ('course_id', 'data_year', 'points')
     pagination_class = ResultSetPagination
     search_fields = ('name', '^course_id')
 
-    @action(detail=True, methods=['GET'], url_path='get_course_type/(?P<track_pk>[^/.]+)')
-    def get_course_type(self, request, track_pk, pk=None):
-        course = self.get_object()
-        track = get_object_or_404(Track, pk=track_pk)
-        return Response({'type': get_course_type(track, course)})
+
+class MyTrackCourses(viewsets.ModelViewSet):
+    def get_queryset(self):
+        user = self.request.user
+        student = Student.objects.get(user=user)
+        track = student.track
+        if not track:
+            return Course.objects.none()
+
+        # get the courses list and preserve the order
+        pk_list = student.track.courses()
+        preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(pk_list)])
+
+        return Course.objects.filter(pk__in=pk_list).order_by(preserved)
+
+    permission_classes = (IsAuthenticated,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    serializer_class = CourseSerializer
+    filter_fields = ('course_id', 'data_year', 'points')
+    pagination_class = ResultSetPagination
+    search_fields = ('name', '^course_id')
+
+
+class StudentMeViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = StudentSerializer
+    http_method_names = ['get', 'post']
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        if not queryset:
+            return
+        return queryset[0]
+
+    def get_queryset(self):
+        return Student.objects.filter(user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        if not self.get_object():
+            return Response({'error': 'Bad token'}, status=401)
+        return self.retrieve(request, args, kwargs)
+
+    def create(self, request, *args, **kwargs):
+        return self.update(request, args, kwargs)
 
 
 class CourseGroupViewSet(viewsets.ModelViewSet):
@@ -43,12 +80,16 @@ class CourseGroupViewSet(viewsets.ModelViewSet):
 
 
 class StudentGroupViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
-    queryset = Student.objects.all().order_by('user__first_name')
+    # this view set is for administration
+    permission_classes = (IsAdminUser,)
+    queryset = Student.objects.all().order_by('user__username')
     serializer_class = StudentSerializer
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (filters.SearchFilter, DjangoFilterBackend)
+    filter_fields = ('user__username', 'year_in_studies', 'track__track_number',
+                     'courses__course_id')
     pagination_class = ResultSetPagination
-    search_fields = ('user__username', 'courses__name', '^courses__course_id')
+    search_fields = ('user__username', 'year_in_studies', '^track__track_number',
+                     '^courses__course_id')
 
 
 class TrackViewSet(viewsets.ModelViewSet):
@@ -59,12 +100,6 @@ class TrackViewSet(viewsets.ModelViewSet):
     filter_fields = ('name', 'track_number')
     pagination_class = ResultSetPagination
     search_fields = ('name', '^track_number')
-
-    @action(detail=True, methods=['GET'], url_path='get_course_type/(?P<course_pk>[^/.]+)')
-    def get_course_type(self, request, course_pk, pk=None):
-        track = self.get_object()
-        course = get_object_or_404(Course, pk=course_pk)
-        return Response({'type': get_course_type(track, course)})
 
 
 class TakeGroupViewSet(viewsets.ModelViewSet):
