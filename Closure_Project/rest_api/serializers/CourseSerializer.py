@@ -9,7 +9,10 @@ class CourseSerializer(DynamicFieldsModelSerializer):
 
     def get_type(self, obj):
         user = self.context.get('request').user
-        student = Student.objects.get(user=user)
+        try:
+            student = Student.objects.get(user=user)
+        except Student.DoesNotExist:
+            return None
         return get_course_type(student.track, obj)
 
     class Meta:
