@@ -110,7 +110,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'drf_yasg',
-    'corsheaders'
+    'corsheaders',
 ]
 
 SWAGGER_SETTINGS = {
@@ -122,7 +122,13 @@ SWAGGER_SETTINGS = {
             'type': 'apiKey',
             'name': 'Authorization',
             'in': 'header'
-        }
+        },
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        },
+
     }
 }
 
