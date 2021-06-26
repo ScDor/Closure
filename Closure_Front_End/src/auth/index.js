@@ -111,9 +111,10 @@ export const setupAuth = async (options, callbackRedirect) => {
   window.closureAxios = http
 
   watchEffect(async () => {
-    if (client.isAuthenticated()) {
+    if (state.isAuthenticated) {
       const idTokenClaims = await client.getIdTokenClaims();
       if (!idTokenClaims) {
+        console.error(`Client is authenticated but couldn't get ID token claims`)
         return;
       }
       const idToken = idTokenClaims.__raw;
@@ -121,7 +122,7 @@ export const setupAuth = async (options, callbackRedirect) => {
       http.defaults.headers.common["Authorization"] = `Bearer ${idToken}`
     } else {
       console.log(`Client is not authenticated`)
-      delete http.defaults.headers.headers.common["Authorization"]
+      delete http.defaults.headers.common["Authorization"]
     }
   });
 
