@@ -50,7 +50,7 @@ export default {
    * more on the implementation of the search on the backend part of the project.
    */ {
     search() {
-      this.$http.
+      this.$http
         .get(this.url + this.query, {
           validateStatus: Utils.validateStatusCode(status)
         })
