@@ -1,7 +1,7 @@
 <template>
   <div
     class="semester half-height drop-zone"
-    @drop="emitDrop($event, year, semester)"
+    @drop="onDrop($event, year, semester)"
     @dragenter.prevent
     @dragover.prevent
   >
@@ -17,8 +17,8 @@
           :course="course"
           class="drag-el"
           draggable="true"
-          @dragstart="emitDrag($event, course)"
-          @clickclose="$emit('clickclose', $event, course)"
+          @dragstart="startDrag($event, course)"
+          @clickclose="deleteCourse(course)"
         ></course-box>
       </li>
     </ul>
@@ -32,17 +32,21 @@
 <script>
 import CourseBox from "./CourseBox.vue";
 import SemesterSummary from "./SemesterSummary.vue";
+import { courses, moveCourse, deleteCourse} from '@/course-store.js'
 
 export default {
-  props: ["year", "semester", "allcourses"],
+  props: ["year", "semester" ],
 
   components: { CourseBox, SemesterSummary },
-
-  emits: ["dragcourse", "dropcourse", "clickclose"],
+  data() {
+    return {
+      courses
+    }
+  },
 
   computed: {
     filteredCourses() {
-      return this.allcourses
+      return this.courses
         .filter(
           (course) =>
             course.year == this.year.id && course.semester == this.semester.id
@@ -52,13 +56,21 @@ export default {
   },
 
   methods: {
-    emitDrag(event, course) {
-      this.$emit("dragcourse", event, course);
+    startDrag(event, course) {
+      event.dataTransfer.dropEffect = "move";
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("id", course.course_id);
     },
 
-    emitDrop(event, year, semester) {
-      this.$emit("dropcourse", event, year, semester);
+
+    onDrop(event, year, semester) {
+      const courseid = event.dataTransfer.getData("id");
+      const course = this.courses.find(
+        (course) => course.course_id == courseid
+      );
+      moveCourse({course, newYear: year.id, newSemester: semester.id})
     },
+    deleteCourse
   },
 };
 </script>

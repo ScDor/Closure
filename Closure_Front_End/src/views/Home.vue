@@ -4,11 +4,11 @@
       <section class="section section-style">
         <div class="columns is-variable is-2">
           <div class="column is-2 is-right is-hidden-mobile is-hidden-touch">
-            <navigation @clickcourse="add"></navigation>
+            <navigation @clickcourse="addCourse"></navigation>
           </div>
           <div class="column" v-for="year in years" :key="year">
-            <year :year="year" :allcourses="allcourses" 
-                  @courseMoved="moveCourse" @courseDeleted="deleteCoruse" />
+            <year :year="year" :allcourses="courses" 
+                  @courseMoved="moveCourse" @courseDeleted="deleteCourse" />
           </div>
         </div>
       </section>
@@ -24,10 +24,14 @@
 <script>
 import Year from "../components/Year.vue";
 import Navigation from "../components/Navigation.vue";
+import { courses, moveCourse, deleteCourse, addCourse } from '@/course-store.js'
 
 export default {
   name: "Closure()",
   components: { Navigation, Year },
+  methods: {
+    moveCourse, deleteCourse, addCourse
+  },
   data() {
     return {
       years: [
@@ -36,73 +40,9 @@ export default {
         { id: 3, name: "שנה ג" },
         { id: 4, name: "שנה ד" },
       ],
+      courses,
       track: null,
       student: null,
-      allcourses: [
-        {
-          course_id: 1,
-          name: "חשבון אינפיניטסימלי 1",
-          points: 7,
-          year: 1,
-          semester: 1,
-        },
-        {
-          course_id: 2,
-          name: "מבוא למדעי המחשב",
-          points: 7,
-          year: 1,
-          semester: 1,
-        },
-        {
-          course_id: 3,
-          name: "אלגברה ליניארית 1",
-          points: 6,
-          year: 1,
-          semester: 1,
-        },
-        {
-          course_id: 4,
-          name: "מתמטיקה דיסקרטית",
-          points: 5,
-          year: 1,
-          semester: 1,
-        },
-        {
-          course_id: 5,
-          name: "חשבון אינפיניטסימלי 2",
-          points: 7,
-          year: 1,
-          semester: 2,
-        },
-        {
-          course_id: 6,
-          name: "C / C++",
-          points: 4,
-          year: 1,
-          semester: 2,
-        },
-        {
-          course_id: 7,
-          name: "אלגברה ליניארית 2",
-          points: 6,
-          year: 1,
-          semester: 2,
-        },
-        {
-          course_id: 8,
-          name: "מבני נתונים",
-          points: 4,
-          year: 1,
-          semester: 2,
-        },
-        {
-          course_id: 9,
-          name: "אבן פינה קיקיונית כלשהי",
-          points: 2,
-          year: 1,
-          semester: 2,
-        },
-      ],
     };
   },
   created() {
@@ -111,33 +51,6 @@ export default {
       this.$http.get("tracks/?track_number=3010").then(response => {
         this.track = response.data.results[0]
       })
-    }
-  },
-  methods: {
-    /**
-     * This method adds a new coursebox, by default to the first semester.
-     * requires an event (clicking on a course on the drop down menu in the navigation bar
-     * and the course itself.
-     */
-    add(event, course) {
-      this.allcourses.push({
-        course_id: course.course_id,
-        name: course.name,
-        points: course.points,
-        year: 1,
-        semester: 1,
-      });
-    },
-
-    /** Moves a course to a new year and semester, given by their IDs */
-    moveCourse({course, newYear, newSemester}) {
-      course.year = newYear
-      course.semester = newSemester
-    },
-    /** Deletes a course from all years */
-    deleteCoruse(course) {
-      const index = this.allcourses.indexOf(course);
-      this.allcourses.splice(index, 1);
     }
   },
 };

@@ -12,10 +12,6 @@
       :key="semester.id"
       :year="year"
       :semester="semester"
-      :allcourses="allcourses"
-      @dragcourse="startDrag"
-      @dropcourse="onDrop"
-      @clickclose="onClick"
     ></semester>
   </div>
 </template>
@@ -24,9 +20,7 @@
 import Semester from "./Semester.vue";
 
 export default {
-  props: ["year", "allcourses"],
-  emits: ["courseMoved", "courseDeleted"],
-
+  props: ["year" ],
   components: { Semester },
 
   data() {
@@ -35,40 +29,6 @@ export default {
         { id: 1, name: "סמסטר א" },
         { id: 2, name: "סמסטר ב" },
       ]
-    };
-  },
-
-  setup(props, { emit }) {
-    const startDrag = (event, course) => {
-      event.dataTransfer.dropEffect = "move";
-      event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("id", course.course_id);
-    };
-
-
-     /** 
-    * this method handles transferring courses from semester to semester   */
-    
-    const onDrop = (event, year, semester) => {
-      const courseid = event.dataTransfer.getData("id");
-      const course = props.allcourses.find(
-        (course) => course.course_id == courseid
-      );
-      emit("courseMoved", {course, newYear: year.id, newSemester: semester.id})
-    };
-
-    /** 
-    * this method removes a certain course once it's X button is clicked
-    */
-    
-    const onClick = (event, toRemove) => {
-      emit("courseDeleted", toRemove)
-    };
-
-    return {
-      startDrag,
-      onDrop,
-      onClick
     };
   },
 };
