@@ -51,7 +51,7 @@ export default {
    * more on the implementation of the search on the backend part of the project.
    */ {
     search() {
-      axios
+      this.$http.
         .get(this.url + this.query, {
           validateStatus: Utils.validateStatusCode(status)
         })
