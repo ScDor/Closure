@@ -4,11 +4,13 @@
       <section class="section section-style">
         <div class="columns is-variable is-2">
           <div class="column is-2 is-right is-hidden-mobile is-hidden-touch">
-            <navigation @clickcourse="add" :allcourses="allcourses"></navigation>
+            <navigation
+              :allcourses="courses"
+              @clickcourse="(event, course) => addCourse(course)"
+            ></navigation>
           </div>
           <div class="column" v-for="year in years" :key="year">
-            <year :year="year" :allcourses="allcourses" 
-                  @courseMoved="moveCourse" @courseDeleted="deleteCoruse" />
+            <year :year="year" />
           </div>
         </div>
       </section>
@@ -24,6 +26,12 @@
 <script>
 import Year from "../components/Year.vue";
 import Navigation from "../components/Navigation.vue";
+import {
+  courses,
+  moveCourse,
+  deleteCourse,
+  addCourse
+} from "@/course-store.js";
 
 export default {
   name: "Closure()",
@@ -34,9 +42,8 @@ export default {
         { id: 1, name: "שנה א" },
         { id: 2, name: "שנה ב" },
         { id: 3, name: "שנה ג" },
-        { id: 4, name: "שנה ד" },
+        { id: 4, name: "שנה ד" }
       ],
-
       username: "placehoder",
       student: {
         username: "string",
@@ -46,112 +53,11 @@ export default {
           {
             pk: 0,
             year_in_studies: 1,
-            semester: "FIRST",
-          },
-        ],
+            semester: "FIRST"
+          }
+        ]
       },
-
-      allcourses: [
-        {
-          pk: 5837,
-          course_id: 67315,
-          name: "סדנת תכנות בשפות C ו- ++C",
-          semester: 1,
-          year: 2,
-          points: 4,
-          type: 1,
-        },
-        {
-          pk: 7208,
-          course_id: 80131,
-          name: "חשבון אינפיניטסימלי (1)",
-          semester: 1,
-          year: 1,
-          points: 7,
-          type: 1,
-        },
-        {
-          pk: 7209,
-          course_id: 80132,
-          name: "חשבון אינפיניטסימלי (2)",
-          semester: 2,
-          year: 1,
-          points: 7,
-          type: 1,
-        },
-        {
-          pk: 7211,
-          course_id: 80134,
-          name: "אלגברה ליניארית (1)",
-          semester: 1,
-          year: 1,
-          points: 6,
-          type: 1,
-        },
-        {
-          pk: 7212,
-          course_id: 80135,
-          name: "אלגברה ליניארית (2)",
-          semester: 2,
-          year: 1,
-          points: 6,
-          type: 1,
-        },
-        {
-          pk: 7220,
-          course_id: 80181,
-          name: "מתמטיקה דיסקרטית",
-          semester: 1,
-          year: 1,
-          points: 5,
-          type: 1,
-        },
-        {
-          pk: 5844,
-          course_id: 67392,
-          name: "מבוא לקריפטוגרפיה ואבטחת תוכנה",
-          semester: 2,
-          year: 2,
-          points: 4,
-          type: 2,
-        },
-        {
-          pk: 5854,
-          course_id: 67506,
-          name: "מסדי נתונים",
-          semester: 1,
-          year: 3,
-          points: 5,
-          type: 2,
-        },
-        {
-          pk: 5888,
-          course_id: 67609,
-          name: "גרפיקה ממוחשבת",
-          semester: 1,
-          year: 3,
-          points: 5,
-          type: 3,
-        },
-        {
-          pk: 5951,
-          course_id: 67829,
-          name: "עיבוד ספרתי של תמונות",
-          semester: "1",
-          year: 3,
-          points: 4,
-          type: 2,
-        },
-        {
-          pk: 5960,
-          course_id: 67842,
-          name: "מבוא לבינה מלאכותית",
-          semester: "2",
-          year: 3,
-          points: 5,
-          type: 2,
-        },
-      ],
+      courses
     };
   },
 
@@ -159,16 +65,16 @@ export default {
     if (this.$auth.isAuthenticated.value) {
       this.$auth.getIdTokenClaims().then(console.log, console.error);
       this.$http.get("tracks/?track_number=3010").then(response => {
-        this.track = response.data.results[0]
-      })
+        this.track = response.data.results[0];
+      });
     }
   },
-
   methods: {
+    moveCourse,
+    deleteCourse,
+    addCourse,
     getUsername() {
-      return this.$auth
-        .getIdTokenClaims()
-        .then((response) => response.nickname);
+      return this.$auth.getIdTokenClaims().then(response => response.nickname);
     },
 
     /** fetch all student's courses from the DB and store them in allcourses */
@@ -182,7 +88,7 @@ export default {
           semester: this.getSemester(course_info),
           year: course.year_in_studies,
           points: course.course.points,
-          type: this.getType(course),
+          type: this.getType(course)
         });
       }
     },
@@ -197,35 +103,8 @@ export default {
       if (course.type == "MUST") return 1;
       if (course.type == "CHOOSE_FROM_LIST") return 2;
       return 3;
-    },
-
-    /**
-     * This method adds a new coursebox, by default to the first semester.
-     * requires an event (clicking on a course on the drop down menu in the navigation bar
-     * and the course itself.
-     */
-    add(event, course) {
-      this.allcourses.push({
-        pk: course.pk,
-        course_id: course.course_id,
-        name: course.name,
-        semester: 1,
-        year: 1,
-        points: course.points,
-      });
-    },
-
-    /** Moves a course to a new year and semester, given by their IDs */
-    moveCourse({course, newYear, newSemester}) {
-      course.year = newYear
-      course.semester = newSemester
-    },
-    /** Deletes a course from all years */
-    deleteCoruse(course) {
-      const index = this.allcourses.indexOf(course);
-      this.allcourses.splice(index, 1);
     }
-  },
+  }
 };
 </script>
 
