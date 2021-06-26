@@ -213,10 +213,9 @@ class Student(models.Model):
 
         for take in self.take_set.all():
             course = take.course
-            if course in counted:
-                continue
-            counted.add(course)
-            done[take.type] += course.points
+            if course not in counted:
+                counted.add(course)
+                done[take.type] += course.points
 
         result = {CourseType.MUST.name: {'required': track.points_must,
                                          'done': done[CourseType.MUST]},
