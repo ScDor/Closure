@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name     HUJI Registered Course Scraper
+// @name     HUJI Registered courses & grades scraper
 // @version  1
 // @author Daniel Kerbel
 // @grant    none
-// @match https://www.huji.ac.il/dataj/controller/*STUZIYUNIM*
+// @match https://www.huji.ac.il/dataj/controller/*/stu/*
 // ==/UserScript==
 
 'use strict'
@@ -49,7 +49,13 @@ function findFrontendOpener() {
 
 let opener = null
 
-async function messageHandler(event) {
+/**
+ * Creates a message handler for handling cross-origin messages from the front-end,
+ * which will begin scraping from the given document once communication with the front-end has been established.
+ * @param {HTMLDocument} doc Documenet containing registered courses & grads
+ * @returns {Promise<(this: Window, event: MessageEvent) => void>} Handler of cross-origin communication messages
+ */
+const mkMessageHandler = (doc) => async function messageHandler(event) {
   console.log(`Got message ${JSON.stringify(event)}`)
   if (event.origin != FRONTEND_ORIGIN) {
     console.error(`Got message ${JSON.stringify(event.data)} from unknown origin ${event.origin}`)
@@ -59,7 +65,7 @@ async function messageHandler(event) {
     opener = event.source 
     console.log(`Hooked into frontend, starting scrape`)
     event.source.postMessage("started", FRONTEND_ORIGIN)
-    await beginScrape()
+    await beginScrape(doc)
     event.source.postMessage("finishedParsing", FRONTEND_ORIGIN)
   }
 }
@@ -74,15 +80,13 @@ function postParseEntry(entry) {
 }
 
 
-async function beginScrape() {
-
-  if (!isRunningInGradesPage()) {
-    console.error("HUJI registered course scraper script ran on incorrect page");
-    return;
-  }
-
+/**
+ * Begins scraping the registered courses website, posting them to the front-end
+ * @param {HTMLDocument} doc Doument containing student courses & grades(in any year)
+ */
+async function beginScrape(doc) {
   try {
-    const docs = await getDocumentsForAllYears();
+    const docs = await getDocumentsForAllYears(doc);
     opener.postMessage({
       "type": "gotDocs",
       "numDocs": docs.length
@@ -103,17 +107,32 @@ async function beginScrape() {
 
 
 /**
- * Assuming we're within the 
+ * Given a document under the 'personal information' section of HUJI, 
+ * retrieves the document containing the registered courses and grades.
+ * @param {HTMLDocument} doc Document under the personal information site
+ * @returns {HTMLDocument} document containing years
  */
-function fetchGradesDocument() {
-  
+async function fetchCoursesAndGradesDocument(doc) {
+  if (doc.location.origin !== "https://www.huji.ac.il" ||
+      !doc.location.pathname.startsWith("/dataj/controller")) {
+    const err = "This script must be ran within HUJI's personal information site"
+    window.alert(err)
+    throw new Error(err)
+  }
+
+  if (doc.location.pathname.endsWith("/stu")) {
+    return null
+  } else if (doc.location.pathname.includes("/stu/STU-STUZIYUNIM")) {
+    return doc
+  }
 }
 
 /**
- * @returns {boolean} Are we currently on a registered courses & grades page
+ * @param {HTMLDocument} doc The document
+ * @returns {boolean} Is the document a registered courses & grades page
  */
-function isRunningInGradesPage(document) {
-  const title = document.querySelectorAll(".gen_title");
+function isCoursesAndGradesDocument(doc) {
+  const title = doc.querySelectorAll(".gen_title");
   for (const elm of title) {
     if (elm.textContent.includes("פרוט קורסים וציונים")) {
       return true;
@@ -130,7 +149,7 @@ const YEAR_INPUT_CSS_SELECTOR = "form#ziyunim select[name='yearsafa']"
  * @returns {Array<HTMLDocument>} Documents containing courses
  */
 async function getDocumentsForAllYears (doc) {
-  if (!document) {
+  if (!isCoursesAndGradesDocument(doc)) {
     throw new Error("getDocumentForAllYears must be ran on grades page")
   }
   const yearSelector = doc.querySelector(YEAR_INPUT_CSS_SELECTOR)
@@ -276,17 +295,15 @@ const TKUFA_TO_SEMESTER = {
 
 let loaded = false
 
-function startScript() {
+async function startScript() {
   if (loaded) {
     console.log(`Attempted to start script twice`)
     return
   }
   loaded = true
   console.log(`Scrape script startScript() begun`)
-  if (!isRunningInGradesPage()) {
-    console.warn(`Script is not running within the grades page`)
-    return
-  }
+  const coursesDoc = await fetchCoursesAndGradesDocument(window.document)
+  const messageHandler = mkMessageHandler(coursesDoc)
   window.addEventListener("message", messageHandler);
   console.log(`Attached message handler`)
   findFrontendOpener()
