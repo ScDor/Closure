@@ -6,13 +6,39 @@
           {{ this.error }}
       </div>
 
+      <div class="container">
+      <h2 class="title is-2 has-text-centered"> הוראות </h2>
+
+      <ol>
+          <li> 
+              ראשית, יש לגרור את האייקון הבא אל שורת הסימניות:
+              
+          </li>
+          <li>
+               כעת, יש ללחוץ על הכפתור התחתון על מנט לנווט אל אתר המידע האישי של האוניברסיטה,
+               ומשם אל דף "קורסים וציונים"   
+               <br> 
+               שימו לב, אין לנווט לאתר בעזרת כרטיסיה נפרדת, אלא בהכרח דרך הכרטיסיה/חלון שנפתח עם לחיצת הכפתור 
+          </li>
+          <li>
+              כעת, יש לגרור את הסימנייה אל החלון
+          </li>
+
+          <li>
+              כעת, יש לחזור לדף הזה. במידע ויש קורסים שלא הצלחנו לאתר לאיזה סמסטר הם שייכים, תצטרכו לבחור זאת בעצמכם.
+          </li>
+      </ol>
+
+      </div>
+
       <div class="has-text-centered">
-      <span>{{status}}</span>
+      
+      <div class="container"><span>{{status}}</span></div>
 
       <button class="button is-primary is-large" v-if="status === 'notHooked'" @click="openUni">
-          <!-- <span class="icon">
+          <span class="icon">
               <i class="fas fa-lock"></i>
-          </span> -->
+          </span>
           <span>פתח אוניברסיטה</span>
        </button>
 
@@ -78,7 +104,7 @@ export default {
     },
     methods: {
         openUni: function() {
-            const winRef = window.open("https://www.huji.ac.il/dataj/controller/!92DE8E041B23BAFFCA1BFB95B571EBC3/stu/STU-STUZIYUNIM?winsub=yes&safa=H", "_blank")
+            const winRef = window.open("https://www.huji.ac.il/dataj/controller/!92DE8E041B23BAFFCA1BFB95B571EBC3/stu/STU-STUZIYUNIM?winsub=yes&safa=H")
             if (!winRef) {
                 this.error = `חלה שגיאה בפתיחת האתר, אם יש לך חוסם חלונות קופצים או פרסומות, אנא בטל/י אותו.`
                 return
