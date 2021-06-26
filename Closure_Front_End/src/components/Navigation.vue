@@ -23,6 +23,7 @@ import ProgressBox from "./ProgressBox.vue";
 export default {
   components: { SearchBar, ProgressBox },
   emits: ["clickcourse"],
+  props: ["allcourses"],
 
   methods: {
     emitCourseClick(event, course) {

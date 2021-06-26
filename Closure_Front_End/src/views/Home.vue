@@ -4,7 +4,7 @@
       <section class="section section-style">
         <div class="columns is-variable is-2">
           <div class="column is-2 is-right is-hidden-mobile is-hidden-touch">
-            <navigation @clickcourse="add"></navigation>
+            <navigation @clickcourse="add" :allcourses="allcourses"></navigation>
           </div>
           <div class="column" v-for="year in years" :key="year">
             <year :year="year" :allcourses="allcourses" 
