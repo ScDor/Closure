@@ -104,7 +104,7 @@ class Track(models.Model):
     def __str__(self):
         return f'{self.track_number} {self.name} ({self.data_year})'
 
-    def course_pks(self, only_must: bool=False) -> List[int]:
+    def course_pks(self, only_must: bool = False) -> List[int]:
         """ returns list of course pk values, based on the student's track """
         if only_must:
             course_groups = self.coursegroup_set.filter(course_type=CourseType.MUST)

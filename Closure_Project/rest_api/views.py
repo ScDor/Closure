@@ -46,7 +46,7 @@ class MyTrackCourses(viewsets.ModelViewSet):
         return self._get_queryset(False)
 
     @action(detail=False)
-    def get_must(self):
+    def get_must(self,request):
         return self._get_queryset(True)
 
     permission_classes = (IsAuthenticated,)
