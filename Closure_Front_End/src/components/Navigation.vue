@@ -11,13 +11,17 @@
     :url="'courses/?limit=6&offset=15&search='"
     @clicksuggestion="emitCourseClick"
   ></search-bar>
+
+  
+  <ProgressBox :allcourses = "allcourses"/>
 </template>
 
 <script>
 import SearchBar from "./SearchBar.vue";
+import ProgressBox from "./ProgressBox.vue";
 
 export default {
-  components: { SearchBar },
+  components: { SearchBar, ProgressBox },
   emits: ["clickcourse"],
 
   methods: {
