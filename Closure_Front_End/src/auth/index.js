@@ -154,6 +154,9 @@ export const setupAuth = async (options, callbackRedirect) => {
     install: (app) => {
       app.config.globalProperties.$auth = authPlugin
       app.config.globalProperties.$http = http
+
+      app.provide("auth", authPlugin)
+      app.provide("http", http)
     },
   }
 }
