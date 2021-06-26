@@ -9,7 +9,7 @@
 'use strict'
 
 
-const FRONTEND_ORIGIN = (process && process.env.VUE_APP_AUTH0_REDIRECT_URI) || "http://localhost:8080"
+const FRONTEND_ORIGIN = (typeof process !== "undefined" && process.env.VUE_APP_AUTH0_REDIRECT_URI) || "http://localhost:8080"
 
 
 console.log(`Scrape script is in context, origin of front-end is ${FRONTEND_ORIGIN}`)
@@ -67,6 +67,7 @@ const mkMessageHandler = (doc) => async function messageHandler(event) {
     event.source.postMessage("started", FRONTEND_ORIGIN)
     await beginScrape(doc)
     event.source.postMessage("finishedParsing", FRONTEND_ORIGIN)
+    window.close()
   }
 }
 
@@ -93,7 +94,7 @@ async function beginScrape(doc) {
     }, FRONTEND_ORIGIN);
 
     const courses = (await Promise.all(docs.map(getCoursesForDocument))).flat()
-    console.log(`A total of ${courses.length} documents were parsed from ${docs.length} documents.`);
+    console.log(`Got a total of ${courses.length} courses`)
   }
   catch (err) {
     console.error(err)
@@ -120,8 +121,14 @@ async function fetchCoursesAndGradesDocument(doc) {
     throw new Error(err)
   }
 
-  if (doc.location.pathname.endsWith("/stu")) {
-    return null
+  if (doc.location.pathname.match(/\/stu\/?$/)) {
+    const res = await fetch("STU-STUZIYUNIM")
+    if (!res.ok) {
+      const msg = await res.text()
+      throw Error(`Error while courses document: ${res.status} - ${msg}`)
+    }
+    const doc = await responseToDocument(res)
+    return doc
   } else if (doc.location.pathname.includes("/stu/STU-STUZIYUNIM")) {
     return doc
   }
@@ -221,7 +228,9 @@ async function getCoursesForDocument(doc) {
   // find all tables containing registered courses(there may be several depending on num of chugs)
   const tdElements = [...xpathQuery(doc, "//tbody[tr[td[contains(text(), 'סמל קורס')]]]")]
 
-  return await Promise.all(tdElements.map(tbody => parseCourseTable(tbody, docYear)))
+  const results = (await Promise.all(tdElements.map(tbody => parseCourseTable(tbody, docYear)))).flat()
+  console.log(`Got ${results.length} courses for year ${docYear}`)
+  return results
 }
 
 
@@ -280,7 +289,6 @@ async function parseCourseTable(tbody, docYear) {
     }
     entry.year = docYear
     postParseEntry(engEntry)
-    // console.log(entry)
     rows.push(engEntry)
   }
   return rows

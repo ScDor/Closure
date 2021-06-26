@@ -50,7 +50,7 @@
           לקיחתו:
         </span>
         <div v-for="course in ambiguousCourses" :key="course.id">
-          <span>{{ course.name }}</span>
+          <imported-course :course="course" />
         </div>
       </div>
 
@@ -82,6 +82,9 @@
 import { reactive, ref } from "vue";
 import { addCourses } from "@/course-store.js";
 import Instructions from "./Instructions.vue";
+import { default as INITIAL_COURSES} from '@/test-courses.js'
+import ImportedCourse from './ImportedCourse.vue';
+import { API_SEMESTER_TO_PROP_INT, PROP_INT_TO_API_SEMESTER } from '@/utils.js'
 
 const HUJI_ORIGIN = "https://www.huji.ac.il";
 
@@ -90,13 +93,9 @@ const ALLOWED_MESSAGE_ORIGINS = [
   `${location.protocol}//${location.host}`
 ];
 
-const SEMESTER_TO_INT = {
-  FIRST: 1,
-  SECOND: 2
-};
 
 export default {
-  components: { Instructions },
+  components: { Instructions, ImportedCourse },
   created() {
     window.addEventListener("message", this.handleEvent);
   },
@@ -107,7 +106,7 @@ export default {
   methods: {
     openUni: function() {
       const winRef = window.open(
-        "https://www.huji.ac.il/dataj/controller/!92DE8E041B23BAFFCA1BFB95B571EBC3/stu/STU-STUZIYUNIM?winsub=yes&safa=H"
+        "https://www.huji.ac.il/dataj/controller/stu"
       );
       if (!winRef) {
         this.error = `חלה שגיאה בפתיחת האתר, אם יש לך חוסם חלונות קופצים או פרסומות, אנא בטל/י אותו.`;
@@ -187,16 +186,13 @@ export default {
         course.ambiguous = true;
       }
     },
-    authenticate: async function() {
-      await this.$auth.loginWithPopup();
-    },
     save() {
       const firstYear = Math.min(...this.courses.map(course => course.year));
       const courses = this.courses.map(course => {
         return {
           ...course,
           year: course.year - firstYear + 1,
-          semester: SEMESTER_TO_INT[course.semester]
+          semester: API_SEMESTER_TO_PROP_INT[course.semester]
         };
       });
       addCourses(courses);
@@ -214,10 +210,23 @@ export default {
     }
   },
   data() {
+    if (!this.kek) {
+      return {
+        status: "notHooked",
+        notifications: [],
+        courses: [],
+        error: "",
+        ref: null
+      };
+    }
+    
+    const courses = INITIAL_COURSES.map(c => {
+      return {...c, ambiguous: true, semester: PROP_INT_TO_API_SEMESTER.get(c.semester)}
+    })
     return {
-      status: "notHooked",
+      status: "finishedParsing",
       notifications: [],
-      courses: [],
+      courses,
       error: "",
       ref: null
     };
