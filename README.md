@@ -1,5 +1,7 @@
 # Closure() #
 [![CodeFactor](https://www.codefactor.io/repository/github/scdor/closure/badge)](https://www.codefactor.io/repository/github/scdor/closure)
+![Backend CI](https://github.com/ScDor/Closure/actions/workflows/backend.yml/badge.svg?branch=master)
+![Backend CI](https://github.com/ScDor/Closure/actions/workflows/frontend.yml/badge.svg?branch=master)
 
 Planning your next courses easily.
 
