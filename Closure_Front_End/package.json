@@ -5,7 +5,9 @@
   "author": "noa_barlia",
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "build": "npm run build:app && npm run build:lib",
+    "build:app": "vue-cli-service build",
+    "build:lib": "vue-cli-service build --target lib --name course-scrape --no-clean src/scraper/course-scrape.user.js",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
     "start": "vue-cli-service serve --open"

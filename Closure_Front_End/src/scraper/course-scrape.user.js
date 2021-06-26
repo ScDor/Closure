@@ -8,12 +8,11 @@
 
 'use strict'
 
-console.log(`Scrape script initialized`)
 
-// TODO: determine this url at build time
-const FRONTEND_ORIGIN = "http://localhost:8094"
+const FRONTEND_ORIGIN = (process && process.env.VUE_APP_AUTH0_REDIRECT_URI) || "http://localhost:8080"
 
 
+console.log(`Scrape script is in context, origin of front-end is ${FRONTEND_ORIGIN}`)
 
 
 /**
@@ -30,6 +29,7 @@ function findFrontendOpener() {
   let level = 0
   if (!opener) {
     window.alert(`You must run this script from the pop-up given by our site`)
+    throw new Error("Scrape script must be ran within pop-up")
   }
   while (opener) {
     level++
@@ -73,10 +73,6 @@ function postParseEntry(entry) {
   }, FRONTEND_ORIGIN);
 }
 
-
-if (isRunningInGradesPage()) {
-    findFrontendOpener()
-}
 
 async function beginScrape() {
 
@@ -265,7 +261,16 @@ const TKUFA_TO_SEMESTER = {
   2: "SECOND",
 }
 
-window.addEventListener("load", function() {
+
+let loaded = false
+
+function startScript() {
+  if (loaded) {
+    console.log(`Attempted to start script twice`)
+    return
+  }
+  loaded = true
+  console.log(`Scrape script startScript() begun`)
   if (!isRunningInGradesPage()) {
     console.warn(`Script is not running within the grades page`)
     return
@@ -273,5 +278,13 @@ window.addEventListener("load", function() {
   window.addEventListener("message", messageHandler);
   console.log(`Attached message handler`)
   findFrontendOpener()
+  console.log(`Found frontend`)
+}
 
-})
+
+if (document.readyState === "complete") {
+  startScript();
+} else {
+  window.addEventListener("load", startScript)
+}
+

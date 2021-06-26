@@ -1,5 +1,5 @@
 <template>
-  <div id="iframe-div" class="box container" dir="rtl">
+  <div id="iframe-div" class="container" dir="rtl">
       <h1 class="title is-1 has-text-centered">יבוא קורסים מהאוניברסיטה</h1>
 
       <div class="notification is-danger" v-if="this.error">
@@ -11,7 +11,8 @@
 
       <ol>
           <li> 
-              ראשית, יש לגרור את האייקון הבא אל שורת הסימניות:
+              ראשית, יש לגרור את הקישור הבא אל שורת הסימניות:
+              <a :href="url">יבוא נתונים מהאוניברסיטה </a>
               
           </li>
           <li>
@@ -68,7 +69,7 @@
 
 
           <div class="has-text-centered">
-          <button class="button is-primary is-large" :disabled="!canSend"  @click="submit">שמירה</button>
+          <button class="button is-primary is-large" :disabled="!canSend"  @click="save">שמירה</button>
           </div>
       </div>
 
@@ -89,17 +90,23 @@
 <script>
 
 import { reactive, ref } from 'vue'
+import { addCourses } from '@/course-store.js'
 
 const HUJI_ORIGIN = "https://www.huji.ac.il";
 
 const ALLOWED_MESSAGE_ORIGINS = [HUJI_ORIGIN, `${location.protocol}//${location.host}`]
 
+const SEMESTER_TO_INT = {
+    "FIRST": 1,
+    "SECOND": 2
+}
+
 export default {
-    created: function() {
-        window.addEventListener("message", this.handleEvent, false);
+    created() {
+        window.addEventListener("message", this.handleEvent);
     },
 
-    unmounted: function() {
+    unmounted() {
         window.removeEventListener("message", this.handleEvent);
     },
     methods: {
@@ -131,8 +138,7 @@ export default {
             }
             if (msg.type === "error") {
                 console.error(msg);
-                this.status = "error";
-                this.errorMessage = msg.errorMessage;
+                this.error = msg.errorMessage;
             }
 
             if (msg.type === "gotCourse") {
@@ -160,7 +166,7 @@ export default {
                 })
                 const data = res.data
                 if (data.count === 0) {
-                    console.warn(`Could not get entry for course ${course.course_id} at year ${course.year}`)
+                    console.error(`Could not get entry for course ${course.course_id} - ${course.name} at year ${course.year}`)
                     course.ambiguous = true
                     return
                 }
@@ -178,23 +184,44 @@ export default {
                 course.ambiguous = true
             }
         },
-        submit: async function() {
-
-        },
         authenticate: async function() {
-            this.$auth.loginWithPopup()
+            await this.$auth.loginWithPopup()
+        },
+        save() {
+            const firstYear = Math.min(...this.courses.map(course => course.year))
+            const courses = this.courses.map(course => {
+                return { 
+                    ...course,
+                    year: course.year - firstYear + 1,
+                    semester: SEMESTER_TO_INT[course.semester]
+                }
+            })
+            addCourses(courses)
+            this.$router.push('/')
         }
+
     },
     
     computed: {
-        canSend: function() {
-            return this.status === "finishedParsing" && this.courses.every(course => course.semester)
+        canSend() {
+            // return this.status === "finishedParsing" && this.courses.every(course => course.semester)
+            return true
         },
-        ambiguousCourses: function() {
+        ambiguousCourses() {
             return this.courses.filter(course => course.ambiguous)
+        },
+        url() {
+            const FULL_PATH = process.env.VUE_APP_AUTH0_REDIRECT_URI
+            const raw = `javascript:(function(){
+   var script=document.createElement('SCRIPT');
+   script.src='${FULL_PATH}/course-scrape.umd.js';
+   script.id='courseScrapeBookmarklet';
+   document.body.appendChild(script);
+})();`
+            return encodeURI(raw)
         }
     },
-    data: function() {
+    data() {
         return {
             "status": "notHooked",
             "notifications": [],
