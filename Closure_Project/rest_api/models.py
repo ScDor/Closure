@@ -107,9 +107,7 @@ class Track(models.Model):
         courses = []
 
         # get the coursegroups and sort by course type
-        types = [CourseType.MUST, CourseType.FROM_LIST, CourseType.CHOICE,
-                 CourseType.CORNER_STONE, CourseType.SUPPLEMENTARY]
-        order = Case(*[When(course_type=course_type, then=pos) for pos, course_type in enumerate(types)])
+        order = Case(*[When(course_type=course_type, then=pos) for pos, course_type in enumerate(ALL_COURSE_TYPES)])
         cgs = self.coursegroup_set.order_by(order).all()
 
         # append all the course ids to a list
@@ -194,7 +192,7 @@ class Student(models.Model):
         return ', '.join((self.user.username,
                           self.user.get_full_name(),
                           f'year={self.year_in_studies}',
-                          f'track={self.track.track_number}' if self.track else '',
+                          f'track={self.track.track_number}' if self.track else 'לא הוגדר מסלול',
                           f'took {len(self.courses.all())} courses'))
 
     @property

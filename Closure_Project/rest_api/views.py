@@ -5,6 +5,8 @@ from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.response import Response
+
 from .models import Course, Student, CourseGroup, Track, Take
 from .pagination import ResultSetPagination
 
@@ -13,7 +15,6 @@ from .serializers.CourseGroupSerializer import CourseGroupSerializer
 from .serializers.StudentSerializer import StudentSerializer
 from .serializers.TrackSerializer import TrackSerializer
 from .serializers.TakeSerializer import TakeSerializer
-
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -40,8 +41,8 @@ class MyTrackCourses(viewsets.ModelViewSet):
 
         return Course.objects.filter(pk__in=pk_list).order_by(preserved)
 
-    permission_classes = (IsAuthenticated, )
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
+    permission_classes = (IsAuthenticated,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     serializer_class = CourseSerializer
     filter_fields = ('course_id', 'data_year', 'points')
     pagination_class = ResultSetPagination
@@ -54,12 +55,17 @@ class StudentMeViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post']
 
     def get_object(self):
-        return self.get_queryset()[0]
+        queryset = self.get_queryset()
+        if not queryset:
+            return
+        return queryset[0]
 
     def get_queryset(self):
         return Student.objects.filter(user=self.request.user)
 
     def list(self, request, *args, **kwargs):
+        if not self.get_object():
+            return Response({'error': 'Bad token'}, status=401)
         return self.retrieve(request, args, kwargs)
 
     def create(self, request, *args, **kwargs):
