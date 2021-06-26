@@ -53,9 +53,6 @@ export default {
     search() {
       axios
         .get(this.url + this.query, {
-          headers: {
-            Authorization: "Token 425fa39de10f02351c7043d0dbe34a4b31be7a27",
-          },
           validateStatus: Utils.validateStatusCode(status)
         })
         .then((response) => (this.suggestions = response.data.results))
