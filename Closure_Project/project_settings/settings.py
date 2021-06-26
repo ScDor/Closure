@@ -259,9 +259,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 JWT_AUTH = {
     'JWT_PAYLOAD_GET_USERNAME_HANDLER':
-        'rest_api.utils.jwt_get_username_from_payload_handler',
+        'rest_api.rest_utils.jwt_get_username_from_payload_handler',
     'JWT_DECODE_HANDLER':
-        'rest_api.utils.jwt_decode_token',
+        'rest_api.rest_utils.jwt_decode_token',
     'JWT_ALGORITHM': 'RS256',
     'JWT_AUDIENCE': API_IDENTIFIER,
     'JWT_ISSUER': AUTH0_DOMAIN,

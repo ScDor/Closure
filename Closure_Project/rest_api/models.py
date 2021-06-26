@@ -268,5 +268,5 @@ class Take(models.Model):
 
     @property
     def type(self) -> CourseType:
-        from rest_api.utils import get_course_type
+        from rest_api.rest_utils import get_course_type
         return get_course_type(self.student.track, self.course)

@@ -1,8 +1,6 @@
-from django.db.models import Case, When
-
 from rest_api.serializers.DynamicSerializer import *
 from rest_api.models import Course, Student, CourseType
-from rest_api.utils import get_course_type
+from rest_api.rest_utils import get_course_type
 
 
 class CourseSerializer(DynamicFieldsModelSerializer):
