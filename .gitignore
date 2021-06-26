@@ -31,6 +31,11 @@ node_modules/
 # Since frontend .env contains no secrets, they can be committed,
 /Closure_Front_End/.env*.local
 
+#remove
+/Closure_Front_End/package-lock.json
+/Closure_Front_End/package.json
+/Closure_Front_End/vue.config.js
+
 # This file should only be accessible via the secret manager
 /Closure_Project/.env
 /Closure_Project/.env.*
