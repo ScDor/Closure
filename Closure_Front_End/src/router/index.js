@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import Settings from '../views/Settings.vue'
+import Analytics from '../views/Analytics.vue'
 import { routeGuard } from '@/auth/index.js'
 
 const routes = [
@@ -13,6 +14,12 @@ const routes = [
     path: '/settings',
     name: 'Settings',
     component: Settings,
+    beforeEnter: routeGuard
+  },
+  {
+    path: '/analytics',
+    name: 'Analytics',
+    component: Analytics,
     beforeEnter: routeGuard
   },
 ]
