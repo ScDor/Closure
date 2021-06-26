@@ -43,11 +43,13 @@ class MyTrackCourses(viewsets.ModelViewSet):
         return Course.objects.filter(pk__in=pk_list).order_by(preserved)
 
     def get_queryset(self):
+        if self.action == 'must':
+            return self._get_queryset(True)
         return self._get_queryset(False)
 
-    @action(detail=False)
-    def get_must(self,request):
-        return self._get_queryset(True)
+    @action(methods=['GET'], detail=False)
+    def must(self, request, *args, **kwargs):
+        return self.list(request, args, kwargs)
 
     permission_classes = (IsAuthenticated,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
