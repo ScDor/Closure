@@ -10,7 +10,7 @@
 
     <div class="sub">
       חובה:
-      <progress class="progress must" v-bind:value="mandatory" max="100">
+      <progress class="progress must" v-bind:value="mustValue" max="80">
         15%
       </progress>
     </div>
@@ -19,8 +19,8 @@
       חובת בחירה:
       <progress
         class="progress choose_from_list"
-        v-bind:value="mand_choice"
-        max="100"
+        v-bind:value="chooseListValue"
+        max="15"
       >
         15%
       </progress>
@@ -28,7 +28,7 @@
 
     <div class="sub">
       בחירה:
-      <progress class="progress choice" v-bind:value="choice" max="100">
+      <progress class="progress choice" v-bind:value="choiceValue" max="30">
         15%
       </progress>
     </div>
@@ -44,13 +44,36 @@ export default {
       mandatory: 30,
       mand_choice: 20,
       choice: 15,
+      coursesByType: null,
+      mustValue: null,
+      chooseListValue: null,
+      choiceValue: null,
     };
   },
 
-  methods: {},
+  methods: {
+    groupBy: function (xs, key) {
+      return xs.reduce(function (rv, x) {
+        (rv[x[key]] = rv[x[key]] || []).push(x);
+        return rv;
+      }, {});
+    },
+  },
 
   mounted() {
-    console.log(this.allcourses);
+    this.coursesByType = this.groupBy(this.allcourses, "type");
+    this.mustValue = this.coursesByType[1].length;
+    this.chooseListValue = this.coursesByType[2].length;
+    this.choiceValue = this.coursesByType[3].length;
+    console.log(this.coursesByType);
+  },
+
+  updated() {
+    this.coursesByType = this.groupBy(this.allcourses, "type");
+    this.mustValue = this.coursesByType[1].length;
+    this.chooseListValue = this.coursesByType[2].length;
+    this.choiceValue = this.coursesByType[3].length;
+    console.log(this.coursesByType);
   },
 };
 </script>
