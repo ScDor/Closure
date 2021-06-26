@@ -101,10 +101,18 @@ async function beginScrape() {
 
 }
 
+
 /**
- * @returns {boolean} Are we currently on a registered courses page
+ * Assuming we're within the 
  */
-function isRunningInGradesPage() {
+function fetchGradesDocument() {
+  
+}
+
+/**
+ * @returns {boolean} Are we currently on a registered courses & grades page
+ */
+function isRunningInGradesPage(document) {
   const title = document.querySelectorAll(".gen_title");
   for (const elm of title) {
     if (elm.textContent.includes("פרוט קורסים וציונים")) {
@@ -118,22 +126,26 @@ const YEAR_INPUT_CSS_SELECTOR = "form#ziyunim select[name='yearsafa']"
 
 /**
  * Fetches documents for all available years (in no particular order)
+ * @param {HTMLDocument} doc Doument containing student grades(in any year)
  * @returns {Array<HTMLDocument>} Documents containing courses
  */
-async function getDocumentsForAllYears () {
-  const yearSelector = document.querySelector(YEAR_INPUT_CSS_SELECTOR)
+async function getDocumentsForAllYears (doc) {
+  if (!document) {
+    throw new Error("getDocumentForAllYears must be ran on grades page")
+  }
+  const yearSelector = doc.querySelector(YEAR_INPUT_CSS_SELECTOR)
   const curYear = Number.parseInt(yearSelector.value)
   const otherYears = [...yearSelector.options].map(el => Number.parseInt(el.value)).filter(year => year !== curYear)
 
   console.log(`Document year is ${curYear}, other years are ${otherYears}`)
 
-  const promises = [ Promise.resolve(document)].concat(
+  const promises = [ Promise.resolve(doc)].concat(
     otherYears.map(async (year) => {
       const urlData = new URLSearchParams({
         "yearsafa": year
       });
 
-      const response = await fetch(document.ziyunim.action, {
+      const response = await fetch(doc.ziyunim.action, {
         method: 'POST',
         body: urlData,
 
