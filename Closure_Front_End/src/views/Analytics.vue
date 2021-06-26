@@ -2,7 +2,7 @@
 
 <div class="columns">
   <div class="column">
-    <BarChart/>
+    <PieChart/>
   </div>
   <div class="column">
     <LineChart/>
@@ -17,12 +17,12 @@
 </template>
 
 <script>
-import BarChart from "../components/BarChart.vue";
+import PieChart from "../components/PieChart.vue";
 import LineChart from "../components/LineChart.vue";
 
 export default {
   name: "Analytics",
-  components: { BarChart,LineChart },
+  components: { PieChart,LineChart },
   data() {},
 
   methods: {},
