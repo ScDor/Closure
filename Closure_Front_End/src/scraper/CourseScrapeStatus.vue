@@ -6,8 +6,8 @@
       <instructions />
     </div>
 
-    <div class="notification is-danger" v-if="this.error">
-      {{ this.error }}
+    <div class="notification is-danger" v-for="error in errors" :key="error.key">
+      {{ error.msg }}
     </div>
 
     <div class="has-text-centered">
@@ -72,10 +72,17 @@ export default {
     window.removeEventListener("message", this.handleEvent);
   },
   methods: {
+    addError(msg) {
+      console.error(msg)
+      this.errors.push({
+        msg, key: this.errors.length
+      })
+    },
     openUni: function() {
       const winRef = window.open("https://www.huji.ac.il/dataj/controller/stu");
       if (!winRef) {
-        this.error = `חלה שגיאה בפתיחת האתר, אם יש לך חוסם חלונות קופצים או פרסומות, אנא בטל/י אותו.`;
+        this.addError(`חלה שגיאה בפתיחת האתר, אם יש לך חוסם חלונות קופצים או פרסומות, אנא בטל/י אותו.`)
+        this.status = "error"
         return;
       }
     },
@@ -102,8 +109,10 @@ export default {
         this.status = msg;
       }
       if (msg.type === "error") {
-        console.error(msg);
-        this.error = msg.errorMessage;
+        this.addError(msg.errorMessage)
+        if (msg.critical) {
+          this.status = "error"
+        }
       }
 
       if (msg.type === "gotCourse") {
@@ -131,7 +140,7 @@ export default {
     const data = {
       status: "notHooked",
       courses: [],
-      error: "",
+      errors: [],
       ref: null
     };
     if (USE_TEST_COURSES) {

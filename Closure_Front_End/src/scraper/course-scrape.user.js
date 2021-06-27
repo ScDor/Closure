@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name     HUJI Registered courses & grades scraper
+// @name     HUJI Registered courses import script
 // @version  1
 // @author Daniel Kerbel
 // @grant    none
@@ -12,8 +12,24 @@
 const FRONTEND_ORIGIN = (typeof process !== "undefined" && process.env.VUE_APP_AUTH0_REDIRECT_URI) || "http://localhost:8080"
 
 
-console.log(`Scrape script is in context, origin of front-end is ${FRONTEND_ORIGIN}`)
+console.log(`Import script was loaded, origin of front-end is ${FRONTEND_ORIGIN}`)
 
+let opener = null
+
+function error(msg, critical) {
+  if (opener) {
+    opener.postMessage({
+      "type": "error",
+      "errorMessage": msg,
+      "critical": critical,
+    }, FRONTEND_ORIGIN);
+  }
+  console.error(msg)
+  window.alert(msg)
+  if (critical) {
+    throw new Error(msg)
+  }
+}
 
 /**
  * This function tries to find the Window object of the front-end website that (supposedly) opened this website.
@@ -27,10 +43,6 @@ console.log(`Scrape script is in context, origin of front-end is ${FRONTEND_ORIG
 function findFrontendOpener() {
   let opener = window.opener
   let level = 0
-  if (!opener) {
-    window.alert(`You must run this script from the pop-up given by our site`)
-    throw new Error("Scrape script must be ran within pop-up")
-  }
   while (opener) {
     level++
     try {
@@ -47,8 +59,7 @@ function findFrontendOpener() {
 
 
 
-let opener = null
-
+let startedScrape = false
 /**
  * Creates a message handler for handling cross-origin messages from the front-end,
  * which will begin scraping from the given document once communication with the front-end has been established.
@@ -58,16 +69,18 @@ let opener = null
 const mkMessageHandler = (doc) => async function messageHandler(event) {
   console.log(`Got message ${JSON.stringify(event)}`)
   if (event.origin != FRONTEND_ORIGIN) {
-    console.error(`Got message ${JSON.stringify(event.data)} from unknown origin ${event.origin}`)
+    console.error(`\tfrom unknown origin ${event.origin}`)
     return
   }
   if (event.data === "hooked") {
     opener = event.source 
-    console.log(`Hooked into frontend, starting scrape`)
+    console.log("Hooked into frontend, starting scrape")
+    window.alert("מתחיל ייבוא קורסים")
+    startedScrape = true
     event.source.postMessage("started", FRONTEND_ORIGIN)
     await beginScrape(doc)
+    console.log("Finished scrape")
     event.source.postMessage("finishedParsing", FRONTEND_ORIGIN)
-    window.close()
   }
 }
 
@@ -87,21 +100,19 @@ function postParseEntry(entry) {
  */
 async function beginScrape(doc) {
   try {
-    const docs = await getDocumentsForAllYears(doc);
-    opener.postMessage({
-      "type": "gotDocs",
-      "numDocs": docs.length
-    }, FRONTEND_ORIGIN);
+    console.log("Fetching documents")
+    const docs = (await getDocumentsForAllYears(doc)).filter(doc => doc);
+    console.log(`Fetched ${docs.length} documents containing courses`)
+    console.log(docs)
 
     const courses = (await Promise.all(docs.map(getCoursesForDocument))).flat()
     console.log(`Got a total of ${courses.length} courses`)
   }
   catch (err) {
-    console.error(err)
-    opener.postMessage({
-      "type": "error",
-      "errorMessage": err.message
-    }, FRONTEND_ORIGIN);
+    error(
+      "חלה שגיאה קריטית במהלך קליטת קורסים מאתר האוניברסיטה" 
+      + ":\n" + err
+    , true)
   }
 
 }
@@ -117,8 +128,10 @@ async function fetchCoursesAndGradesDocument(doc) {
   if (doc.location.origin !== "https://www.huji.ac.il" ||
       !doc.location.pathname.startsWith("/dataj/controller")) {
     const err = "This script must be ran within HUJI's personal information site"
-    window.alert(err)
-    throw new Error(err)
+
+    error(
+      "יש להריץ את הסקריפט מאתר המידע האישי של האוניברסיטה"
+    )
   }
 
   if (doc.location.pathname.match(/\/stu\/?$/)) {
@@ -157,7 +170,7 @@ const YEAR_INPUT_CSS_SELECTOR = "form#ziyunim select[name='yearsafa']"
  */
 async function getDocumentsForAllYears (doc) {
   if (!isCoursesAndGradesDocument(doc)) {
-    throw new Error("getDocumentForAllYears must be ran on grades page")
+    error("getDocumentForAllYears must be ran on grades page")
   }
   const yearSelector = doc.querySelector(YEAR_INPUT_CSS_SELECTOR)
   const curYear = Number.parseInt(yearSelector.value)
@@ -170,18 +183,25 @@ async function getDocumentsForAllYears (doc) {
       const urlData = new URLSearchParams({
         "yearsafa": year
       });
+      try {
+          const response = await fetch(doc.ziyunim.action, {
+          method: 'POST',
+          body: urlData,
 
-      const response = await fetch(doc.ziyunim.action, {
-        method: 'POST',
-        body: urlData,
+        });
 
-      });
-
-      if (!response.ok) {
-        throw Error(`Error while fetching courses for year ${year}: ${response.status} - ${response.statusText}`);
+        if (!response.ok) {
+          const errText = await response.text()
+          throw new Error(`Bad response: ${response.status} - ${response.statusText}\nContents: ${errText}`)
+        }
+        return await responseToDocument(response)
       }
-
-      return await responseToDocument(response)
+      catch (ex) {
+        error(
+          `חלה שגיאה בעת הניסיון להשיג את המסמך של שנה ${year}: ${ex}`
+        , false)
+        return null
+      }
     })
   );
 
@@ -304,6 +324,8 @@ const TKUFA_TO_SEMESTER = {
 
 let loaded = false
 
+const NOT_LOADED_ERROR_TIMEOUT_MS = 3000
+
 async function startScript() {
   if (loaded) {
     console.log(`Attempted to start script twice`)
@@ -316,6 +338,13 @@ async function startScript() {
   window.addEventListener("message", messageHandler);
   console.log(`Attached message handler`)
   findFrontendOpener()
+  setTimeout(() => {
+    if (!startedScrape) {
+      error(
+        "יש להריץ את הסקריפט מתוך החלון שנפתח על ידי לחיצת הכפתור מאתר Closure", true
+      )
+    }
+  }, NOT_LOADED_ERROR_TIMEOUT_MS)
   console.log(`Found frontend`)
 }
 
