@@ -1,0 +1,4 @@
+.gcloudignore
+#!include:.gitignore
+#!include:Closure_Front_End/.dockerignore
+#!include:Closure_Project/.dockerignore

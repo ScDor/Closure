@@ -4,10 +4,10 @@
       <section class="section section-style">
         <div class="columns is-variable is-2">
           <div class="column is-2 is-right is-hidden-mobile is-hidden-touch">
-            <navigation @clickcourse="add"></navigation>
+            <navigation @clickcourse="add" :allcourses="allcourses"></navigation>
           </div>
           <div class="column" v-for="year in years" :key="year">
-            <year :year="year" :allcourses="allcourses"
+            <year :year="year" :allcourses="allcourses" 
                   @courseMoved="moveCourse" @courseDeleted="deleteCoruse" />
           </div>
         </div>
@@ -24,7 +24,6 @@
 <script>
 import Year from "../components/Year.vue";
 import Navigation from "../components/Navigation.vue";
-import axios from "axios";
 
 export default {
   name: "Closure()",
@@ -132,7 +131,6 @@ export default {
           semester: 1,
           year: 3,
           points: 5,
-          year: 3,
           type: 3,
         },
         {
@@ -156,6 +154,7 @@ export default {
       ],
     };
   },
+
   created() {
     if (this.$auth.isAuthenticated.value) {
       this.$auth.getIdTokenClaims().then(console.log, console.error);
@@ -163,19 +162,6 @@ export default {
         this.track = response.data.results[0]
       })
     }
-    /** if the user is loged in, then fetching his data from DB, else doing nothing */
-    // if (this.$auth.isAuthenticated.value) {
-    //   this.getUsername().then(function (username) {
-    //     axios
-    //       .get("http://127.0.0.1:8000/api/v1/students/?search=" + username, {
-    //         headers: {
-    //           Authorization: "Token 0782d1d5118827d8f32cdeaddde60a8bb53d7625",
-    //         },
-    //       })
-    //       .then((response) => (this.student = response))
-    //       .then((response) => this.createAllCourses(response));
-    //   });
-    // }
   },
 
   methods: {
@@ -187,7 +173,7 @@ export default {
 
     /** fetch all student's courses from the DB and store them in allcourses */
     createAllCourses(student) {
-      for (course in student.courses) {
+      for (const course of student.courses) {
         const course_info = course.course;
         this.allcourses.push({
           pk: course.pk,
@@ -238,7 +224,7 @@ export default {
     deleteCoruse(course) {
       const index = this.allcourses.indexOf(course);
       this.allcourses.splice(index, 1);
-    },
+    }
   },
 };
 </script>

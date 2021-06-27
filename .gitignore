@@ -1,6 +1,9 @@
 venv/
 *.sqlite3
+.vscode/
+.idea
 __pycache__/
+.pytest_cache
 node_modules/
 .DS_STORE
 
@@ -27,7 +30,7 @@ node_modules/
 =======
 /Closure_Front_End/node_modules/
 /Closure_Front_End/dist/
-# Since frontend .env contains no secrets, they can be committed,
+# Since frontend .env contains no secrets, they can be committed, except for the local ones which are only for local development.
 /Closure_Front_End/.env*.local
 
 # This file should only be accessible via the secret manager

@@ -2,23 +2,28 @@
 <template>
   <search-bar
     :placeholder="'חפש מסלול'"
-    :url="'http://127.0.0.1:8000/api/v1/tracks/?limit=6&offset=15&search='"
+    :url="'tracks/?limit=6&offset=15&search='"
     @clicksuggestion="emitTrackClick"
   ></search-bar>
 
   <search-bar
     :placeholder="'חפש קורס'"
-    :url="'http://127.0.0.1:8000/api/v1/courses/?limit=6&offset=15&search='"
+    :url="'courses/?limit=6&offset=15&search='"
     @clicksuggestion="emitCourseClick"
   ></search-bar>
+
+  
+  <ProgressBox :allcourses = "allcourses"/>
 </template>
 
 <script>
 import SearchBar from "./SearchBar.vue";
+import ProgressBox from "./ProgressBox.vue";
 
 export default {
-  components: { SearchBar },
+  components: { SearchBar, ProgressBox },
   emits: ["clickcourse"],
+  props: ["allcourses"],
 
   methods: {
     emitCourseClick(event, course) {
