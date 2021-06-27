@@ -295,6 +295,7 @@ async function parseCourseTable(tbody, docYear) {
 }
 
 
+// TODO: support annual and summer courses
 const TKUFA_TO_SEMESTER = {
   1: "FIRST",
   2: "SECOND",

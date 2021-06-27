@@ -1,12 +1,14 @@
 <template>
-  <div id="iframe-div" class="container" dir="rtl">
-    <h1 class="title is-1 has-text-centered">יבוא קורסים מהאוניברסיטה</h1>
+  <div class="container" dir="rtl">
+    <h1 class="title is-1 has-text-centered">ייבוא קורסים מהאוניברסיטה</h1>
+
+    <div class="section">
+      <instructions />
+    </div>
 
     <div class="notification is-danger" v-if="this.error">
       {{ this.error }}
     </div>
-
-    <instructions />
 
     <div class="has-text-centered">
       <div class="container">
@@ -25,8 +27,6 @@
       </button>
     </div>
 
-    <div v-if="status === 'finishedParsing' && !canSend"></div>
-
     <div class="has-text-centered" v-if="status === 'started'">
       <span>טוען קורסים...</span>
       <progress
@@ -37,54 +37,19 @@
       >
     </div>
 
-    <div
-      v-if="status === 'finishedParsing' && this.ambiguousCourses.length > 0"
-    >
-      <div class="has-text-centered">
-        <span>
-          מתוך
-          {{ this.courses.length }}
-          קורסים, נמצאו
-          {{ this.ambiguousCourses.length }}
-          קורסים שלא ברור מתי הם נעשו. אנא בחר/י לכל אחד מהקורסים הללו את מועד
-          לקיחתו:
-        </span>
-        <div v-for="course in ambiguousCourses" :key="course.id">
-          <imported-course :course="course" />
-        </div>
-      </div>
-
-      <div class="has-text-centered">
-        <button
-          class="button is-primary is-large"
-          :disabled="!canSend"
-          @click="save"
-        >
-          שמירה
-        </button>
-      </div>
+    <div class="section" v-if="status === 'finishedParsing'">
+      <imported-courses-grid :parsedCourses="courses" @import="onImportCourses" />
     </div>
 
-    <div class="notification is-success" v-if="status === 'success'">
-      <span>
-        {{ this.courses.length }}
-        קורסים נשמרו בהצלחה
-      </span>
-    </div>
-
-    <div v-for="notif in notifications" :key="notif.id" class="notification">
-      Notification: {{ notif.contents }}
-    </div>
   </div>
 </template>
 
 <script>
-import { reactive, ref } from "vue";
 import { addCourses } from "@/course-store.js";
 import Instructions from "./Instructions.vue";
-import { default as INITIAL_COURSES} from '@/test-courses.js'
-import ImportedCourse from './ImportedCourse.vue';
-import { API_SEMESTER_TO_PROP_INT, PROP_INT_TO_API_SEMESTER } from '@/utils.js'
+import { default as INITIAL_COURSES } from "./example-parsed-courses.js";
+import ImportedCoursesGrid from "./ImportedCoursesGrid.vue";
+import { API_SEMESTER_TO_PROP_INT } from "@/utils.js";
 
 const HUJI_ORIGIN = "https://www.huji.ac.il";
 
@@ -94,8 +59,11 @@ const ALLOWED_MESSAGE_ORIGINS = [
 ];
 
 
+
+const USE_TEST_COURSES = false
+
 export default {
-  components: { Instructions, ImportedCourse },
+  components: { Instructions, ImportedCoursesGrid },
   created() {
     window.addEventListener("message", this.handleEvent);
   },
@@ -105,9 +73,7 @@ export default {
   },
   methods: {
     openUni: function() {
-      const winRef = window.open(
-        "https://www.huji.ac.il/dataj/controller/stu"
-      );
+      const winRef = window.open("https://www.huji.ac.il/dataj/controller/stu");
       if (!winRef) {
         this.error = `חלה שגיאה בפתיחת האתר, אם יש לך חוסם חלונות קופצים או פרסומות, אנא בטל/י אותו.`;
         return;
@@ -146,95 +112,36 @@ export default {
     },
 
     handleCourse: async function(course) {
-      course.key = this.courses.length;
-      course.ambiguous = ref(false);
-      const rCourse = reactive(course);
-      this.courses.push(rCourse);
-      if (!rCourse.semester) {
-        await this.tryFillSemesterFromShnaton(rCourse);
-      }
+      this.courses.push({ ...course, key: this.courses.length });
     },
-    tryFillSemesterFromShnaton: async function(course) {
-      try {
-        const res = await this.$http(`/courses`, {
-          params: {
-            course_id: course.course_id,
-            data_year: course.year
-          }
-        });
-        const data = res.data;
-        if (data.count === 0) {
-          console.error(
-            `Could not get entry for course ${course.course_id} - ${course.name} at year ${course.year}`
-          );
-          course.ambiguous = true;
-          return;
-        }
-        if (data.count > 1) {
-          console.error(
-            `Got more than 1 course for given course id and year, how?`
-          );
-          console.error(data.results);
-        }
-        const gottenCourse = data.results[0];
-        course.name = gottenCourse.name; // `course.name` might be trimmed if it came from the grades website
-        course.semester = gottenCourse.semester;
-        course.ambiguous = course.semester === "EITHER";
-        console.log(gottenCourse);
-      } catch (error) {
-        this.error = `בעיית תקשורת: ${error}`;
-        course.ambiguous = true;
-      }
-    },
-    save() {
-      const firstYear = Math.min(...this.courses.map(course => course.year));
-      const courses = this.courses.map(course => {
+    onImportCourses(courses) {
+      const firstYear = Math.min(...courses.map(course => course.year));
+      const coursesForDisplay = courses.map(course => {
         return {
           ...course,
           year: course.year - firstYear + 1,
-          semester: API_SEMESTER_TO_PROP_INT[course.semester]
+          semester: API_SEMESTER_TO_PROP_INT.get(course.semester)
         };
       });
-      addCourses(courses);
+      addCourses(coursesForDisplay);
       this.$router.push("/");
     }
   },
-
-  computed: {
-    canSend() {
-      // return this.status === "finishedParsing" && this.courses.every(course => course.semester)
-      return true;
-    },
-    ambiguousCourses() {
-      return this.courses.filter(course => course.ambiguous);
-    }
-  },
   data() {
-    if (!this.kek) {
-      return {
-        status: "notHooked",
-        notifications: [],
-        courses: [],
-        error: "",
-        ref: null
-      };
-    }
-    
-    const courses = INITIAL_COURSES.map(c => {
-      return {...c, ambiguous: true, semester: PROP_INT_TO_API_SEMESTER.get(c.semester)}
-    })
-    return {
-      status: "finishedParsing",
-      notifications: [],
-      courses,
+    const data = {
+      status: "notHooked",
+      courses: [],
       error: "",
       ref: null
     };
+    if (USE_TEST_COURSES) {
+      data.status = "finishedParsing"
+      data.courses = INITIAL_COURSES
+    }
+    return data
   }
 };
 </script>
 
 <style>
-#iframe-div {
-}
 </style>
