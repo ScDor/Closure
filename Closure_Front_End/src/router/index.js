@@ -17,7 +17,7 @@ const routes = [
     beforeEnter: routeGuard
   },
   {
-    path: '/scrape',
+    path: '/data-import',
     name: 'Scrape',
     component: CourseImport,
     beforeEnter: routeGuard

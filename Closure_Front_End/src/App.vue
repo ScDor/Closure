@@ -7,6 +7,15 @@
     <div class="navbar-start is-hidden-mobile is-hidden-touch">
       <div class="navbar-item">
         <div class="buttons">
+          <router-link
+            class="button is-small is-dark"
+            to="/data-import"
+          >
+            <span> 
+              <i class="fas fa-upload"></i>
+              ייבוא נתונים מהאוניברסיטה
+            </span>
+          </router-link>
           <!-- Check that the SDK client is not currently loading before accessing is methods -->
           <router-link
             v-if="$auth.isAuthenticated.value"
@@ -16,12 +25,6 @@
             <span class="icon is-small is-right">
               <i class="fas fa-user-cog"></i>
             </span>
-          </router-link>
-          <router-link
-            class="button is-small is-dark"
-            to="/scrape"
-          >
-            <button class="button is-small is-dark menu-label">Import HUJI Data</button>
           </router-link>
           <div v-if="!$auth.loading.value">
             <button
