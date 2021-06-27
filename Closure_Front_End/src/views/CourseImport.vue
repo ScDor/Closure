@@ -6,15 +6,8 @@
       <instructions />
     </div>
 
-    <div class="notification is-danger" v-for="error in errors" :key="error.key">
-      {{ error.msg }}
-    </div>
 
     <div class="has-text-centered">
-      <div class="container">
-        <span>{{ status }}</span>
-      </div>
-
       <button
         class="button is-primary is-large"
         v-if="status === 'notHooked'"
@@ -25,6 +18,14 @@
         </span>
         <span>פתח מידע אישי</span>
       </button>
+    </div>
+
+    <div class="section" v-if="errors.length > 0">
+      <h1 class="title is-1"> שגיאות </h1>
+      <div class="notification is-danger" v-for="error in errors" :key="error.msg">
+        <strong>שגיאה:</strong><br/>
+        {{ error.msg }}
+      </div>
     </div>
 
     <div class="has-text-centered" v-if="status === 'started'">
@@ -38,7 +39,7 @@
     </div>
 
     <div class="section" v-if="status === 'finishedParsing'">
-      <imported-courses-grid :parsedCourses="courses" @import="onImportCourses" />
+      <parsed-courses-tables :parsedCourses="courses" @import="onImportCourses" />
     </div>
 
   </div>
@@ -46,9 +47,9 @@
 
 <script>
 import { addCourses } from "@/course-store.js";
-import Instructions from "./Instructions.vue";
-import { default as INITIAL_COURSES } from "./example-parsed-courses.js";
-import ImportedCoursesGrid from "./ImportedCoursesGrid.vue";
+import Instructions from "@/huji-import/Instructions.vue";
+import { default as INITIAL_COURSES } from "@/huji-import/example-parsed-courses.js";
+import ParsedCoursesTables from "@/huji-import/ParsedCoursesTables.vue";
 import { API_SEMESTER_TO_PROP_INT } from "@/utils.js";
 
 const HUJI_ORIGIN = "https://www.huji.ac.il";
@@ -63,7 +64,7 @@ const ALLOWED_MESSAGE_ORIGINS = [
 const USE_TEST_COURSES = false
 
 export default {
-  components: { Instructions, ImportedCoursesGrid },
+  components: { Instructions, ParsedCoursesTables },
   created() {
     window.addEventListener("message", this.handleEvent);
   },
@@ -78,15 +79,16 @@ export default {
         msg, key: this.errors.length
       })
     },
-    openUni: function() {
+    openUni() {
       const winRef = window.open("https://www.huji.ac.il/dataj/controller/stu");
       if (!winRef) {
         this.addError(`חלה שגיאה בפתיחת האתר, אם יש לך חוסם חלונות קופצים או פרסומות, אנא בטל/י אותו.`)
         this.status = "error"
         return;
       }
+
     },
-    handleEvent: function(event) {
+    handleEvent(event) {
       if (!ALLOWED_MESSAGE_ORIGINS.includes(event.origin)) {
         console.warn(
           `Received window event ${JSON.stringify(

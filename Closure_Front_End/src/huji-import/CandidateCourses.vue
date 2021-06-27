@@ -22,13 +22,16 @@
       <tr>
         <th>מספר קורס</th>
         <th>שם קורס</th>
+        <th>נקודות זכות</th>
         <th>סמסטר</th>
       </tr>
     </thead>
     <tbody>
-      <tr v-for="course in courses" :key="course.course_id">
+      <tr v-for="course in courses" :key="course.course_id" 
+          :class="{ 'has-background-warning-light': course.ambiguous }">
         <td>{{ course.course_id }}</td>
         <td>{{ course.name }}</td>
+        <td>{{ course.points }}</td>
         <td>
             <div class="control">
             <label class="radio">
@@ -45,12 +48,14 @@
     </tbody>
   </table>
 
-    <button class="button is-success is-large" :disabled="!canImport" 
-            @click="$emit('import', courses)">ייבוא</button>
-    <div class="notification is-warning is-light">
+    <div class="block">
+    <div class="notification is-danger is-light">
       <strong>אזהרה:</strong>
       <br/>
       עם ייבוא הקורסים, כל הקורסים הקודמים ששמורים בדפדפן יימחקו
+    </div>
+    <button class="button is-success is-large block" :disabled="!canImport" 
+            @click="$emit('import', courses)">ייבוא</button>
     </div>
 </div>
 </template>

@@ -66,6 +66,22 @@ export default {
     onMounted(async () => {
       console.log(`processing ${parsedCourses.value.length} courses`);
       const processedCourses = await processCourses(parsedCourses, http)
+
+      processedCourses.sort((a, b) => {
+        if (a.ambiguous === b.ambiguous) {
+          // if both are ambigious(both true) or both are not(both undefined)
+          // sort them by IDs
+          return a.course_id - b.course_id
+        }
+        // otherwise, ensure ambiguous courses appear first
+        if (a.ambiguous) {
+          return -1
+        }
+        if (b.ambiguous) {
+          return 1
+        }
+      })
+
       courses.push(...processedCourses)
 
       console.log("Parsed courses:")

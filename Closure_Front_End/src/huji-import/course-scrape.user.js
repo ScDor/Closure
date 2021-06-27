@@ -75,12 +75,13 @@ const mkMessageHandler = (doc) => async function messageHandler(event) {
   if (event.data === "hooked") {
     opener = event.source 
     console.log("Hooked into frontend, starting scrape")
-    window.alert("מתחיל ייבוא קורסים")
+    // window.alert("מתחיל ייבוא קורסים")
     startedScrape = true
     event.source.postMessage("started", FRONTEND_ORIGIN)
     await beginScrape(doc)
     console.log("Finished scrape")
     event.source.postMessage("finishedParsing", FRONTEND_ORIGIN)
+    window.close()
   }
 }
 
@@ -288,7 +289,7 @@ async function parseCourseTable(tbody, docYear) {
       "course_id": Number.parseInt(entry["סמל קורס"][0]),
       "name": entry["קורס"][0],
       "year": docYear,
-      "points": Number.parseInt(entry["נקודות זכות"][0])
+      "points": Number.parseInt(entry["נקודות זכות"][0]) || 0
     }
     if (entry["סטטיסטיקות"].length === 2) {
       engEntry.statistics_url = entry["סטטיסטיקות"][1]

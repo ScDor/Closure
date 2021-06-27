@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import Settings from '../views/Settings.vue'
+import CourseImport from '../views/CourseImport.vue'
 import { routeGuard } from '@/auth/index.js'
-import CourseScrapeStatus from '@/scraper/CourseScrapeStatus.vue'
 
 const routes = [
   {
@@ -19,7 +19,8 @@ const routes = [
   {
     path: '/scrape',
     name: 'Scrape',
-    component: CourseScrapeStatus
+    component: CourseImport,
+    beforeEnter: routeGuard
   }
 ]
 
