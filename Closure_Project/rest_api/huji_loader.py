@@ -103,7 +103,7 @@ def load_everything(folder: Path = CURRENT_DIR):
     import_course_groups(folder=str(folder / PARSED_GROUPS_FOLDER_NAME))
 
 
-def load_from_zip(zip_file: Union[IO[bytes], os.PathLike[str]] = PARSED_DATA_ZIP_PATH):
+def load_from_zip(zip_file = PARSED_DATA_ZIP_PATH):
     with zipfile.ZipFile(zip_file) as zipf,\
          tempfile.TemporaryDirectory(prefix="parse_state") as temp_dir:
         temp_dir = Path(temp_dir)
