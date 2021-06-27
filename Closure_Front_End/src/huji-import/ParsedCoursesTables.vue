@@ -2,11 +2,12 @@
     <unsupported-courses :courses="unsupportedCourses" />
     <candidate-courses v-model:courses="candidateCourses"
                        :totalCourseCount="parsedCourses.length"
+                       v-if="finishedProcessing"
                        @import="$emit('import', $event)" />
 </template>
 
 <script>
-import { inject, toRefs, computed, onMounted, reactive } from "vue";
+import { inject, toRefs, computed, onMounted, reactive, ref } from "vue";
 import UnsupportedCourses from './UnsupportedCourses.vue';
 import CandidateCourses from './CandidateCourses.vue'
 
@@ -62,6 +63,7 @@ export default {
 
     const courses = reactive([])
     const http = inject("http");
+    const finishedProcessing = ref(false)
     
     onMounted(async () => {
       console.log(`processing ${parsedCourses.value.length} courses`);
@@ -83,21 +85,14 @@ export default {
       })
 
       courses.push(...processedCourses)
-
-      console.log("Parsed courses:")
-      console.log(parsedCourses.value)
-      console.log("courses:")
-      console.log(courses)
-      // console.log(`Got ${unsupportedCourses.value.length} missing/unsupported courses in the DB, and ${ambiguousCourses.value.length} ambiguous courses`)
-      // console.log(`A total of ${candidateCourses.value.length} candidates.`)
-
+      finishedProcessing.value = true
     })
     const unsupportedCourses = computed(() => courses.filter(course => course.notInDb || course.unsupportedPeriod))
     const candidateCourses = computed(() => courses.filter(course => !course.notInDb && !course.unsupportedPeriod))
 
     const canImport = computed(() => candidateCourses.value.every(course => course.semester))
 
-    return { courses, unsupportedCourses, candidateCourses, canImport }
+    return { courses, unsupportedCourses, candidateCourses, canImport, finishedProcessing }
   }
 };
 </script>
