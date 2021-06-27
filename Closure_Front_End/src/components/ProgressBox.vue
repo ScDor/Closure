@@ -35,46 +35,32 @@
   </div>
 </template>
 <script>
+
+import { groupBy } from '@/utils.js'
+
+
 export default {
   props: ["allcourses"],
 
-  data() {
-    return {
-      total: 50,
-      mandatory: 30,
-      mand_choice: 20,
-      choice: 15,
-      coursesByType: null,
-      mustValue: null,
-      chooseListValue: null,
-      choiceValue: null,
-    };
-  },
-
-  methods: {
-    groupBy: function (xs, key) {
-      return xs.reduce(function (rv, x) {
-        (rv[x[key]] = rv[x[key]] || []).push(x);
-        return rv;
-      }, {});
+  computed: {
+    total() {
+      return this.allcourses.length
     },
-  },
+    coursesByType() {
+      return groupBy(this.allcourses, "type")
+    },
+    mustValue() {
+      return 1 in this.coursesByType ? this.coursesByType[1].length : 0
+    },
 
-  mounted() {
-    this.coursesByType = this.groupBy(this.allcourses, "type");
-    this.mustValue = this.coursesByType[1].length;
-    this.chooseListValue = this.coursesByType[2].length;
-    this.choiceValue = this.coursesByType[3].length;
-    console.log(this.coursesByType);
-  },
+    chooseListValue() {
+      return 2 in this.coursesByType ? this.coursesByType[2].length : 0
+    },
 
-  updated() {
-    this.coursesByType = this.groupBy(this.allcourses, "type");
-    this.mustValue = this.coursesByType[1].length;
-    this.chooseListValue = this.coursesByType[2].length;
-    this.choiceValue = this.coursesByType[3].length;
-    console.log(this.coursesByType);
-  },
+    choiceValue() {
+      return 3 in this.coursesByType ? this.coursesByType[3].length : 0
+    }
+  }
 };
 </script>
 

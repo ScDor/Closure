@@ -16,3 +16,11 @@ export const PROP_INT_TO_API_SEMESTER = new Map(Array.from(API_SEMESTER_TO_PROP_
 export function isString(x) {
   return Object.prototype.toString.call(x) === "[object String]"
 }
+
+
+export function groupBy(xs, key) {
+  return xs.reduce(function (rv, x) {
+    (rv[x[key]] = rv[x[key]] || []).push(x);
+    return rv;
+  }, {});
+}
