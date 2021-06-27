@@ -102,13 +102,36 @@ export const routeGuard = (to, from, next) => {
 export const setupAuth = async (options, callbackRedirect) => {
   client = await createAuth0Client({
     ...options,
-  })
+  });
 
+  let error = true;
 
   let http = axios.create({
-    baseURL: process.env.VUE_APP_API_URL
-  })
-  window.closureAxios = http
+    baseURL: process.env.VUE_APP_API_URL,
+  });
+
+  const errorComposer = (error) => {
+    return () => {
+        const statusCode = error.response ? error.response.status : null;
+        if (statusCode === 404) {
+            error = true;
+        }
+
+        if (statusCode === 401) {
+            error = true;
+        }
+    };
+  };
+
+  http.interceptors.response.use(undefined, function (error) {
+      error.handleGlobally = errorComposer(error);
+
+    return Promise.reject(error);
+  });
+
+  window.closureAxios = http;
+
+
 
   watchEffect(async () => {
     if (state.isAuthenticated) {
@@ -152,8 +175,9 @@ export const setupAuth = async (options, callbackRedirect) => {
 
   return {
     install: (app) => {
-      app.config.globalProperties.$auth = authPlugin
-      app.config.globalProperties.$http = http
+      app.config.globalProperties.$auth = authPlugin;
+      app.config.globalProperties.$http = http;
+      app.config.globalProperties.$error = error;
     },
   }
 }

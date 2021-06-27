@@ -56,7 +56,7 @@ export default {
         })
         .then((response) => (this.suggestions = response.data.results))
         .then((this.hide = !this.suggestions.length || this.query == ""))
-        .catch (Utils.popOutStatusCodeError);
+        .catch(this.$error=true);
     },
 
     emitClick(event, sugg) {

@@ -19,16 +19,24 @@
       <img class="fit image-box" src="../assets/logo.png" />
     </transition>
   </div>
+  <error-notification v-if="myData()"
+    :errorMessage="showError">
+  </error-notification>
+    <error-notification v-else
+    :errorMessage="'שדdה'">
+  </error-notification>
+
 </template>
 
 <script>
 import Year from "../components/Year.vue";
 import Navigation from "../components/Navigation.vue";
+import ErrorNotification from "../components/ErrorNotification.vue";
 import Utils from "../Utils.js"
 
 export default {
   name: "Closure()",
-  components: { Navigation, Year },
+  components: { Navigation, Year, ErrorNotification },
   data() {
     return {
       years: [
@@ -168,6 +176,16 @@ export default {
     }
   },
 
+  observable:{
+    showError: this.$error
+  },
+
+   computed: {
+    myData() {
+      return this.showError
+    }
+   },
+
   methods: {
     getUsername() {
       return this.$auth
@@ -251,5 +269,9 @@ export default {
 }
 .landing-enter-active {
   transition: all 0.7s ease;
+}
+.error-notification {
+  margin-left: 24vw;
+  max-height: 80vh;
 }
 </style>
