@@ -47,7 +47,7 @@ export default {
           (course) =>
             course.year == this.year.id && course.semester == this.semester.id
         )
-        .sort((c1, c2) => c1.id - c2.id);
+        .sort((c1, c2) => c1.type - c2.type);
     },
   },
 

@@ -2,9 +2,14 @@
 import uuid
 from enum import Enum
 
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+
 from django.db import models
+
+from django.contrib.auth.models import User
+from django.db.models import Case, When
 
 
 def _validate_non_negative_number(value):
@@ -111,6 +116,19 @@ class Track(models.Model):
     def __str__(self):
         return f'{self.track_number} {self.name} ({self.data_year})'
 
+    def courses(self):
+        courses = []
+
+        # get the coursegroups and sort by course type
+        order = Case(*[When(course_type=course_type, then=pos) for pos, course_type in enumerate(ALL_COURSE_TYPES)])
+        cgs = self.coursegroup_set.order_by(order).all()
+
+        # append all the course ids to a list
+        for cg in cgs:
+            for course in cg.courses.all():
+                courses.append(course.id)
+        return courses
+
     @property
     def total_points(self) -> int:
         return self.points_must \
@@ -142,7 +160,7 @@ class Track(models.Model):
 class CourseGroup(models.Model):
     track = models.ForeignKey(Track, on_delete=models.CASCADE)
     course_type = models.CharField(max_length=20, choices=CourseType.choices)
-    year_in_studies = models.IntegerField()
+    year_in_studies = models.IntegerField(choices=Year.choices)
     index_in_track_year = models.IntegerField()
     required_course_count = models.IntegerField(null=True, validators=[_validate_non_negative_number])
     required_points = models.IntegerField(null=True)
@@ -179,15 +197,15 @@ ALL_COURSE_TYPES = REQUIRED_COURSE_TYPES + (CourseType.CORNER_STONE, CourseType.
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    track = models.ForeignKey(Track, on_delete=models.CASCADE)
-    year_in_studies = models.IntegerField(choices=Year.choices)
+    track = models.ForeignKey(Track, on_delete=models.CASCADE, null=True)
+    year_in_studies = models.IntegerField(choices=Year.choices, null=True)
     courses = models.ManyToManyField(Course, through='Take', blank=True)
 
     def __str__(self):
         return ', '.join((self.user.username,
                           self.user.get_full_name(),
                           f'year={self.year_in_studies}',
-                          f'track={self.track.track_number}',
+                          f'track={self.track.track_number}' if self.track else 'לא הוגדר מסלול',
                           f'took {len(self.courses.all())} courses'))
 
     @property
@@ -208,10 +226,9 @@ class Student(models.Model):
 
         for take in self.take_set.all():
             course = take.course
-            if course in counted:
-                continue
-            counted.add(course)
-            done[take.type] += course.points
+            if course not in counted:
+                counted.add(course)
+                done[take.type] += course.points
 
         result = {CourseType.MUST.name: {'required': track.points_must,
                                          'done': done[CourseType.MUST]},
@@ -263,5 +280,5 @@ class Take(models.Model):
 
     @property
     def type(self) -> CourseType:
-        from rest_api.utils import get_course_type
+        from rest_api.rest_utils import get_course_type
         return get_course_type(self.student.track, self.course)
