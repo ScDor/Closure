@@ -197,8 +197,7 @@ class CourseGroup(models.Model):
                          *(str(c) for c in self.courses.all())))
 
 
-REQUIRED_COURSE_TYPES = (
-    CourseType.MUST, CourseType.FROM_LIST, CourseType.CHOICE)  # order matters! do not modify
+REQUIRED_COURSE_TYPES = (CourseType.MUST, CourseType.FROM_LIST, CourseType.CHOICE)  # order matters! do not modify
 ALL_COURSE_TYPES = REQUIRED_COURSE_TYPES + (CourseType.CORNER_STONE, CourseType.SUPPLEMENTARY)
 
 
