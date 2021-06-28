@@ -52,7 +52,6 @@ elif os.environ.get("GOOGLE_CLOUD_PROJECT", None):
     # Pull secrets from Secret Manager
     project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 
-
     # SETTINGS_NAME is the key of the secret
     settings_name = os.environ.get("SETTINGS_NAME", "django_settings")
     name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
@@ -110,7 +109,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'drf_yasg',
-    'corsheaders'
+    'corsheaders',
 ]
 
 SWAGGER_SETTINGS = {
@@ -122,7 +121,13 @@ SWAGGER_SETTINGS = {
             'type': 'apiKey',
             'name': 'Authorization',
             'in': 'header'
-        }
+        },
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        },
+
     }
 }
 
@@ -253,9 +258,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 JWT_AUTH = {
     'JWT_PAYLOAD_GET_USERNAME_HANDLER':
-        'rest_api.utils.jwt_get_username_from_payload_handler',
+        'rest_api.rest_utils.jwt_get_username_from_payload_handler',
     'JWT_DECODE_HANDLER':
-        'rest_api.utils.jwt_decode_token',
+        'rest_api.rest_utils.jwt_decode_token',
     'JWT_ALGORITHM': 'RS256',
     'JWT_AUDIENCE': API_IDENTIFIER,
     'JWT_ISSUER': AUTH0_DOMAIN,

@@ -1,9 +1,12 @@
 # Create your models here.
 import uuid
 from enum import Enum
+from typing import List
+
+from django.db import models
 
 from django.contrib.auth.models import User
-from django.db import models
+from django.db.models import Case, When
 
 
 class Faculty(Enum):
@@ -101,6 +104,21 @@ class Track(models.Model):
     def __str__(self):
         return f'{self.track_number} {self.name} ({self.data_year})'
 
+    def course_pks(self, only_must: bool = False) -> List[int]:
+        """ returns list of course pk values, based on the student's track """
+        if only_must:
+            course_groups = self.coursegroup_set.filter(course_type=CourseType.MUST)
+        else:
+            # get the CourseGroups and sort by course type
+            order = Case(*[When(course_type=course_type, then=pos)
+                           for pos, course_type in enumerate(ALL_COURSE_TYPES)])
+            course_groups = self.coursegroup_set.order_by(order).all()
+
+        course_pks = []
+        for group in course_groups:
+            course_pks.extend((course.pk for course in group.courses.all()))
+        return course_pks
+
     @property
     def total_points(self) -> int:
         return self.points_must \
@@ -169,15 +187,15 @@ ALL_COURSE_TYPES = REQUIRED_COURSE_TYPES + (CourseType.CORNER_STONE, CourseType.
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    track = models.ForeignKey(Track, on_delete=models.CASCADE)
-    year_in_studies = models.IntegerField(choices=Year.choices)
+    track = models.ForeignKey(Track, on_delete=models.CASCADE, null=True)
+    year_in_studies = models.IntegerField(choices=Year.choices, null=True)
     courses = models.ManyToManyField(Course, through='Take', blank=True)
 
     def __str__(self):
         return ', '.join((self.user.username,
                           self.user.get_full_name(),
                           f'year={self.year_in_studies}',
-                          f'track={self.track.track_number}',
+                          f'track={self.track.track_number}' if self.track else 'לא הוגדר מסלול',
                           f'took {len(self.courses.all())} courses'))
 
     @property
@@ -198,10 +216,9 @@ class Student(models.Model):
 
         for take in self.take_set.all():
             course = take.course
-            if course in counted:
-                continue
-            counted.add(course)
-            done[take.type] += course.points
+            if course not in counted:
+                counted.add(course)
+                done[take.type] += course.points
 
         result = {CourseType.MUST.name: {'required': track.points_must,
                                          'done': done[CourseType.MUST]},
@@ -253,5 +270,5 @@ class Take(models.Model):
 
     @property
     def type(self) -> CourseType:
-        from rest_api.utils import get_course_type
+        from rest_api.rest_utils import get_course_type
         return get_course_type(self.student.track, self.course)
