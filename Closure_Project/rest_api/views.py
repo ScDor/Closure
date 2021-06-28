@@ -2,7 +2,7 @@
 from django.db.models import Case, When
 from rest_framework import filters
 from rest_framework import viewsets
-from rest_framework.authentication import TokenAuthentication, BasicAuthentication
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
@@ -28,7 +28,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 
 class MyTrackCourses(viewsets.ModelViewSet):
-    def get_queryset(self):
+    def _get_queryset(self, only_must: bool):
         user = self.request.user.id
         student = Student.objects.filter(user=user).first()
         if student is None:
@@ -38,10 +38,19 @@ class MyTrackCourses(viewsets.ModelViewSet):
             return Course.objects.none()
 
         # get the courses list and preserve the order
-        pk_list = student.track.courses()
+        pk_list = student.track.course_pks(only_must=only_must)
         preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(pk_list)])
 
         return Course.objects.filter(pk__in=pk_list).order_by(preserved)
+
+    def get_queryset(self):
+        if self.action == 'must':
+            return self._get_queryset(True)
+        return self._get_queryset(False)
+
+    @action(methods=['GET'], detail=False)
+    def must(self, request, *args, **kwargs):
+        return self.list(request, args, kwargs)
 
     permission_classes = (IsAuthenticated,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)

@@ -1,6 +1,7 @@
 # Create your models here.
 import uuid
 from enum import Enum
+from typing import List
 
 from django.db import models
 
@@ -103,18 +104,20 @@ class Track(models.Model):
     def __str__(self):
         return f'{self.track_number} {self.name} ({self.data_year})'
 
-    def courses(self):
-        courses = []
+    def course_pks(self, only_must: bool = False) -> List[int]:
+        """ returns list of course pk values, based on the student's track """
+        if only_must:
+            course_groups = self.coursegroup_set.filter(course_type=CourseType.MUST)
+        else:
+            # get the CourseGroups and sort by course type
+            order = Case(*[When(course_type=course_type, then=pos)
+                           for pos, course_type in enumerate(ALL_COURSE_TYPES)])
+            course_groups = self.coursegroup_set.order_by(order).all()
 
-        # get the coursegroups and sort by course type
-        order = Case(*[When(course_type=course_type, then=pos) for pos, course_type in enumerate(ALL_COURSE_TYPES)])
-        cgs = self.coursegroup_set.order_by(order).all()
-
-        # append all the course ids to a list
-        for cg in cgs:
-            for course in cg.courses.all():
-                courses.append(course.id)
-        return courses
+        course_pks = []
+        for group in course_groups:
+            course_pks.extend((course.pk for course in group.courses.all()))
+        return course_pks
 
     @property
     def total_points(self) -> int:
