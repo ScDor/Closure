@@ -3,10 +3,27 @@ import uuid
 from enum import Enum
 from typing import List
 
+from django.core.exceptions import ValidationError
+
 from django.db import models
 
 from django.contrib.auth.models import User
 from django.db.models import Case, When
+
+
+def _validate_non_negative_number(value):
+    """ ensures that the given value is non-negative"""
+    if value < 0:
+        raise ValidationError(
+            message='Invalid value: %(value)s is a negative number',
+            params={'value': value},
+        )
+
+
+def _validate_non_negative_number_or_null(value):
+    """ ensures that the given value is non-negative or null"""
+    if value is not None:
+        _validate_non_negative_number(value)
 
 
 class Faculty(Enum):
@@ -56,7 +73,7 @@ class CourseType(models.TextChoices):
 
 
 class Course(models.Model):
-    course_id = models.IntegerField()
+    course_id = models.IntegerField(validators=[_validate_non_negative_number])
     data_year = models.IntegerField()
     name = models.CharField(max_length=20)
     semester = models.CharField(max_length=6, choices=Semester.choices)
@@ -85,16 +102,16 @@ class Hug(models.Model):
 
 class Track(models.Model):
     id = models.AutoField(primary_key=True)
-    track_number = models.IntegerField()
+    track_number = models.IntegerField(validators=[_validate_non_negative_number])
     data_year = models.IntegerField()
     name = models.CharField(max_length=255)
-    points_must = models.IntegerField()
-    points_from_list = models.IntegerField()
-    points_choice = models.IntegerField()
-    points_complementary = models.IntegerField()
-    points_corner_stones = models.IntegerField()
-    points_minor = models.IntegerField()
-    points_additional_hug = models.IntegerField()
+    points_must = models.IntegerField(validators=[_validate_non_negative_number])
+    points_from_list = models.IntegerField(validators=[_validate_non_negative_number])
+    points_choice = models.IntegerField(validators=[_validate_non_negative_number])
+    points_complementary = models.IntegerField(validators=[_validate_non_negative_number])
+    points_corner_stones = models.IntegerField(validators=[_validate_non_negative_number])
+    points_minor = models.IntegerField(validators=[_validate_non_negative_number])
+    points_additional_hug = models.IntegerField(validators=[_validate_non_negative_number])
     comment = models.CharField(max_length=255, blank=True)
 
     class Meta:
@@ -151,9 +168,9 @@ class CourseGroup(models.Model):
     track = models.ForeignKey(Track, on_delete=models.CASCADE)
     course_type = models.CharField(max_length=20, choices=CourseType.choices)
     year_in_studies = models.IntegerField(choices=Year.choices)
-    index_in_track_year = models.IntegerField()
-    required_course_count = models.IntegerField(null=True)
-    required_points = models.IntegerField(null=True)
+    index_in_track_year = models.IntegerField(validators=[_validate_non_negative_number])
+    required_course_count = models.IntegerField(null=True, validators=[_validate_non_negative_number_or_null])
+    required_points = models.IntegerField(null=True, validators=[_validate_non_negative_number_or_null])
     comment = models.CharField(max_length=255, null=True)
     courses = models.ManyToManyField(Course)
 
