@@ -2,7 +2,6 @@
 from django.db.models import Case, When
 from rest_framework import filters
 from rest_framework import viewsets
-from rest_framework.authentication import TokenAuthentication, BasicAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
@@ -29,9 +28,11 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 
 class MyTrackCourses(viewsets.ModelViewSet):
-    def _get_queryset(self, only_must: bool):
-        user = self.request.user
-        student = Student.objects.get(user=user)
+    def _get_queryset(self,only_must:bool):
+        user = self.request.user.id
+        student = Student.objects.filter(user=user).first()
+        if student is None:
+            return Course.objects.none()
         track = student.track
         if not track:
             return Course.objects.none()
@@ -71,7 +72,7 @@ class StudentMeViewSet(viewsets.ModelViewSet):
         return queryset[0]
 
     def get_queryset(self):
-        return Student.objects.filter(user=self.request.user)
+        return Student.objects.filter(user=self.request.user.id)
 
     def list(self, request, *args, **kwargs):
         if not self.get_object():
