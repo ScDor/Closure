@@ -1,5 +1,6 @@
-from rest_api.serializers.DynamicSerializer import *
-from rest_api.models import Course, Student, CourseType
+from rest_api.serializers.DynamicSerializer import DynamicFieldsModelSerializer
+from rest_framework import serializers
+from rest_api.models import Course, Student
 from rest_api.rest_utils import get_course_type
 
 
