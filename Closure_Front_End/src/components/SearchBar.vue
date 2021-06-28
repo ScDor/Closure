@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import Utils from "../Utils.js"
+
 
 export default {
   props: ["placeholder", "url"],
@@ -51,12 +51,12 @@ export default {
    */ {
     search() {
       this.$http
-        .get(this.url + this.query, {
-          validateStatus: Utils.validateStatusCode(status)
-        })
+        .get(this.url + this.query)
         .then((response) => (this.suggestions = response.data.results))
         .then((this.hide = !this.suggestions.length || this.query == ""))
-        .catch(this.$error=true);
+        .catch((error) => {
+        error.handleGlobally
+        })
     },
 
     emitClick(event, sugg) {

@@ -19,24 +19,15 @@
       <img class="fit image-box" src="../assets/logo.png" />
     </transition>
   </div>
-  <error-notification v-if="myData()"
-    :errorMessage="showError">
-  </error-notification>
-    <error-notification v-else
-    :errorMessage="'שדdה'">
-  </error-notification>
-
 </template>
 
 <script>
 import Year from "../components/Year.vue";
 import Navigation from "../components/Navigation.vue";
-import ErrorNotification from "../components/ErrorNotification.vue";
-import Utils from "../Utils.js"
 
 export default {
   name: "Closure()",
-  components: { Navigation, Year, ErrorNotification },
+  components: { Navigation, Year },
   data() {
     return {
       years: [
@@ -168,23 +159,11 @@ export default {
     if (this.$auth.isAuthenticated.value) {
       this.$auth.getIdTokenClaims().then(console.log, console.error);
       this.$http.get("tracks/?track_number=3010",
-      {validateStatus: Utils.validateStatusCode(status)}
       ).then(response => {
         this.track = response.data.results[0]
       })
-      .catch (Utils.popOutStatusCodeError);
     }
   },
-
-  observable:{
-    showError: this.$error
-  },
-
-   computed: {
-    myData() {
-      return this.showError
-    }
-   },
 
   methods: {
     getUsername() {

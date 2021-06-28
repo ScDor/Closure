@@ -1,7 +1,7 @@
 <template>
-  <div class="notification is-light">
+  <div class="notification" v-if="showError">
     <p>{{errorMessage}}</p>
-    <button class="delete" onclick="() => closeErrorMessage()"></button>
+    <button class="delete" onclick="closeErrorMessage"></button>
   </div>
 </template>
 
@@ -11,9 +11,13 @@
 export default {
     props: ["errorMessage"],
 
+    /**
+    * inject: ['showError'],
+    */
+
     methods: {
         closeErrorMessage() {
-          this.$error = false;
+          this.showError = false
         }
     }
 }
