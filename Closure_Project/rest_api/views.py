@@ -28,7 +28,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 
 class MyTrackCourses(viewsets.ModelViewSet):
-    def _get_queryset(self,only_must:bool):
+    def _get_queryset(self, only_must: bool):
         user = self.request.user.id
         student = Student.objects.filter(user=user).first()
         if student is None:
