@@ -158,8 +158,7 @@ export default {
   created() {
     if (this.$auth.isAuthenticated.value) {
       this.$auth.getIdTokenClaims().then(console.log, console.error);
-      this.$http.get("tracks/?track_number=3010",
-      ).then(response => {
+      this.$http.get("tracks/?track_number=3010").then(response => {
         this.track = response.data.results[0]
       })
     }
@@ -248,9 +247,5 @@ export default {
 }
 .landing-enter-active {
   transition: all 0.7s ease;
-}
-.error-notification {
-  margin-left: 24vw;
-  max-height: 80vh;
 }
 </style>

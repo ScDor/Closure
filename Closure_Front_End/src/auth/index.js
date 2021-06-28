@@ -1,5 +1,5 @@
 import createAuth0Client from '@auth0/auth0-spa-js'
-import {computed, reactive, watchEffect} from 'vue'
+import { computed, reactive, watchEffect } from 'vue'
 import axios from 'axios'
 
 // status codes
@@ -11,11 +11,11 @@ const serverErrorStatusCode = 500;
 
 let client
 const state = reactive({
-    loading: true,
-    isAuthenticated: false,
-    user: {},
-    popupOpen: false,
-    error: null
+  loading: true,
+  isAuthenticated: false,
+  user: {},
+  popupOpen: false,
+  error: null,
 })
 
 async function loginWithPopup() {
@@ -48,36 +48,36 @@ async function handleRedirectCallback() {
 }
 
 function loginWithRedirect(o) {
-    return client.loginWithRedirect(o)
+  return client.loginWithRedirect(o)
 }
 
 function getIdTokenClaims(o) {
-    return client.getIdTokenClaims(o)
+  return client.getIdTokenClaims(o)
 }
 
 function getTokenSilently(o) {
-    return client.getTokenSilently(o)
+  return client.getTokenSilently(o)
 }
 
 function getTokenWithPopup(o) {
-    return client.getTokenWithPopup(o)
+  return client.getTokenWithPopup(o)
 }
 
 function logout(o) {
-    return client.logout(o)
+  return client.logout(o)
 }
 
 const authPlugin = {
-    isAuthenticated: computed(() => state.isAuthenticated),
-    loading: computed(() => state.loading),
-    user: computed(() => state.user),
-    getIdTokenClaims,
-    getTokenSilently,
-    getTokenWithPopup,
-    handleRedirectCallback,
-    loginWithRedirect,
-    loginWithPopup,
-    logout,
+  isAuthenticated: computed(() => state.isAuthenticated),
+  loading: computed(() => state.loading),
+  user: computed(() => state.user),
+  getIdTokenClaims,
+  getTokenSilently,
+  getTokenWithPopup,
+  handleRedirectCallback,
+  loginWithRedirect,
+  loginWithPopup,
+  logout,
 }
 
 export const routeGuard = (to, from, next) => {
