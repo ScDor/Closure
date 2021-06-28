@@ -206,7 +206,7 @@ class Student(models.Model):
         required_courses = set()
 
         for group in groups:
-            group_courses = list(group.course_pks.all())
+            group_courses = list(group.courses.all())
 
             required_by_type[group.course_type].update(group_courses)
             required_courses.update(group_courses)
