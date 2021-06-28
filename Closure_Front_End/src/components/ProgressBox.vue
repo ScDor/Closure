@@ -43,11 +43,7 @@ export default {
       total: 50,
       mandatory: 30,
       mand_choice: 20,
-      choice: 15,
-      coursesByType:  this.groupBy(this.allcourses, "type"),
-      // mustValue: this.len(coursesByType,1),
-      // chooseListValue: this.coursesByType[2].length,
-      // choiceValue: this.coursesByType[3].length,
+      choice: 15
     };
   },
 
@@ -61,22 +57,6 @@ export default {
     len: function(allcourses, index){
       return this.groupBy(this.allcourses, "type")[index].length;
     }
-  },
-
-  mounted() {
-    // this.coursesByType = this.groupBy(this.allcourses, "type");
-    // this.mustValue = this.coursesByType[1].length;
-    // this.chooseListValue = this.coursesByType[2].length;
-    // this.choiceValue = this.coursesByType[3].length;
-    // console.log(this.coursesByType);
-  },
-
-  updated() {
-  //   this.coursesByType = this.groupBy(this.allcourses, "type");
-  //   this.mustValue = this.coursesByType[1].length;
-  //   this.chooseListValue = this.coursesByType[2].length;
-  //   this.choiceValue = this.coursesByType[3].length;
-  //   console.log(this.coursesByType);
   },
 };
 </script>
