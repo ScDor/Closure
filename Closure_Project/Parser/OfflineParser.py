@@ -124,7 +124,7 @@ def load_parsed_group(group_values: Dict) -> None:
         index_in_track_year=group_values['index_in_track_year'],
         defaults=group_values)
 
-    group.course_pks.set(Course.objects.filter(course_id__in=course_ids))
+    group.courses.set(Course.objects.filter(course_id__in=course_ids))
     group.save()
 
 
