@@ -3,14 +3,14 @@
     <br />
     <div class="sub">
       סך הכל:
-      <progress class="progress total" v-bind:value="total" max="100">
+      <progress class="progress total" v-bind:value="len(allcourses,1)+len(allcourses,2)+len(allcourses,3)" max="100">
         15%
       </progress>
     </div>
 
     <div class="sub">
       חובה:
-      <progress class="progress must" v-bind:value="mustValue" max="80">
+      <progress class="progress must" v-bind:value="len(allcourses,1)" max="80">
         15%
       </progress>
     </div>
@@ -19,7 +19,7 @@
       חובת בחירה:
       <progress
         class="progress choose_from_list"
-        v-bind:value="chooseListValue"
+        v-bind:value="len(allcourses,2)"
         max="15"
       >
         15%
@@ -28,7 +28,7 @@
 
     <div class="sub">
       בחירה:
-      <progress class="progress choice" v-bind:value="choiceValue" max="30">
+      <progress class="progress choice" v-bind:value="len(allcourses,3)" max="30">
         15%
       </progress>
     </div>
@@ -44,10 +44,10 @@ export default {
       mandatory: 30,
       mand_choice: 20,
       choice: 15,
-      coursesByType: null,
-      mustValue: null,
-      chooseListValue: null,
-      choiceValue: null,
+      coursesByType:  this.groupBy(this.allcourses, "type"),
+      // mustValue: this.len(coursesByType,1),
+      // chooseListValue: this.coursesByType[2].length,
+      // choiceValue: this.coursesByType[3].length,
     };
   },
 
@@ -58,22 +58,25 @@ export default {
         return rv;
       }, {});
     },
+    len: function(allcourses, index){
+      return this.groupBy(this.allcourses, "type")[index].length;
+    }
   },
 
   mounted() {
-    this.coursesByType = this.groupBy(this.allcourses, "type");
-    this.mustValue = this.coursesByType[1].length;
-    this.chooseListValue = this.coursesByType[2].length;
-    this.choiceValue = this.coursesByType[3].length;
-    console.log(this.coursesByType);
+    // this.coursesByType = this.groupBy(this.allcourses, "type");
+    // this.mustValue = this.coursesByType[1].length;
+    // this.chooseListValue = this.coursesByType[2].length;
+    // this.choiceValue = this.coursesByType[3].length;
+    // console.log(this.coursesByType);
   },
 
   updated() {
-    this.coursesByType = this.groupBy(this.allcourses, "type");
-    this.mustValue = this.coursesByType[1].length;
-    this.chooseListValue = this.coursesByType[2].length;
-    this.choiceValue = this.coursesByType[3].length;
-    console.log(this.coursesByType);
+  //   this.coursesByType = this.groupBy(this.allcourses, "type");
+  //   this.mustValue = this.coursesByType[1].length;
+  //   this.chooseListValue = this.coursesByType[2].length;
+  //   this.choiceValue = this.coursesByType[3].length;
+  //   console.log(this.coursesByType);
   },
 };
 </script>
