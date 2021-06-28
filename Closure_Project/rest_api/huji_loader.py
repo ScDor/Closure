@@ -51,9 +51,15 @@ def import_course_group(group_values: Dict) -> None:
 
 
 def import_course_groups(folder: str = str(GROUP_DUMP_FOLDER_PATH)):
-    for f in tqdm(os.listdir(folder), desc=f"Loading parsed groups from {folder}"):
-        path = os.path.join(folder,f)
-        import_course_group(load_json(path))
+    print(f"Loading course group JSONs")
+    cg_dicts = [load_json(os.path.join(folder, cg_file)) for cg_file in os.listdir(folder)]
+    print(f"Loaded {len(cg_dicts)} jsons")
+
+    
+    with transaction.atomic():
+        for cg_dict in tqdm(cg_dicts, desc="importing coursegroups to SQL"):
+            import_course_group(cg_dict)
+    
 
 
 def import_courses(only_add_new: bool, courses_json_file: str = str(COURSE_DUMP_FILE_PATH)) -> None:
@@ -103,7 +109,7 @@ def load_everything(folder: Path = CURRENT_DIR):
     import_course_groups(folder=str(folder / PARSED_GROUPS_FOLDER_NAME))
 
 
-def load_from_zip(zip_file: Union[IO[bytes], os.PathLike[str]] = PARSED_DATA_ZIP_PATH):
+def load_from_zip(zip_file = PARSED_DATA_ZIP_PATH):
     with zipfile.ZipFile(zip_file) as zipf,\
          tempfile.TemporaryDirectory(prefix="parse_state") as temp_dir:
         temp_dir = Path(temp_dir)
@@ -130,9 +136,4 @@ def setup_django_pycharm():
 def load_json(filename: str):
     with open(filename, 'r', encoding='utf8') as f:
         return json.load(f)
-
-
-if __name__ == "__main__":
-    setup_django_pycharm()
-    load_from_zip()
 
