@@ -36,8 +36,6 @@ const processCourses = async (parsedCourses, http) => {
           if (course.semester && course.semester !== gottenCourse.semester) {
             console.error(`Course ${course.course_id} - ${course.name} at year ${course.year} is offered only in semester `
                          +`${gottenCourse.semester}, but student took it in ${course.semester}`)
-            finalCourse.semester = undefined
-            finalCourse.ambiguous = true
           } else {
             finalCourse.semester = gottenCourse.semester
           }
