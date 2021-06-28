@@ -48,10 +48,9 @@ structures used.
 <a name="HUJIex"/>
 
 #### Loading data offline ####
-it's recommended to load the data of all courses and tracks, rather than download and re-parse thousands of files. 
-1. Download the [7z dump file](https://drive.google.com/file/d/1TQSQ--VWFKt0CCZlBOZRUxKuH6Y6u0DL/view?usp=sharing) (HUJI account required)
-2. Extract it into the `Parser` folder
-3. Run `OfflineParser.py -> load_all_dumped()` _(Tip: if fetching corner-stone coursers gets stuck, comment out that line and continue with out that data, there's an [open issue](https://github.com/ScDor/Closure/issues/4))_
+
+Upon migrating the database, a data dump containing all parsed course and track data will be
+downloaded from the internet and inserted into the database.
 
 <a name="generatingAuth"/>
 
