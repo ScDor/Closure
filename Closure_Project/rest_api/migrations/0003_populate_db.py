@@ -2,11 +2,11 @@
 from django.db import migrations
 
 
-from rest_api.huji_loader import load_from_zip, load_from_internet
+from rest_api.huji_loader import load_from_zip
 
 
 def import_parsed_data(apps, schema_editor):
-    load_from_internet()
+    load_from_zip()
 
 
 class Migration(migrations.Migration):
