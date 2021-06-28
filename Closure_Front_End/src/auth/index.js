@@ -81,115 +81,115 @@ const authPlugin = {
 }
 
 export const routeGuard = (to, from, next) => {
-    const {isAuthenticated, loading, loginWithRedirect} = authPlugin
+  const {isAuthenticated, loading, loginWithRedirect} = authPlugin
 
-    const verify = () => {
-        // If the user is authenticated, continue with the route
-        if (isAuthenticated.value) {
-            return next()
-        }
+  const verify = () => {
+      // If the user is authenticated, continue with the route
+      if (isAuthenticated.value) {
+          return next()
+      }
 
-        // Otherwise, log in
-        loginWithRedirect({appState: {targetUrl: to.fullPath}})
-    }
+      // Otherwise, log in
+      loginWithRedirect({appState: {targetUrl: to.fullPath}})
+  }
 
-    // If loading has already finished, check our auth state using `fn()`
-    if (!loading.value) {
-        return verify()
-    }
+  // If loading has already finished, check our auth state using `fn()`
+  if (!loading.value) {
+      return verify()
+  }
 
-    // Watch for the loading property to change before we check isAuthenticated
-    watchEffect(() => {
-        if (loading.value === false) {
-            return verify()
-        }
-    })
+  // Watch for the loading property to change before we check isAuthenticated
+  watchEffect(() => {
+      if (loading.value === false) {
+          return verify()
+      }
+  })
 }
 
 export const setupAuth = async (app, options, callbackRedirect) => {
-    client = await createAuth0Client({
-        ...options,
-    });
+  client = await createAuth0Client({
+      ...options,
+  });
 
 
-    let http = axios.create({
-        baseURL: process.env.VUE_APP_API_URL,
-    });
+  let http = axios.create({
+      baseURL: process.env.VUE_APP_API_URL,
+  });
 
-    const errorComposer = (error) => {
-        return () => {
-            const statusCode = error.response ? error.response.status : null;
-            if (statusCode === badRequestStatusCode){
-              alert("סטטוס 400: הבקשה שנשלחה איננה חוקית")
-            }
-            else if (statusCode === unauthorizedStatusCode){
-              alert("סטטוס 401: למשתמש אין הרשאות לבצע את הבקשה")
-            }
-            else if (statusCode === notFoundErrorStatusCode){
-              alert("סטטוס 403: ה- API המבוקש לא קיים")
-            }
-            else if (statusCode === serverErrorStatusCode){
-              alert("סטטוס 500: התרחשה תקלה בצד השרת בעת ביצוע הבקשה")
-            }
-            else if (statusCode < 200 || statusCode >= 300){
-              alert("התרחשה תקלה בעת ביצוע הבקשה")
-            }
-        };
-    };
+  const errorComposer = (error) => {
+      return () => {
+          const statusCode = error.response ? error.response.status : null;
+          if (statusCode === badRequestStatusCode){
+            alert("סטטוס 400: הבקשה שנשלחה איננה חוקית")
+          }
+          else if (statusCode === unauthorizedStatusCode){
+            alert("סטטוס 401: למשתמש אין הרשאות לבצע את הבקשה")
+          }
+          else if (statusCode === notFoundErrorStatusCode){
+            alert("סטטוס 403: ה- API המבוקש לא קיים")
+          }
+          else if (statusCode === serverErrorStatusCode){
+            alert("סטטוס 500: התרחשה תקלה בצד השרת בעת ביצוע הבקשה")
+          }
+          else if (statusCode < 200 || statusCode >= 300){
+            alert("התרחשה תקלה בעת ביצוע הבקשה")
+          }
+      };
+  };
 
-    http.interceptors.response.use(undefined, function (error) {
-        error.handleGlobally = errorComposer(error);
+  http.interceptors.response.use(undefined, function (error) {
+      error.handleGlobally = errorComposer(error);
 
-        return Promise.reject(error);
-    });
+      return Promise.reject(error);
+  });
 
-    window.closureAxios = http;
-
-
-    watchEffect(async () => {
-        if (state.isAuthenticated) {
-            const idTokenClaims = await client.getIdTokenClaims();
-            if (!idTokenClaims) {
-                console.error(`Client is authenticated but couldn't get ID token claims`)
-                return;
-            }
-            const idToken = idTokenClaims.__raw;
-            console.log(`Client is authenticated`)
-            http.defaults.headers.common["Authorization"] = `Bearer ${idToken}`
-        } else {
-            console.log(`Client is not authenticated`)
-            delete http.defaults.headers.common["Authorization"]
-        }
-    });
-
-    try {
-        // If the user is returning to the app after authentication
+  window.closureAxios = http;
 
 
-        if (
-            window.location.search.includes('code=') &&
-            window.location.search.includes('state=')
-        ) {
-            // handle the redirect and retrieve tokens
-            const {appState} = await client.handleRedirectCallback()
+  watchEffect(async () => {
+      if (state.isAuthenticated) {
+          const idTokenClaims = await client.getIdTokenClaims();
+          if (!idTokenClaims) {
+              console.error(`Client is authenticated but couldn't get ID token claims`)
+              return;
+          }
+          const idToken = idTokenClaims.__raw;
+          console.log(`Client is authenticated`)
+          http.defaults.headers.common["Authorization"] = `Bearer ${idToken}`
+      } else {
+          console.log(`Client is not authenticated`)
+          delete http.defaults.headers.common["Authorization"]
+      }
+  });
 
-            // Notify subscribers that the redirect callback has happened, passing the appState
-            // (useful for retrieving any pre-authentication state)
-            callbackRedirect(appState)
-        }
-    } catch (e) {
-        state.error = e
-    } finally {
-        // Initialize our internal authentication state
-        state.isAuthenticated = await client.isAuthenticated()
-        state.user = await client.getUser()
-        state.loading = false
-    }
+  try {
+      // If the user is returning to the app after authentication
 
-    return {
-        install: (app) => {
-            app.config.globalProperties.$auth = authPlugin;
-            app.config.globalProperties.$http = http;
-        },
-    }
+
+      if (
+          window.location.search.includes('code=') &&
+          window.location.search.includes('state=')
+      ) {
+          // handle the redirect and retrieve tokens
+          const {appState} = await client.handleRedirectCallback()
+
+          // Notify subscribers that the redirect callback has happened, passing the appState
+          // (useful for retrieving any pre-authentication state)
+          callbackRedirect(appState)
+      }
+  } catch (e) {
+      state.error = e
+  } finally {
+      // Initialize our internal authentication state
+      state.isAuthenticated = await client.isAuthenticated()
+      state.user = await client.getUser()
+      state.loading = false
+  }
+
+  return {
+      install: (app) => {
+          app.config.globalProperties.$auth = authPlugin;
+          app.config.globalProperties.$http = http;
+      },
+  }
 }

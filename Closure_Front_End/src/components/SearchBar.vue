@@ -51,7 +51,7 @@ export default {
       this.$http
         .get(this.url + this.query)
         .then((response) => (this.suggestions = response.data.results))
-        .then((this.hide = !this.suggestions.length || this.query == ""))
+        .then((this.hide = !this.suggestions.length || this.query == ""));
     },
 
     emitClick(event, sugg) {
