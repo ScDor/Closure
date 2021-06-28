@@ -1,4 +1,4 @@
-from .models import Course, Track, CourseType
+from .models import Course, Track, CourseType, REQUIRED_COURSE_TYPES
 import json
 import jwt
 import requests
@@ -27,7 +27,7 @@ def get_course_type(track: Track, course: Course) -> Optional[CourseType]:
     cg_set = track.coursegroup_set
     matching_cg = cg_set.filter(courses__id=course.id).all()
     types = {cg.course_type for cg in matching_cg}
-    for course_type in [CourseType.MUST, CourseType.FROM_LIST, CourseType.CHOICE]:
+    for course_type in REQUIRED_COURSE_TYPES:  # iteration order matters!
         if course_type in types:
             return course_type
 
@@ -35,7 +35,6 @@ def get_course_type(track: Track, course: Course) -> Optional[CourseType]:
 
 
 def jwt_get_username_from_payload_handler(payload):
-
     username = payload.get('nickname')
     authenticate(remote_user=username)
     return username
