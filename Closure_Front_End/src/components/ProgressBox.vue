@@ -3,14 +3,14 @@
     <br />
     <div class="sub">
       סך הכל:
-      <progress class="progress total" v-bind:value="len(allcourses,1)+len(allcourses,2)+len(allcourses,3)" max="100">
+      <progress class="progress total" v-bind:value="sum(allcourses,1)+sum(allcourses,2)+sum(allcourses,3)" max="100">
         15%
       </progress>
     </div>
 
     <div class="sub">
       חובה:
-      <progress class="progress must" v-bind:value="len(allcourses,1)" max="80">
+      <progress class="progress must" v-bind:value="sum(allcourses,1)" max="80">
         15%
       </progress>
     </div>
@@ -19,7 +19,7 @@
       חובת בחירה:
       <progress
         class="progress choose_from_list"
-        v-bind:value="len(allcourses,2)"
+        v-bind:value="sum(allcourses,2)"
         max="15"
       >
         15%
@@ -28,7 +28,7 @@
 
     <div class="sub">
       בחירה:
-      <progress class="progress choice" v-bind:value="len(allcourses,3)" max="30">
+      <progress class="progress choice" v-bind:value="sum(allcourses,3)" max="30">
         15%
       </progress>
     </div>
@@ -54,8 +54,16 @@ export default {
         return rv;
       }, {});
     },
-    len: function(allcourses, index){
-      return this.groupBy(this.allcourses, "type")[index].length;
+    sum: function(allcourses, index){
+      var courses = this.groupBy(this.allcourses, "type")[index];
+      var sum = 0;
+      for (var i = 0; i<courses.length; i++)
+      {
+        sum += courses[i]["points"];
+      }
+      console.log(sum);
+      return sum;
+      
     }
   },
 };
