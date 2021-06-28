@@ -116,7 +116,7 @@ class Track(models.Model):
 
         course_pks = []
         for group in course_groups:
-            course_pks.extend((course.pk for course in group.course_pks.all()))
+            course_pks.extend((course.pk for course in group.courses.all()))
         return course_pks
 
     @property
