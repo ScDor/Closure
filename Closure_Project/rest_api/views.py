@@ -29,8 +29,10 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 class MyTrackCourses(viewsets.ModelViewSet):
     def get_queryset(self):
-        user = self.request.user
-        student = Student.objects.get(user=user)
+        user = self.request.user.id
+        student = Student.objects.filter(user=user).first()
+        if student is None:
+            return Course.objects.none()
         track = student.track
         if not track:
             return Course.objects.none()
@@ -61,7 +63,7 @@ class StudentMeViewSet(viewsets.ModelViewSet):
         return queryset[0]
 
     def get_queryset(self):
-        return Student.objects.filter(user=self.request.user)
+        return Student.objects.filter(user=self.request.user.id)
 
     def list(self, request, *args, **kwargs):
         if not self.get_object():
