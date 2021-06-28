@@ -106,6 +106,7 @@ INSTALLED_APPS = [
     'collectfast',
     'django.contrib.staticfiles',
     'rest_api.apps.RestApiConfig',
+    'django_filters',
     'rest_framework',
     'rest_framework.authtoken',
     'drf_yasg',
@@ -152,9 +153,14 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
-    # TODO: currently causes redirect loop in GCP
-    # (maybe because cloud run TLS isn't end-to-end by default?)
-    SECURE_SSL_REDIRECT = False
+
+    # Note that cloud run terminates TLS before it reaches
+    # our app, causing Django to think we're using http, which will
+    # confusee swagger, the browsable API, and the redirect below(causing
+    # an infinite loop). Using the following setting alleviates the
+    # issue.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
 
 
 
