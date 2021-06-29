@@ -31,7 +31,7 @@ export default {
     background: gray;
     display: flex;
     justify-content:center;
-    nim-height: 20vh;
+    min-height: 20vh;
     min-width: 80vh;
 }
 </style>

@@ -126,7 +126,7 @@ export const setupAuth = async (options, callbackRedirect) => {
             alert("סטטוס 401: למשתמש אין הרשאות לבצע את הבקשה")
           }
           else if (statusCode === notFoundErrorStatusCode){
-            alert("סטטוס 403: ה- API המבוקש לא קיים")
+            alert("סטטוס 404: ה- API המבוקש לא נמצא")
           }
           else if (statusCode === serverErrorStatusCode){
             alert("סטטוס 500: התרחשה תקלה בצד השרת בעת ביצוע הבקשה")
