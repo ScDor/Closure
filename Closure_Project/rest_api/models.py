@@ -75,12 +75,12 @@ class CourseType(models.TextChoices):
 class Course(models.Model):
     course_id = models.IntegerField(validators=[_validate_non_negative_number])
     data_year = models.IntegerField()
-    name = models.CharField(max_length=20)
-    semester = models.CharField(max_length=6, choices=Semester.choices)
+    name = models.TextField()
+    semester = models.TextField(choices=Semester.choices)
     is_given_this_year = models.BooleanField()
     points = models.FloatField()
     is_corner_stone = models.BooleanField(null=True)
-    comment = models.CharField(max_length=255, blank=True)
+    comment = models.TextField(blank=True)
 
     class Meta:
         unique_together = ('course_id', 'data_year')
@@ -104,7 +104,7 @@ class Track(models.Model):
     id = models.AutoField(primary_key=True)
     track_number = models.IntegerField(validators=[_validate_non_negative_number])
     data_year = models.IntegerField()
-    name = models.CharField(max_length=255)
+    name = models.TextField()
     points_must = models.IntegerField(validators=[_validate_non_negative_number])
     points_from_list = models.IntegerField(validators=[_validate_non_negative_number])
     points_choice = models.IntegerField(validators=[_validate_non_negative_number])
@@ -112,7 +112,7 @@ class Track(models.Model):
     points_corner_stones = models.IntegerField(validators=[_validate_non_negative_number])
     points_minor = models.IntegerField(validators=[_validate_non_negative_number])
     points_additional_hug = models.IntegerField(validators=[_validate_non_negative_number])
-    comment = models.CharField(max_length=255, blank=True)
+    comment = models.TextField(blank=True)
 
     class Meta:
         constraints = [
@@ -166,12 +166,12 @@ class Track(models.Model):
 
 class CourseGroup(models.Model):
     track = models.ForeignKey(Track, on_delete=models.CASCADE)
-    course_type = models.CharField(max_length=20, choices=CourseType.choices)
+    course_type = models.TextField(choices=CourseType.choices)
     year_in_studies = models.IntegerField(choices=Year.choices)
     index_in_track_year = models.IntegerField(validators=[_validate_non_negative_number])
     required_course_count = models.IntegerField(null=True, validators=[_validate_non_negative_number_or_null])
     required_points = models.IntegerField(null=True, validators=[_validate_non_negative_number_or_null])
-    comment = models.CharField(max_length=255, null=True)
+    comment = models.TextField(null=True)
     courses = models.ManyToManyField(Course)
 
     class Meta:
@@ -277,7 +277,7 @@ class Take(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     year_in_studies = models.IntegerField(choices=Year.choices)
-    semester = models.CharField(choices=Semester.choices, max_length=10)
+    semester = models.TextField(choices=Semester.choices)
 
     def __str__(self):
         return ', '.join((f'{self.course.course_id}',

@@ -16,6 +16,7 @@ the Hebrew University of Jerusalem.
 
 - [Setting up django](#instructions)
 - [Polulating the DB](#HUJIex)
+- [Testing](#testing)
 - [Authenticating](#generatingAuth)
 - [API Usage](#usetheapi)
 - [Contributions](#contribute)
@@ -32,10 +33,9 @@ the Hebrew University of Jerusalem.
     - Mac OS/Linux: run `source venv/bin/activate`. <br> 
 4.  Run `pip install --upgrade pip` 
 5. Run `pip install -r requirements.txt` to install the project's dependencies.
-6. Run `python Closure_Project/manage.py makemigrations rest_api`
-7. Run `python Closure_Project/manage.py migrate`
-8. On PyCharm, right-click the outer `Closure_Project` directory, choose `Mark Directory as` and click `Sources Root` _(its icon will be colored cyan afterwards)_.
-9. Start the Django server with `python Closure_Project/manage.py runserver`
+6. Run `python Closure_Project/manage.py migrate`
+7. On PyCharm, right-click the outer `Closure_Project` directory, choose `Mark Directory as` and click `Sources Root` _(its icon will be colored cyan afterwards)_.
+8. Start the Django server with `python Closure_Project/manage.py runserver`
 
 You now have a django instance with the database configured (yet blank).
 
@@ -48,10 +48,24 @@ structures used.
 <a name="HUJIex"/>
 
 #### Loading data offline ####
-it's recommended to load the data of all courses and tracks, rather than download and re-parse thousands of files. 
-1. Download the [7z dump file](https://drive.google.com/file/d/1TQSQ--VWFKt0CCZlBOZRUxKuH6Y6u0DL/view?usp=sharing) (HUJI account required)
-2. Extract it into the `Parser` folder
-3. Run `OfflineParser.py -> load_all_dumped()` _(Tip: if fetching corner-stone coursers gets stuck, comment out that line and continue with out that data, there's an [open issue](https://github.com/ScDor/Closure/issues/4))_
+
+Upon migrating the database, a data dump containing all parsed course and track data will be
+downloaded from the internet and inserted into the database.
+
+
+<a name="testing"/>
+
+### Testing ####
+
+You can run all tests by running `pytest` (while in a virtual environment) at the `Closure_Project` folder.
+
+Note that a test database will be automatically created for DB tests, and it will undergo all migrations by default. 
+While this is good in terms of testing the migrations themselves, it can be annoyingly slow during
+development. 
+
+You can disable migrations during testing by uncommenting `; addopts = --no-migrations` within the `Closure_Project/pytest.ini` file,
+this way the test database schemas will be generated based on the model's metadata. If you do so, make sure not to commit this change
+into the repository, as the CI tests migrations indirectly by running the DB models.
 
 <a name="generatingAuth"/>
 
@@ -74,3 +88,7 @@ it's recommended to load the data of all courses and tracks, rather than downloa
 ## Contributions ##
 
 Feel free to PR or open issues.
+
+Note that if you change the backend models, you should commit the resulting
+migration along with the changed models. You can generate migrations by
+doing `python manage.py makemigrations rest_api` within the `Closure_Project` folder.
