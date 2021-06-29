@@ -52,7 +52,6 @@ export default {
         .get(this.url + this.query)
         .then((response) => (this.suggestions = response.data.results))
         .then((this.hide = !this.suggestions.length || this.query == ""))
-        .catch((error) => error.handleGlobally());
     },
 
     emitClick(event, sugg) {

@@ -67,6 +67,25 @@ function logout(o) {
   return client.logout(o)
 }
 
+function errorHandler(error) {
+  const statusCode = error.response ? error.response.status : null;
+      if (statusCode === badRequestStatusCode){
+        alert("סטטוס 400: הבקשה שנשלחה איננה חוקית")
+      }
+      else if (statusCode === unauthorizedStatusCode){
+        alert("סטטוס 401: למשתמש אין הרשאות לבצע את הבקשה")
+      }
+      else if (statusCode === notFoundErrorStatusCode){
+        alert("סטטוס 404: ה- API המבוקש לא נמצא")
+      }
+      else if (statusCode === serverErrorStatusCode){
+        alert("סטטוס 500: התרחשה תקלה בצד השרת בעת ביצוע הבקשה")
+      }
+      else if (statusCode < 200 || statusCode >= 300){
+        alert("התרחשה תקלה בעת ביצוע הבקשה")
+      }
+}
+
 const authPlugin = {
   isAuthenticated: computed(() => state.isAuthenticated),
   loading: computed(() => state.loading),
@@ -116,32 +135,12 @@ export const setupAuth = async (options, callbackRedirect) => {
       baseURL: process.env.VUE_APP_API_URL,
   });
 
-  const errorComposer = (error) => {
-      return () => {
-          const statusCode = error.response ? error.response.status : null;
-          if (statusCode === badRequestStatusCode){
-            alert("סטטוס 400: הבקשה שנשלחה איננה חוקית")
-          }
-          else if (statusCode === unauthorizedStatusCode){
-            alert("סטטוס 401: למשתמש אין הרשאות לבצע את הבקשה")
-          }
-          else if (statusCode === notFoundErrorStatusCode){
-            alert("סטטוס 404: ה- API המבוקש לא נמצא")
-          }
-          else if (statusCode === serverErrorStatusCode){
-            alert("סטטוס 500: התרחשה תקלה בצד השרת בעת ביצוע הבקשה")
-          }
-          else if (statusCode < 200 || statusCode >= 300){
-            alert("התרחשה תקלה בעת ביצוע הבקשה")
-          }
-      };
-  };
-
-  http.interceptors.response.use(undefined, function (error) {
-      error.handleGlobally = errorComposer(error);
-
+  http.interceptors.response.use((response) => {console.log("yael");return response;},
+      function (error){
+      errorHandler(error);
       return Promise.reject(error);
-  });
+    });
+
 
   window.closureAxios = http;
 

@@ -161,7 +161,6 @@ export default {
       this.$http.get("tracks/?track_number=3010").then(response => {
         this.track = response.data.results[0]
       })
-      .catch(error => error.handleGlobally())
     }
   },
 
