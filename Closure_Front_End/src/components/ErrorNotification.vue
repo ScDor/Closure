@@ -35,8 +35,6 @@
         left: 32%;
         display: flex;
         justify-content: center;
-        min-height: 20vh;
-        min-width: 80vh;
         z-index: 9999;
     }
 </style>
