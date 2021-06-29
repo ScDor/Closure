@@ -18,6 +18,10 @@ const state = reactive({
   error: null,
 })
 
+const errorState = reactive({
+    errorMessage: "",
+})
+
 async function loginWithPopup() {
     state.popupOpen = true
 
@@ -67,22 +71,26 @@ function logout(o) {
   return client.logout(o)
 }
 
+function setErrorMessage(message) {
+    errorState.errorMessage = message;
+}
+
 function errorHandler(error) {
   const statusCode = error.response ? error.response.status : null;
       if (statusCode === badRequestStatusCode){
-        alert("סטטוס 400: הבקשה שנשלחה איננה חוקית")
+        setErrorMessage("סטטוס 400: הבקשה שנשלחה איננה חוקית")
       }
       else if (statusCode === unauthorizedStatusCode){
-        alert("סטטוס 401: למשתמש אין הרשאות לבצע את הבקשה")
+        setErrorMessage("סטטוס 401: למשתמש אין הרשאות לבצע את הבקשה")
       }
       else if (statusCode === notFoundErrorStatusCode){
-        alert("סטטוס 404: ה- API המבוקש לא נמצא")
+        setErrorMessage("סטטוס 404: ה- API המבוקש לא קיים")
       }
       else if (statusCode === serverErrorStatusCode){
-        alert("סטטוס 500: התרחשה תקלה בצד השרת בעת ביצוע הבקשה")
+        setErrorMessage("סטטוס 500: התרחשה תקלה בצד השרת בעת ביצוע הבקשה")
       }
       else if (statusCode < 200 || statusCode >= 300){
-        alert("התרחשה תקלה בעת ביצוע הבקשה")
+        setErrorMessage("התרחשה תקלה בעת ביצוע הבקשה")
       }
 }
 
@@ -135,7 +143,7 @@ export const setupAuth = async (options, callbackRedirect) => {
       baseURL: process.env.VUE_APP_API_URL,
   });
 
-  http.interceptors.response.use((response) => {console.log("yael");return response;},
+  http.interceptors.response.use((response) => response,
       function (error){
       errorHandler(error);
       return Promise.reject(error);
@@ -189,6 +197,8 @@ export const setupAuth = async (options, callbackRedirect) => {
       install: (app) => {
           app.config.globalProperties.$auth = authPlugin;
           app.config.globalProperties.$http = http;
+          app.provide("errorState", errorState);
+          app.provide("setErrorMessage", setErrorMessage);
       },
   }
 }

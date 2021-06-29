@@ -1,7 +1,7 @@
 <template>
-  <div class="notification" v-if="showError">
-    <p>{{errorMessage}}</p>
-    <button class="delete" onclick="closeErrorMessage"></button>
+  <div class="notification is-danger" v-if="errorState.errorMessage">
+    <p>{{errorState.errorMessage}}</p>
+    <button class="delete" v-on:click="closeErrorMessage()"></button>
   </div>
 </template>
 
@@ -9,15 +9,12 @@
 
 <script>
 export default {
-    props: ["errorMessage"],
 
-    /**
-    * inject: ['showError'],
-    */
+    inject: ["errorState", "setErrorMessage"],
 
     methods: {
-        closeErrorMessage() {
-          this.showError = false
+        closeErrorMessage: function () {
+          this.setErrorMessage("");
         }
     }
 }
@@ -26,13 +23,13 @@ export default {
 <style scoped>
 .notification {
     position: fixed;
-    top: 30%;
-    left: 30%;
-    background: gray;
+    top: 0%;
+    left: 32%;
     display: flex;
     justify-content:center;
-    min-height: 20vh;
+    min-height: 10vh;
     min-width: 80vh;
+    z-index: 9999;
 }
 </style>
 
