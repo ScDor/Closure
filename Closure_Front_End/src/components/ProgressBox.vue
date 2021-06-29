@@ -3,14 +3,18 @@
     <br />
     <div class="sub">
       סך הכל:
-      <progress class="progress total" v-bind:value="sum(allcourses,1)+sum(allcourses,2)+sum(allcourses,3)" max="100">
+      <progress
+        class="progress total"
+        v-bind:value="sum(1) + sum(2) + sum(3)"
+        max="100"
+      >
         15%
       </progress>
     </div>
 
     <div class="sub">
       חובה:
-      <progress class="progress must" v-bind:value="sum(allcourses,1)" max="80">
+      <progress class="progress must" v-bind:value="sum(1)" max="80">
         15%
       </progress>
     </div>
@@ -19,7 +23,7 @@
       חובת בחירה:
       <progress
         class="progress choose_from_list"
-        v-bind:value="sum(allcourses,2)"
+        v-bind:value="sum(2)"
         max="15"
       >
         15%
@@ -28,7 +32,7 @@
 
     <div class="sub">
       בחירה:
-      <progress class="progress choice" v-bind:value="sum(allcourses,3)" max="30">
+      <progress class="progress choice" v-bind:value="sum(3)" max="30">
         15%
       </progress>
     </div>
@@ -43,28 +47,39 @@ export default {
       total: 50,
       mandatory: 30,
       mand_choice: 20,
-      choice: 15
+      choice: 15,
     };
   },
 
   methods: {
+    /**
+     * a helper method for grouping courses.
+     * will be mostly used to group by type
+     */
     groupBy: function (xs, key) {
       return xs.reduce(function (rv, x) {
         (rv[x[key]] = rv[x[key]] || []).push(x);
         return rv;
       }, {});
     },
-    sum: function(allcourses, index){
-      var courses = this.groupBy(this.allcourses, "type")[index];
-      var sum = 0;
-      for (var i = 0; i<courses.length; i++)
-      {
-        sum += courses[i]["points"];
+    /**
+     * sums up the total points for a given course type
+     */
+    sum: function (type) {
+      var courses = this.groupBy(this.allcourses, "type");
+      // first we need to check if we have a course from this type
+      if (type in courses) {
+        // if so, we will sum up the points from that course group,
+        var sum = 0;
+        for (var i = 0; i < courses[type].length; i++) {
+          sum += courses[type][i]["points"];
+        }
+        return sum;
+      } else {
+        // otherwise we will return 0.
+        return 0;
       }
-      console.log(sum);
-      return sum;
-      
-    }
+    },
   },
 };
 </script>
