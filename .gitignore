@@ -23,17 +23,9 @@ node_modules/
 /Closure_Project/staticfiles/
 /Closure_Project/Closure_Project/migrations/
 
-# migrations - eventually will need to enable them
-/Closure_Project/rest_api/migrations/
 
 # frontend
-=======
 /Closure_Front_End/node_modules/
 /Closure_Front_End/dist/
 # Since frontend .env contains no secrets, they can be committed, except for the local ones which are only for local development.
 /Closure_Front_End/.env*.local
-
-# This file should only be accessible via the secret manager
-/Closure_Project/.env
-/Closure_Project/.env.*
-!/Closure_Project/.env.example

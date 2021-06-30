@@ -1,5 +1,6 @@
-from rest_api.serializers.DynamicSerializer import *
-from rest_api.models import Course, Student, CourseType
+from rest_api.serializers.DynamicSerializer import DynamicFieldsModelSerializer
+from rest_framework import serializers
+from rest_api.models import Course, Student
 from rest_api.rest_utils import get_course_type
 
 
@@ -9,7 +10,10 @@ class CourseSerializer(DynamicFieldsModelSerializer):
 
     def get_type(self, obj):
         user = self.context.get('request').user
-        student = Student.objects.get(user=user)
+        try:
+            student = Student.objects.get(user=user)
+        except Student.DoesNotExist:
+            return None
         return get_course_type(student.track, obj)
 
     class Meta:
