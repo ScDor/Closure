@@ -32,20 +32,16 @@ const processCourses = async (parsedCourses, http) => {
         }
         const gottenCourse = res.data.results[0]
         const finalCourse = { ... course, name: gottenCourse.name }
-        if (["FIRST", "SECOND"].includes(gottenCourse.semester)) {
-          if (course.semester && course.semester !== gottenCourse.semester) {
-            console.error(`Course ${course.course_id} - ${course.name} at year ${course.year} is offered only in semester `
+        if (["FIRST", "SECOND"].includes(gottenCourse.semester) && 
+            course.semester !== gottenCourse.semester) {
+            console.warn(`Course ${course.course_id} - ${course.name} at year ${course.year} is offered only in semester `
                          +`${gottenCourse.semester}, but student took it in ${course.semester}`)
-          } else {
-            finalCourse.semester = gottenCourse.semester
-          }
         } else if (gottenCourse.semester === "EITHER") {
           finalCourse.ambiguous = !course.semester
         } else if (["ANNUAL", "SUMMER"].includes(gottenCourse.semester)) {
-          // TODO: support annual/summer courses
-          finalCourse.unsupportedPeriod = true
-          console.error(`Course ${course.course_id} - ${course.name} at year ${course.year} which is offered at unsupported period `
-                        +`${gottenCourse.semester}, and will be ignored`)
+          finalCourse.semester = 'FIRST'
+          console.warn(`Course ${course.course_id} - ${course.name} at year ${course.year} which is offered at unsupported period `
+                        +`${gottenCourse.semester}, will be considered as part of the first semester`)
         }
         return finalCourse
       })

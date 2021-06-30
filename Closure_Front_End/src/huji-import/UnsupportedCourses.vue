@@ -4,27 +4,21 @@
     <div class="notification is-warning">
       זוהו
       <strong>{{ courses.length }}</strong>
-      קורסים שאינם נתמכים ולא ישמרו:
+      קורסים שלא קיימים במסד הנתונים ולכן לא ייובאו:
     </div>
     <table class="table">
       <thead>
         <tr>
           <th>מספר קורס</th>
           <th>שם קורס</th>
-          <th>סיבה לאי-תמיכה</th>
+          <th>נקודות זכות</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="course in courses" :key="course.course_id">
           <td>{{ course.course_id }}</td>
           <td>{{ course.name }}</td>
-          <td>
-            {{
-              course.notInDb
-                ? "לא מופיע במסד הנתונים"
-                : "קורסי קיץ/שנתי אינו נתמך כעת על ידי האתר"
-            }}
-          </td>
+          <td>{{ course.points }}</td>
         </tr>
       </tbody>
     </table>
