@@ -1,40 +1,50 @@
 <template>
   <div class="progressbox">
     <br />
+
     <div class="sub">
-      סך הכל:
+      סך הכל:&ensp; {{ allPoints() }}/{{ 100 }}
       <progress
         class="progress total"
-        v-bind:value="sum(1) + sum(2) + sum(3)"
+        v-bind:value="allPoints()"
         max="100"
-      >
-        15%
-      </progress>
+      ></progress>
     </div>
 
     <div class="sub">
-      חובה:
-      <progress class="progress must" v-bind:value="sum(1)" max="80">
-        15%
-      </progress>
+      חובה:&ensp; {{pointsByType(MUST_TYPE)}}/{{80}}
+      <progress
+        class="progress must"
+        v-bind:value="pointsByType(MUST_TYPE)"
+        max="80"
+      ></progress>
     </div>
 
     <div class="sub">
-      חובת בחירה:
+       חובת בחירה:&ensp; {{pointsByType(MUST_CHOOSE_LIST_TYPE)}}/{{15}}
       <progress
         class="progress choose_from_list"
-        v-bind:value="sum(2)"
+        v-bind:value="pointsByType(CHOOSE_LIST_TYPE)"
         max="15"
-      >
-        15%
-      </progress>
+      ></progress>
     </div>
 
     <div class="sub">
-      בחירה:
-      <progress class="progress choice" v-bind:value="sum(3)" max="30">
-        15%
-      </progress>
+     בחירה:&ensp; {{pointsByType(CHOICE_TYPE)}}/{{30}}
+      <progress
+        class="progress choice"
+        v-bind:value="pointsByType(CHOICE_TYPE)"
+        max="30"
+      ></progress>
+    </div>
+
+    <div class="sub">
+       אבני פינה:&ensp; {{pointsByType(CORNER)}}/{{8}}
+      <progress
+        class="progress choice"
+        v-bind:value="pointsByType(CORNER)"
+        max="8"
+      ></progress>
     </div>
   </div>
 </template>
@@ -48,6 +58,10 @@ export default {
       mandatory: 30,
       mand_choice: 20,
       choice: 15,
+      MUST_TYPE: 0,
+      CHOOSE_LIST_TYPE: 1,
+      CHOICE_TYPE: 2,
+      CORNER_TYPE: 3,
     };
   },
 
@@ -65,7 +79,7 @@ export default {
     /**
      * sums up the total points for a given course type
      */
-    sum: function (type) {
+    pointsByType: function (type) {
       var courses = this.groupBy(this.allcourses, "type");
       // first we need to check if we have a course from this type
       if (type in courses) {
@@ -79,6 +93,14 @@ export default {
         // otherwise we will return 0.
         return 0;
       }
+    },
+    allPoints: function () {
+      return (
+        this.pointsByType(this.MUST_TYPE) +
+        this.pointsByType(this.CHOOSE_LIST_TYPE) +
+        this.pointsByType(this.CHOICE_TYPE) +
+        this.pointsByType(this.CORNER_TYPE)
+      );
     },
   },
 };
