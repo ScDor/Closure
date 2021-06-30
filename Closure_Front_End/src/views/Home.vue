@@ -35,6 +35,7 @@ import Navigation from "../components/Navigation.vue";
 export default {
   name: "Closure()",
   components: { Navigation, Year },
+
   data() {
     return {
       years: [
@@ -44,136 +45,22 @@ export default {
         { id: 4, name: "שנה ד" },
       ],
 
-      username: "placehoder",
-      student: {
-        username: "string",
-        track_pk: 28,
-        year_in_studies: 1,
-        courses: [
-          {
-            pk: 0,
-            year_in_studies: 1,
-            semester: "FIRST",
-          },
-        ],
-      },
-
-      // allcourses: [],
-      allcourses: [
-        {
-          pk: 5837,
-          course_id: 67315,
-          name: "סדנת תכנות בשפות C ו- ++C",
-          semester: 1,
-          year: 2,
-          points: 4,
-          type: 1,
-        },
-        {
-          pk: 7208,
-          course_id: 80131,
-          name: "חשבון אינפיניטסימלי (1)",
-          semester: 1,
-          year: 1,
-          points: 7,
-          type: 1,
-        },
-        {
-          pk: 7209,
-          course_id: 80132,
-          name: "חשבון אינפיניטסימלי (2)",
-          semester: 2,
-          year: 1,
-          points: 7,
-          type: 1,
-        },
-        {
-          pk: 7211,
-          course_id: 80134,
-          name: "אלגברה ליניארית (1)",
-          semester: 1,
-          year: 1,
-          points: 6,
-          type: 1,
-        },
-        {
-          pk: 7212,
-          course_id: 80135,
-          name: "אלגברה ליניארית (2)",
-          semester: 2,
-          year: 1,
-          points: 6,
-          type: 1,
-        },
-        {
-          pk: 7220,
-          course_id: 80181,
-          name: "מתמטיקה דיסקרטית",
-          semester: 1,
-          year: 1,
-          points: 5,
-          type: 1,
-        },
-        {
-          pk: 5844,
-          course_id: 67392,
-          name: "מבוא לקריפטוגרפיה ואבטחת תוכנה",
-          semester: 2,
-          year: 2,
-          points: 4,
-          type: 2,
-        },
-        {
-          pk: 5854,
-          course_id: 67506,
-          name: "מסדי נתונים",
-          semester: 1,
-          year: 3,
-          points: 5,
-          type: 2,
-        },
-        {
-          pk: 5888,
-          course_id: 67609,
-          name: "גרפיקה ממוחשבת",
-          semester: 1,
-          year: 3,
-          points: 5,
-          type: 3,
-        },
-        {
-          pk: 5951,
-          course_id: 67829,
-          name: "עיבוד ספרתי של תמונות",
-          semester: "1",
-          year: 3,
-          points: 4,
-          type: 2,
-        },
-        {
-          pk: 5960,
-          course_id: 67842,
-          name: "מבוא לבינה מלאכותית",
-          semester: "2",
-          year: 3,
-          points: 5,
-          type: 2,
-        },
-      ],
+      allcourses: [],
+      
     };
   },
 
   created() {
+    this.allcourses = this.$route.params.allcourses;
+
     if (this.$auth.isAuthenticated.value) {
       // this.$auth.getIdTokenClaims().then(console.log, console.error);
-      this.$http
-        .get("/student/me")
-        .then(function (response) {
-          console.log(response);
-          const student = response.data;
-          this.createAllCourses(student);
-          // this.getTrack(student);
-        });
+      this.$http.get("/student/me").then(function (response) {
+        console.log(response);
+        // const student = response.data;
+        // this.createAllCourses(student);
+        // this.getTrack(student);
+      });
       // this.createAllCourses(this.student);
       // this.$http.get("tracks/?track_number=3010").then(response => {
       //   this.track = response.data.results[0]
@@ -183,9 +70,8 @@ export default {
 
   methods: {
     getTrack(student) {
-      if (student.track_pk ==  null) {
-        
-        this.$http.post()
+      if (student.track_pk == null) {
+        this.$http.post();
       }
     },
 
@@ -226,7 +112,6 @@ export default {
      */
     add(event, course) {
       this.$http.get("/student/me").then(console.log);
-      // console.log(course);
       this.allcourses.push({
         pk: course.pk,
         course_id: course.course_id,
