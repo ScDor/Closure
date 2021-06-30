@@ -4,11 +4,18 @@
       <section class="section section-style">
         <div class="columns is-variable is-2">
           <div class="column is-2 is-right is-hidden-mobile is-hidden-touch">
-            <navigation @clickcourse="add" :allcourses="allcourses"></navigation>
+            <navigation
+              @clickcourse="add"
+              :allcourses="allcourses"
+            ></navigation>
           </div>
           <div class="column" v-for="year in years" :key="year">
-            <year :year="year" :allcourses="allcourses" 
-                  @courseMoved="moveCourse" @courseDeleted="deleteCoruse" />
+            <year
+              :year="year"
+              :allcourses="allcourses"
+              @courseMoved="moveCourse"
+              @courseDeleted="deleteCoruse"
+            />
           </div>
         </div>
       </section>
@@ -51,6 +58,7 @@ export default {
         ],
       },
 
+      // allcourses: [],
       allcourses: [
         {
           pk: 5837,
@@ -157,22 +165,33 @@ export default {
 
   created() {
     if (this.$auth.isAuthenticated.value) {
-      this.$auth.getIdTokenClaims().then(console.log, console.error);
-      this.$http.get("tracks/?track_number=3010").then(response => {
-        this.track = response.data.results[0]
-      })
+      // this.$auth.getIdTokenClaims().then(console.log, console.error);
+      this.$http
+        .get("/student/me")
+        .then(function (response) {
+          console.log(response);
+          const student = response.data;
+          this.createAllCourses(student);
+          // this.getTrack(student);
+        });
+      // this.createAllCourses(this.student);
+      // this.$http.get("tracks/?track_number=3010").then(response => {
+      //   this.track = response.data.results[0]
+      // })
     }
   },
 
   methods: {
-    getUsername() {
-      return this.$auth
-        .getIdTokenClaims()
-        .then((response) => response.nickname);
+    getTrack(student) {
+      if (student.track_pk ==  null) {
+        
+        this.$http.post()
+      }
     },
 
     /** fetch all student's courses from the DB and store them in allcourses */
     createAllCourses(student) {
+      console.log(student);
       for (const course of student.courses) {
         const course_info = course.course;
         this.allcourses.push({
@@ -196,7 +215,8 @@ export default {
       console.log(course);
       if (course.type == "MUST") return 1;
       if (course.type == "CHOOSE_FROM_LIST") return 2;
-      return 3;
+      if (course.type == "CHOOSE") return 3;
+      return 4;
     },
 
     /**
@@ -205,6 +225,8 @@ export default {
      * and the course itself.
      */
     add(event, course) {
+      this.$http.get("/student/me").then(console.log);
+      // console.log(course);
       this.allcourses.push({
         pk: course.pk,
         course_id: course.course_id,
@@ -216,15 +238,16 @@ export default {
     },
 
     /** Moves a course to a new year and semester, given by their IDs */
-    moveCourse({course, newYear, newSemester}) {
-      course.year = newYear
-      course.semester = newSemester
+    moveCourse({ course, newYear, newSemester }) {
+      course.year = newYear;
+      course.semester = newSemester;
     },
+
     /** Deletes a course from all years */
     deleteCoruse(course) {
       const index = this.allcourses.indexOf(course);
       this.allcourses.splice(index, 1);
-    }
+    },
   },
 };
 </script>

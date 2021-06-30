@@ -15,12 +15,12 @@
         </li>
 
         <li>
-          <label class="menu-label">בחר מסלול מרשימה</label>
           <div class="control">
-            <!-- <input class="input is-dark" type="text" /> -->
-            <search-bar
-              :url="'http://127.0.0.1:8000/api/v1/courses/?limit=6&offset=15&search='"
-            ></search-bar>
+            <dropdown-bar
+              :placeholder="'בחר מסלול מרשימה'"
+              :url="'tracks/?limit=6&offset=15'"
+              @clicksuggestion="emitCourseClick"
+            ></dropdown-bar>
           </div>
         </li>
 
@@ -35,12 +35,12 @@
 </template>
 
 <script>
-import SearchBar from "./SearchBar.vue";
+import DropdownBar from "./DropdownBar.vue";
 
 export default {
   props: ["username"],
 
-  components: { SearchBar },
+  components: { DropdownBar },
 
   data() {
     return {};
@@ -81,9 +81,9 @@ export default {
   border: none;
 }
 
-.user li {
+/* .user li {
   margin: 1.5rem;
-}
+} */
 
 .user .field {
   font-size: 0.75rem;

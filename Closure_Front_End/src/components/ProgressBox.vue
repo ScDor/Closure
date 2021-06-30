@@ -65,7 +65,6 @@ export default {
     this.mustValue = this.coursesByType[1].length;
     this.chooseListValue = this.coursesByType[2].length;
     this.choiceValue = this.coursesByType[3].length;
-    console.log(this.coursesByType);
   },
 
   updated() {
@@ -73,7 +72,6 @@ export default {
     this.mustValue = this.coursesByType[1].length;
     this.chooseListValue = this.coursesByType[2].length;
     this.choiceValue = this.coursesByType[3].length;
-    console.log(this.coursesByType);
   },
 };
 </script>

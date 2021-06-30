@@ -53,11 +53,11 @@ export default {
   created() {
     /** if the user is loged in, then fetching his data from DB, else doing nothing */
     if (this.$auth.isAuthenticated.value) {
-      this.$auth
-        .getIdTokenClaims()
-        .then((response) => (this.username = response.nickname));
-      this.$http.get(`students/${this.username}`)
-        .then((response) => this.student = response);
+      // this.$auth
+      //   .getIdTokenClaims()
+      //   .then((response) => (this.username = response.nickname));
+      // this.$http.get(`students/${this.username}`)
+      //   .then((response) => this.student = response);
     }
   },
   methods: {
