@@ -10,11 +10,18 @@ import json
 import requests
 from django.db import transaction
 
+from django.conf import settings
 from Parser.CornerStoneParser import CORNER_STONE_ID_FILENAME, CORNER_STONE_ID_FILE_PATH
 from Parser.MoonParser import PARSED_TRACKS_FOLDER_NAME, PARSED_GROUPS_FOLDER_NAME
 from Parser.OfflineParser import TRACK_DUMP_FOLDER_PATH, GROUP_DUMP_FOLDER_PATH, COURSE_DUMP_FILE_PATH, CURRENT_DIR, \
     COURSE_DUMP_FILENAME, PARSED_DATA_ZIP_PATH, PARSED_DATA_ZIP_URL
 from rest_api.models import Track, CourseGroup, Course
+
+
+MAX_BATCH_SIZE=None
+if settings.DATABASES['default']['ENGINE'] == "django.db.backends.sqlite3":
+    MAX_BATCH_SIZE = 250 
+    print("Shrinking batch size because we're using SQLite")
 
 
 def import_tracks(folder: str = str(TRACK_DUMP_FOLDER_PATH)) -> None:
@@ -27,7 +34,7 @@ def import_tracks(folder: str = str(TRACK_DUMP_FOLDER_PATH)) -> None:
     print(f"Deleted and re-created conflicting tracks, the resulting deletion counts: {delete_dict} ")
 
     tracks = [Track(**dic) for dic in track_dicts]
-    Track.objects.bulk_create(tracks)
+    Track.objects.bulk_create(tracks, batch_size=MAX_BATCH_SIZE)
 
 
 def import_course_group(group_values: Dict) -> None:
@@ -77,7 +84,7 @@ def import_courses(only_add_new: bool, courses_json_file: str = str(COURSE_DUMP_
     _ , delete_dict = Course.objects.filter(course_id__in=existing_course_ids).delete()
     print(f"Deleted and re-created conflicting courses, the resulting deletion counts: {delete_dict} ")
     objects = [Course(**dic) for dic in parsed]
-    Course.objects.bulk_create(objects)
+    Course.objects.bulk_create(objects, batch_size=MAX_BATCH_SIZE)
 
 
 def update_corner_stone_status(id_file: str = str(CORNER_STONE_ID_FILE_PATH)) -> None:
