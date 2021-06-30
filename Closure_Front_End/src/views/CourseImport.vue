@@ -125,7 +125,7 @@ export default {
     handleCourse: async function(course) {
       this.courses.push({ ...course, key: this.courses.length });
     },
-    onImportCourses(courses) {
+    onImportCourses({ courses, importMode }) {
       const firstYear = Math.min(...courses.map(course => course.year));
       const coursesForDisplay = courses.map(course => {
         return {
@@ -134,7 +134,7 @@ export default {
           semester: API_SEMESTER_TO_PROP_INT.get(course.semester)
         };
       });
-      addCourses(coursesForDisplay);
+      addCourses(coursesForDisplay, importMode === 'overwrite');
       this.$router.push("/");
     }
   },

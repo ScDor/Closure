@@ -40,8 +40,10 @@ export const deleteCourse = (course) => {
     state.courses.splice(index, 1)
 }
 
-export const addCourses = (courses) => {
-    state.courses.splice(0, state.courses.length)
+export const addCourses = (courses, overwrite) => {
+    if (overwrite) {
+        state.courses.splice(0, state.courses.length)
+    }
     state.courses.push(...courses)
 }
 
