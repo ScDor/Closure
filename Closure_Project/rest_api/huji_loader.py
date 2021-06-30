@@ -29,10 +29,6 @@ def import_tracks(folder: str = str(TRACK_DUMP_FOLDER_PATH)) -> None:
     track_file_paths = Path(folder).glob("*.json")
     track_dicts = [load_json(str(path)) for path in track_file_paths]
 
-    existing_track_numbers = [t["track_number"] for t in track_dicts]
-    _, delete_dict = Track.objects.filter(track_number__in=existing_track_numbers).delete()
-    print(f"Deleted and re-created conflicting tracks, the resulting deletion counts: {delete_dict} ")
-
     tracks = [Track(**dic) for dic in track_dicts]
     Track.objects.bulk_create(tracks, batch_size=MAX_BATCH_SIZE)
 
@@ -80,9 +76,6 @@ def import_courses(only_add_new: bool, courses_json_file: str = str(COURSE_DUMP_
         existing_ids = {v[1] for v in Course.objects.values_list()}
         parsed = [p for p in parsed if p and p['course_id'] not in existing_ids]
 
-    existing_course_ids = [c['course_id'] for c in parsed]
-    _ , delete_dict = Course.objects.filter(course_id__in=existing_course_ids).delete()
-    print(f"Deleted and re-created conflicting courses, the resulting deletion counts: {delete_dict} ")
     objects = [Course(**dic) for dic in parsed]
     Course.objects.bulk_create(objects, batch_size=MAX_BATCH_SIZE)
 
