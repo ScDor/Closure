@@ -1,49 +1,75 @@
 <template>
-  <div class="user" dir="rtl">
-    <div class="notification has-text-centered">
-      <label class="menu-label"><b>הגדרות</b></label>
+  <div class="user">
+    <div class="notification">
       <ul class="menu-list">
         <li>
           <label class="menu-label">שם משתמש</label>
-
-          <div class="field">{{ username }}</div>
+          <div class="field">{{ name }}</div>
         </li>
 
         <li>
           <label class="menu-label">מסלול נוכחי</label>
-          <div class="field">מסלול</div>
+          <div class="field">{{ track.name }}</div>
         </li>
 
         <li>
-          <div class="control">
-            <dropdown-bar
-              :placeholder="'בחר מסלול מרשימה'"
-              :url="'tracks/?limit=6&offset=15'"
-              @clicksuggestion="emitCourseClick"
-            ></dropdown-bar>
-          </div>
+          <button class="button field menu-label" @click="showModal = true">
+            בחר מסלול חדש מרשימה
+          </button>
         </li>
 
-        <li>
-          <div class="control">
-            <button class="button menu-label is-dark">שמור</button>
-          </div>
-        </li>
+        <tracks-modal
+          :class="{ 'is-active': showModal }"
+          :url="'tracks/?limit=50&offset=15'"
+          @clickclose="showModal = false"
+          @clicksuggestion="trackClick"
+        ></tracks-modal>
       </ul>
     </div>
   </div>
 </template>
 
 <script>
-import DropdownBar from "./DropdownBar.vue";
+import TracksModal from "./TracksModal.vue";
 
 export default {
-  props: ["username"],
-
-  components: { DropdownBar },
+  components: { TracksModal },
 
   data() {
-    return {};
+    return {
+      showModal: false,
+      name: "",
+      track: { track_number: 0, name: "לא נבחר מסלול" },
+      track_pk: 0,
+    };
+  },
+
+  created() {
+    this.$http.get("/student/me").then((response) => this.getInfo(response));
+  },
+
+  methods: {
+    /** Get student info from the DB */
+    getInfo(student) {
+      this.name = student.data.username;
+      this.track_pk = student.data.track_pk;
+      const curtarck = student.data.track;
+      if (curtarck) {
+        this.track = curtarck;
+      }
+    },
+
+    /**  Updates user's track */
+    trackClick(event, clickedTrack) {
+      // update user track
+      this.$root.track = clickedTrack;
+
+      this.showModal = false;
+      this.track = clickedTrack;
+      this.track_pk = clickedTrack.pk;
+      this.$http.post("/student/me/", { track_pk: this.track_pk, courses: [] });
+      this.$http.get("/student/me").then(console.log);
+    },
   },
 };
 </script>
@@ -54,6 +80,10 @@ export default {
   margin-top: 3vh;
   margin-left: auto;
   margin-right: auto;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
   min-width: 300px;
   max-width: 30vw;
   min-height: 30vh;
@@ -81,12 +111,8 @@ export default {
   border: none;
 }
 
-/* .user li {
-  margin: 1.5rem;
-} */
-
 .user .field {
   font-size: 0.75rem;
-  margin: 0.75rem;
+  margin: 1rem;
 }
 </style>

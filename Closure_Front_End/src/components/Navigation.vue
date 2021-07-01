@@ -1,10 +1,10 @@
   <!-- we will bind every key movement to the searchCourses method so it will update immediately -->
 <template>
-  <search-bar
+  <!-- <search-bar
     :placeholder="'חפש מסלול'"
     :url="'tracks/?limit=6&offset=15&search='"
     @clicksuggestion="emitTrackClick"
-  ></search-bar>
+  ></search-bar> -->
 
   <search-bar
     :placeholder="'חפש קורס'"

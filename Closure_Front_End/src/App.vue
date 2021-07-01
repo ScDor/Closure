@@ -2,7 +2,7 @@
   <!-- basically a menu, a (soon to be) analytics box, and the years themselves. -->
   <nav class="navbar has-shadow is-dark">
     <div class="navbar-brand">
-      <router-link class="navbar-item" name="Home" :allcourses="allcourses" to="/" 
+      <router-link class="navbar-item" name="Home" to="/"
         ><b>Closure()</b></router-link
       >
     </div>
@@ -48,8 +48,7 @@ export default {
   name: "App",
   data() {
     return {
-      username: "",
-      student: null,
+      track: null,
       allcourses: [
         {
           pk: 5837,
@@ -153,16 +152,11 @@ export default {
       ],
     };
   },
+
   created() {
     /** if the user is loged in, then fetching his data from DB, else doing nothing */
-    if (this.$auth.isAuthenticated.value) {
-      // this.$auth
-      //   .getIdTokenClaims()
-      //   .then((response) => (this.username = response.nickname));
-      // this.$http.get(`students/${this.username}`)
-      //   .then((response) => this.student = response);
-    }
   },
+
   methods: {
     // Log the user in
     login() {
@@ -177,3 +171,9 @@ export default {
   },
 };
 </script>
+
+<style>
+.app {
+  font-size: 0.75rem;
+}
+</style>

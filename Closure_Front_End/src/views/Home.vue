@@ -6,13 +6,13 @@
           <div class="column is-2 is-right is-hidden-mobile is-hidden-touch">
             <navigation
               @clickcourse="add"
-              :allcourses="allcourses"
+              :allcourses="this.$root.allcourses"
             ></navigation>
           </div>
           <div class="column" v-for="year in years" :key="year">
             <year
               :year="year"
-              :allcourses="allcourses"
+              :allcourses="this.$root.allcourses"
               @courseMoved="moveCourse"
               @courseDeleted="deleteCoruse"
             />
@@ -46,21 +46,20 @@ export default {
       ],
 
       allcourses: [],
-      
     };
   },
 
   created() {
-    this.allcourses = this.$route.params.allcourses;
+    this.allcourses = this.$root.allcourses;
 
     if (this.$auth.isAuthenticated.value) {
       // this.$auth.getIdTokenClaims().then(console.log, console.error);
-      this.$http.get("/student/me").then(function (response) {
-        console.log(response);
+      // this.$http.get("/student/me").then(function (response) {
+      //   console.log(response);
         // const student = response.data;
         // this.createAllCourses(student);
         // this.getTrack(student);
-      });
+      // });
       // this.createAllCourses(this.student);
       // this.$http.get("tracks/?track_number=3010").then(response => {
       //   this.track = response.data.results[0]
@@ -69,11 +68,7 @@ export default {
   },
 
   methods: {
-    getTrack(student) {
-      if (student.track_pk == null) {
-        this.$http.post();
-      }
-    },
+    
 
     /** fetch all student's courses from the DB and store them in allcourses */
     createAllCourses(student) {
@@ -132,6 +127,7 @@ export default {
     deleteCoruse(course) {
       const index = this.allcourses.indexOf(course);
       this.allcourses.splice(index, 1);
+      console.log(this.$root.allcourses);
     },
   },
 };
