@@ -14,7 +14,7 @@ def try_get_password_from_secret_manager() -> Optional[str]:
     try:
         # Get project value for identifying current context
         _, project = google.auth.default()
-    except google.exceptions.DefaultCredentialsError:
+    except google.auth.exceptions.DefaultCredentialsError:
         # We are not in a GCP environment
         return None
 
