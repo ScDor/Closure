@@ -32,10 +32,14 @@ const processCourses = async (parsedCourses, http) => {
         }
         const gottenCourse = res.data.results[0]
         const finalCourse = { ... course, name: gottenCourse.name }
-        if (["FIRST", "SECOND"].includes(gottenCourse.semester) && 
-            course.semester !== gottenCourse.semester) {
-            console.warn(`Course ${course.course_id} - ${course.name} at year ${course.year} is offered only in semester `
-                         +`${gottenCourse.semester}, but student took it in ${course.semester}`)
+        if (["FIRST", "SECOND"].includes(gottenCourse.semester)) {
+            if (course.semester && course.semester !== gottenCourse.semester) {
+              console.warn(`Course ${course.course_id} - ${course.name} at year ${course.year} is offered only in semester `
+                          +`${gottenCourse.semester}, but student took it in ${course.semester}`)
+              finalCourse.semester = course.semester
+            } else {
+              finalCourse.semester = gottenCourse.semester
+            }
         } else if (gottenCourse.semester === "EITHER") {
           finalCourse.ambiguous = !course.semester
         } else if (["ANNUAL", "SUMMER"].includes(gottenCourse.semester)) {
