@@ -17,10 +17,10 @@ function callbackRedirect(appState) {
 
 
 const authConfig = {
-  "domain": process.env.VUE_APP_AUTH0_DOMAIN,
-  "client_id": process.env.VUE_APP_AUTH0_CLIENT_ID,
-  "redirect_uri": process.env.VUE_APP_AUTH0_REDIRECT_URI,
-  "cacheLocation": process.env.VUE_APP_AUTH0_CACHE_LOCATION || "localstorage"
+  "domain": import.meta.env.VITE_AUTH0_DOMAIN,
+  "client_id": import.meta.env.VITE_AUTH0_CLIENT_ID,
+  "redirect_uri": import.meta.env.VITE_AUTH0_REDIRECT_URI,
+  "cacheLocation": import.meta.env.VITE_AUTH0_CACHE_LOCATION || "localstorage"
 }
 
 setupAuth(authConfig, callbackRedirect).then((auth) => {

@@ -1,18 +1,29 @@
-// ==UserScript==
-// @name     HUJI Registered courses import script
-// @version  1
-// @author Daniel Kerbel
-// @grant    none
-// @match https://www.huji.ac.il/dataj/controller/*/stu/*
-// ==/UserScript==
-
 'use strict'
+console.log('script initialiing')
 
+import { createApp } from 'vue'
+import EmbeddedScrapeStatus from '@/huji-import/EmbeddedScrapeStatus.vue'
 
-const FRONTEND_ORIGIN = (typeof process !== "undefined" && process.env.VUE_APP_AUTH0_REDIRECT_URI) || "http://localhost:8080"
+const FRONTEND_ORIGIN = import.meta.env.VITE_AUTH0_REDIRECT_URI
 
+let vue = undefined
+
+function setupUI() {
+  const preexisting = document.getElementById("vue-container")
+  if (preexisting) {
+    preexisting.remove()
+  }
+  const div = document.createElement("div")
+  const containerId = "vue-container"
+  div.id = containerId
+  document.body.prepend(div)
+  console.log("setting up ui")
+  vue = createApp(EmbeddedScrapeStatus).mount(`#${containerId}`)
+  window.vue = vue
+}
 
 console.log(`Import script was loaded, origin of front-end is ${FRONTEND_ORIGIN}`)
+console.log(`import.meta.env: ${JSON.stringify(import.meta.env)}`)
 
 let opener = null
 
@@ -75,13 +86,13 @@ const mkMessageHandler = (doc) => async function messageHandler(event) {
   if (event.data === "hooked") {
     opener = event.source 
     console.log("Hooked into frontend, starting scrape")
-    window.alert("תהליך ייבוא הקורסים מתחיל")
+    // window.alert("תהליך ייבוא הקורסים מתחיל")
     startedScrape = true
     event.source.postMessage("started", FRONTEND_ORIGIN)
     await beginScrape(doc)
     console.log("Finished scrape")
     event.source.postMessage("finishedParsing", FRONTEND_ORIGIN)
-    window.alert("ניתן לסגור את החלון, יש להמשיך את תהליך הייבוא מClosure")
+    // window.alert("ניתן לסגור את החלון, יש להמשיך את תהליך הייבוא מClosure")
   }
 }
 
@@ -137,7 +148,7 @@ async function fetchCoursesAndGradesDocument(doc) {
     const res = await fetch("STU-STUZIYUNIM")
     if (!res.ok) {
       const msg = await res.text()
-      throw Error(`Error while courses document: ${res.status} - ${msg}`)
+      throw Error(`Error while fetching courses document: ${res.status} - ${msg}`)
     }
     const doc = await responseToDocument(res)
     return doc
@@ -330,6 +341,8 @@ async function startScript() {
     console.log(`Attempted to start script twice`)
     return
   }
+  setupUI()
+  console.log(vue)
   loaded = true
   console.log(`Scrape script startScript() begun`)
   const coursesDoc = await fetchCoursesAndGradesDocument(window.document)

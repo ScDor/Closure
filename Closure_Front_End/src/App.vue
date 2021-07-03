@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import ErrorNotification from "./components/ErrorNotification";
+import ErrorNotification from './components/ErrorNotification.vue';
 export default {
   name: "App",
   components: {ErrorNotification},
@@ -80,7 +80,7 @@ export default {
     // Log the user out
     logout() {
       this.$auth.logout({
-        returnTo: process.env.VUE_APP_AUTH0_REDIRECT_URI
+        returnTo: import.meta.env.VITE_AUTH0_REDIRECT_URI
       });
     },
   },
