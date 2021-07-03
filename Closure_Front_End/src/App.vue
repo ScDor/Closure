@@ -1,5 +1,6 @@
 <template>
   <!-- basically a menu, a (soon to be) analytics box, and the years themselves. -->
+  <error-notification/>
   <nav class="navbar has-shadow is-dark">
     <div class="navbar-brand">
       <router-link class="navbar-item" to="/"><b>Closure()</b></router-link>
@@ -42,8 +43,10 @@
 </template>
 
 <script>
+import ErrorNotification from "./components/ErrorNotification";
 export default {
   name: "App",
+  components: {ErrorNotification},
   data() {
     return {
       username: "",
