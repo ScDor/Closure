@@ -41,7 +41,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
-        "course-scrape-prod": path.resolve(__dirname, 'src/huji-import/course-scrape.user.js')
+        "course-scrape-prod": path.resolve(__dirname, 'src/huji-import/course-scrape-entry.js')
       },
       output: {
         entryFileNames: entryFileNameNamingRule

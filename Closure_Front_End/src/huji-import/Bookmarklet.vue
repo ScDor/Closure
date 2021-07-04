@@ -10,7 +10,7 @@
 
 <script>
 
-import scrapeScriptUrl from "./course-scrape.user.js?url"
+import scrapeScriptUrl from "./course-scrape-entry.js?url"
 
 export default {
   setup() {
@@ -23,7 +23,8 @@ export default {
       const url = encodeURI(`javascript:(async function() {
         console.log('attaching scrape script and vite HMR client(dev)')
         await import('${hmrURL}')
-        await import('${scrapeScriptFullURL}')
+        const { setupApp } = await import('${scrapeScriptFullURL}')
+        setupApp()
       })();`)
 
       return {
@@ -37,7 +38,8 @@ export default {
 
       const url = encodeURI(`javascript:(async function() {
         console.log('attaching scrape script(production)')
-        await import('${scrapeScriptFullURL}')
+        const { setupApp } = await import('${scrapeScriptFullURL}')
+        setupApp()
       })();`)
       return {
         dev: false, url

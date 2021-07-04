@@ -49,6 +49,7 @@
 import { addCourses } from "@/course-store.js";
 import Instructions from "@/huji-import/Instructions.vue";
 import { default as INITIAL_COURSES } from "@/huji-import/example-parsed-courses.js";
+import { TRY_HOOK_MESSAGE_TYPE, HOOKED_MESSAGE_TYPE, STARTED_MESSAGE_TYPE, GOT_COURSE_MESSAGE_TYPE, FINISHED_PARSING_MESSAGE_TYPE } from '@/huji-import/course-scrape-communication.js'
 import ParsedCoursesTables from "@/huji-import/ParsedCoursesTables.vue";
 import { API_SEMESTER_TO_PROP_INT } from "@/utils.js";
 
@@ -99,25 +100,17 @@ export default {
       }
 
       const msg = event.data;
-      if (msg.type === "tryHook") {
+      if (msg.type === TRY_HOOK_MESSAGE_TYPE) {
         this.status = msg.type;
         console.log(`Got hook attempt from HUJI at level ${msg.level}`);
-        event.source.postMessage("hooked", HUJI_ORIGIN);
+        event.source.postMessage({ type: HOOKED_MESSAGE_TYPE}, HUJI_ORIGIN);
         console.log(`responded with hooked message.`);
-        this.status = "hooked";
-        this.ref = event.source;
       }
-      if (msg === "started" || msg === "finishedParsing") {
-        this.status = msg;
+      if (msg.type === STARTED_MESSAGE_TYPE || msg.type === FINISHED_PARSING_MESSAGE_TYPE) {
+        this.status = msg.type;
+        console.log(`entering state: ${msg.type}`)
       }
-      if (msg.type === "error") {
-        this.addError(msg.errorMessage)
-        if (msg.critical) {
-          this.status = "error"
-        }
-      }
-
-      if (msg.type === "gotCourse") {
+      if (msg.type === GOT_COURSE_MESSAGE_TYPE) {
         this.handleCourse(msg.course);
       }
     },
@@ -142,8 +135,7 @@ export default {
     const data = {
       status: "notHooked",
       courses: [],
-      errors: [],
-      ref: null
+      errors: []
     };
     if (USE_TEST_COURSES) {
       data.status = "finishedParsing"
