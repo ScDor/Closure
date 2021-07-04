@@ -5,7 +5,9 @@
   "author": "noa_barlia",
   "scripts": {
     "serve": "vite",
-    "build": "vite build",
+    "build": "npm run build:site && npm run build:bookmarklet",
+    "build:site": "vite build --config vite.config.js",
+    "build:bookmarklet": "vite build --config vite-bookmarklet.config.js",
     "preview": "vite preview --port 8080",
     "test:unit": "jest tests/unit",
     "lint": "eslint src --ext .vue,.js",
@@ -14,6 +16,7 @@
   "dependencies": {
     "@auth0/auth0-spa-js": "^1.15.0",
     "axios": "^0.21.1",
+    "bulma": "^0.9.3",
     "core-js": "^3.6.5",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0"

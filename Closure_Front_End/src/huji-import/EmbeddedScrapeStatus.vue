@@ -115,7 +115,7 @@ export default {
 </script>
 
 <style scoped>
-  @import "https://cdn.jsdelivr.net/npm/bulma@0.9.2/css/bulma-rtl.min.css";
+  @import "bulma/css/bulma-rtl.css";
   #courseScrapeRoot {
     margin: 5vh 5vw 5vh 5vw;
   }

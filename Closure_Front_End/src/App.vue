@@ -86,3 +86,6 @@ export default {
   },
 };
 </script>
+<style>
+@import "bulma/css/bulma-rtl.css";
+</style>

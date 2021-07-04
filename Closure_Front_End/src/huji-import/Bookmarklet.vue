@@ -33,7 +33,7 @@ export default {
     } else {
       // TODO: rename `AUTH0_REDIRECT_URI' to something more informative
       const siteURL = import.meta.env.VITE_AUTH0_REDIRECT_URI
-      const scrapeScriptFullURL = new URL("course-scrape-prod.js", siteURL)
+      const scrapeScriptFullURL = new URL("course-scrape-prod.es.js", siteURL)
       console.log(`Generating bookmarklet for production, scrape script: ${scrapeScriptFullURL}`)
 
       const url = encodeURI(`javascript:(async function() {
