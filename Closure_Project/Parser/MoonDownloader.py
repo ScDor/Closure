@@ -6,6 +6,7 @@ from os import path
 
 import requests
 
+
 def get_data_with_retry(url, max_retries=5):
     for i in range(max_retries):
         get = requests.get(url)
@@ -25,9 +26,15 @@ def download_course(override_existing_files: bool, i: int):
           f'year=2021&' \
           f'courseId={i}'
 
-    with open(html_path, 'wb') as f:
-        f.write(get_data_with_retry(url, 5).content)
-    print(i)
+    content = get_data_with_retry(url, 5).content
+
+    if len(content) in [29_443, 29_440]:  # empty
+        print(i, "skipped")
+
+    else:
+        with open(html_path, 'wb') as f:
+            f.write(content)
+            print(i)
 
 
 def download_track(override_existing_files: bool, i: int):
