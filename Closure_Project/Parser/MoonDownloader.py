@@ -34,7 +34,7 @@ def download_course(override_existing_files: bool, i: int):
     else:
         with open(html_path, 'wb') as f:
             f.write(content)
-            print(i)
+            print(i, "saved")
 
 
 def download_track(override_existing_files: bool, i: int):
@@ -48,9 +48,13 @@ def download_track(override_existing_files: bool, i: int):
           f'faculty=2&' \
           f'maslulId=2{i}'
 
-    with open(html_path, 'wb') as f:
-        f.write(get_data_with_retry(url, max_retries=5).content)
-    print(i)
+    content = get_data_with_retry(url, max_retries=5).content
+    if len(content) == 6561:  # empty:
+        print(i, "skipped")
+    else:
+        with open(html_path, 'wb') as f:
+            f.write(content)
+        print(i, "saved")
 
 
 def download_all_courses(override_existing_files=False):
