@@ -7,19 +7,21 @@ from os import path
 import requests
 
 
-def get_data_with_retry(url, max_retries=5):
+def get_data_with_retry(url: str, max_retries: int = 5):
     for i in range(max_retries):
         get = requests.get(url)
         text = get.text
         if text is not None and 'timeout' not in text:
             return get
-        sleep(1)
+        else:
+            print(f"retry #{i}", url[-20:])
+            sleep(1)
 
 
 def download_course(override_existing_files: bool, i: int):
     html_path = f'course_details_html/{i}.html'
     if path.exists(html_path) and not override_existing_files:
-        print(i, "exists")
+        print("course", i, "exists")
         return
 
     url = f'http://moon.cc.huji.ac.il/nano/pages/wfrCourse.aspx?' \
@@ -30,18 +32,18 @@ def download_course(override_existing_files: bool, i: int):
     content = get_data_with_retry(url, 5).content
 
     if len(content) in [29_443, 29_440]:  # empty
-        print(i, "skipped")
+        print("course", i, "skipped")
 
     else:
         with open(html_path, 'wb') as f:
             f.write(content)
-            print(i, "saved")
+            print("course", i, "saved")
 
 
 def download_track(override_existing_files: bool, i: int):
     html_path = f'tracks_html/{i}.html'
     if path.exists(html_path) and not override_existing_files:
-        print(i, "exists")
+        print("track", i, "exists")
         return
 
     url = f'http://moon.cc.huji.ac.il/nano/pages/wfrMaslulDetails.aspx' \
@@ -50,12 +52,13 @@ def download_track(override_existing_files: bool, i: int):
           f'maslulId=2{i}'
 
     content = get_data_with_retry(url, max_retries=5).content
-    if len(content) == 6561:  # empty:
-        print(i, "empty")
+    if len(content) in [6561, 1065]:  # empty:
+        print("track", i, "empty")
+
     else:
         with open(html_path, 'wb') as f:
             f.write(content)
-        print(i, "saved")
+        print("track", i, "saved")
 
 
 def download_all_courses(override_existing_files=False):
