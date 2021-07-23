@@ -15,9 +15,8 @@ def get_data_with_retry(url: str, max_retries: int = 10):
                 and ('timeout' not in text) \
                 and ("אירעה שגיאה באתר" not in text):
             return get
-        else:
-            print(f"retry #{i}", url[-20:])
-            sleep(1)
+        print(f"retry #{i}", url[-20:])
+        sleep(1)
     raise RuntimeError(f"timed out after {max_retries} retries while trying to get {url}")
 
 
