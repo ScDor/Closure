@@ -9,6 +9,18 @@
       <div class="navbar-item">
         <div class="buttons">
           <!-- Check that the SDK client is not currently loading before accessing is methods -->
+          <!-- analytics -->
+          <router-link
+            v-if="$auth.isAuthenticated.value"
+            class="button is-small is-dark"
+            to="/analytics"
+          >
+            <span class="icon is-small is-right">
+              <i class="fas fa-chart-pie"></i>
+            </span>
+          </router-link>
+
+          <!-- settings -->
           <router-link
             v-if="$auth.isAuthenticated.value"
             class="button is-small is-dark"
@@ -18,6 +30,7 @@
               <i class="fas fa-user-cog"></i>
             </span>
           </router-link>
+
           <div v-if="!$auth.loading.value">
             <button
               class="button is-small is-dark menu-label"
@@ -59,8 +72,9 @@ export default {
       this.$auth
         .getIdTokenClaims()
         .then((response) => (this.username = response.nickname));
-      this.$http.get(`students/${this.username}`)
-        .then((response) => this.student = response);
+      this.$http
+        .get(`students/${this.username}`)
+        .then((response) => (this.student = response));
     }
   },
   methods: {
@@ -71,7 +85,7 @@ export default {
     // Log the user out
     logout() {
       this.$auth.logout({
-        returnTo: process.env.VUE_APP_AUTH0_REDIRECT_URI
+        returnTo: process.env.VUE_APP_AUTH0_REDIRECT_URI,
       });
     },
   },
