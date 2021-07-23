@@ -7,84 +7,91 @@ from os import path
 import requests
 
 
-def get_data_with_retry(url: str, max_retries: int = 5):
+def get_data_with_retry(url: str, max_retries: int = 10):
     for i in range(max_retries):
         get = requests.get(url)
         text = get.text
-        if text is not None and 'timeout' not in text:
+        if text is not None \
+                and ('timeout' not in text) \
+                and ("אירעה שגיאה באתר" not in text):
             return get
         else:
             print(f"retry #{i}", url[-20:])
             sleep(1)
+    raise RuntimeError(f"timed out after {max_retries} retries while trying to get {url}")
 
 
-def download_course(override_existing_files: bool, i: int):
-    html_path = f'course_details_html/{i}.html'
+def download_course(data_year: int, override_existing_files: bool, i: int):
+    folder = f'{data_year}_courses'
+    html_path = f'{folder}/{i}.html'
+
     if path.exists(html_path) and not override_existing_files:
-        print("course", i, "exists")
+        print(data_year, "course", i, "exists")
         return
 
     url = f'http://moon.cc.huji.ac.il/nano/pages/wfrCourse.aspx?' \
           f'faculty=2&' \
-          f'year=2021&' \
+          f'year={data_year}&' \
           f'courseId={i}'
 
-    content = get_data_with_retry(url, 5).content
+    content = get_data_with_retry(url).content
 
-    if len(content) in [29_443, 29_440]:  # empty
-        print("course", i, "skipped")
+    if "=\"lblCourseName\"><" in str(content):  # course name tag is empty
+        print(data_year, "course", i, "empty")
 
     else:
         with open(html_path, 'wb') as f:
             f.write(content)
-            print("course", i, "saved")
+        print(data_year, "course", i, "saved")
 
 
-def download_track(override_existing_files: bool, i: int):
-    html_path = f'tracks_html/{i}.html'
-    if path.exists(html_path) and not override_existing_files:
-        print("track", i, "exists")
+def download_track(data_year: int, override_existing_files: bool, i: int):
+    html_path = f'{data_year}_tracks/{i}.html'
+
+    if (not override_existing_files) and path.exists(html_path):
+        print(data_year, "track", i, "exists")
         return
 
     url = f'http://moon.cc.huji.ac.il/nano/pages/wfrMaslulDetails.aspx' \
-          f'?year=2021&' \
+          f'?year={data_year}&' \
           f'faculty=2&' \
           f'maslulId=2{i}'
 
-    content = get_data_with_retry(url, max_retries=5).content
-    if len(content) in [6561, 1065]:  # empty:
-        print("track", i, "empty")
+    content = get_data_with_retry(url).content
+    if "lblError" in str(content):  # empty:
+        print(data_year, "track", i, "empty")
 
     else:
         with open(html_path, 'wb') as f:
             f.write(content)
-        print("track", i, "saved")
+        print(data_year, "track", i, "saved")
 
 
-def download_all_courses(override_existing_files=False):
-    folder = 'course_details_html'
+def download_all_courses(data_year: int, override_existing_files=False):
+    folder = f'{data_year}_courses'
     if not os.path.exists(folder):
         os.mkdir(folder)
 
     with Pool() as pool:
-        func = partial(download_course, override_existing_files)
+        func = partial(download_course, data_year, override_existing_files)
         pool.map(func, (i for i in range(1_000, 100_000)))
 
 
-def download_all_tracks(override_existing_files=False):
-    folder = 'tracks_html'
+def download_all_tracks(data_year: int, override_existing_files=False):
+    folder = f'{data_year}_tracks'
     if not os.path.exists(folder):
         os.mkdir(folder)
 
     with Pool() as pool:
-        func = partial(download_track, override_existing_files)
+        func = partial(download_track, data_year, override_existing_files)
         pool.map(func, (i for i in range(1_000, 10_000)))
 
 
-def download_all():
-    download_all_courses()
-    download_all_tracks()
+def download_all(data_year: int):
+    download_all_courses(data_year)
+    download_all_tracks(data_year)
 
 
 if __name__ == '__main__':
-    download_all()
+    data_year = 2022
+    download_all(data_year)
