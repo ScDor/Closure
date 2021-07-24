@@ -3,6 +3,7 @@ from multiprocessing import Pool
 from time import sleep
 from functools import partial
 from os import path
+from typing import Iterable, Optional
 
 import requests
 
@@ -66,29 +67,46 @@ def download_track(data_year: int, override_existing_files: bool, i: int):
         print(data_year, "track", i, "saved")
 
 
-def download_all_courses(data_year: int, override_existing_files=False):
+def download_courses(data_year: int,
+                     override_existing_files: bool = False,
+                     course_ids: Optional[Iterable[int]] = range(1_000, 100_000)):
     folder = f'{data_year}_courses'
     if not os.path.exists(folder):
         os.mkdir(folder)
 
     with Pool() as pool:
         func = partial(download_course, data_year, override_existing_files)
-        pool.map(func, (i for i in range(1_000, 100_000)))
+        pool.map(func, course_ids)
 
 
-def download_all_tracks(data_year: int, override_existing_files=False):
+def download_tracks(data_year: int,
+                    override_existing_files=False,
+                    track_ids: Optional[Iterable[int]] = range(1_000, 10_000)):
     folder = f'{data_year}_tracks'
     if not os.path.exists(folder):
         os.mkdir(folder)
 
     with Pool() as pool:
         func = partial(download_track, data_year, override_existing_files)
-        pool.map(func, (i for i in range(1_000, 10_000)))
+        pool.map(func, track_ids)
 
 
 def download_all(data_year: int):
-    download_all_courses(data_year)
-    download_all_tracks(data_year)
+    download_courses(data_year)
+    download_tracks(data_year)
+
+
+def find_missing_courses(source_years: Iterable[int], dest_years: Iterable[int]):
+    # returns courses that exist in one set of years, but not in the other.
+    source_courses = set()
+    for year in source_years:
+        source_courses.update({int(f.split(".")[0]) for f in os.listdir(fr"{year}_courses")})
+
+    dest_courses = set()
+    for year in dest_years:
+        dest_courses.update({int(f.split(".")[0]) for f in os.listdir(fr"{year}_courses")})
+
+    return dest_courses - source_courses
 
 
 if __name__ == '__main__':
