@@ -4,8 +4,8 @@ from typing import List, Tuple, Dict
 from tqdm import tqdm
 
 from utils import dump_json
-from CornerStoneParser import fetch_parse_corner_stones
-from MoonParser import parse_course_detail_page, NothingToParseException, parse_moon, \
+from .CornerStoneParser import fetch_parse_corner_stones
+from .MoonParser import parse_course_detail_page, NothingToParseException, parse_moon, \
     NoTrackParsedException, PARSED_TRACKS_FOLDER_NAME, PARSED_GROUPS_FOLDER_NAME
 
 from tqdm.contrib.concurrent import process_map
