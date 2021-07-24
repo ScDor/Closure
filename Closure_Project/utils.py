@@ -3,10 +3,26 @@ import os
 from typing import Dict
 
 
-def dump_json(to_dump: object, filename: str) -> None:
-    """ serializes a (serializable) object to json """
+def dump_json(o: object, filename: str, extend: bool) -> None:
+    if extend:
+        try:
+            previous = load_json(filename)
+            if isinstance(previous, list):
+                previous.extend(o)
+            elif isinstance(previous, Dict):
+                previous.update(o)
+            else:
+                raise ValueError(f"unexpected type {type(o)}")
+
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(previous, f, ensure_ascii=False)
+                return
+
+        except (FileNotFoundError, json.decoder.JSONDecodeError):
+            pass  # called with extend=true on a file that had not existed before
+
     with open(filename, 'w', encoding='utf8') as f:
-        json.dump(to_dump, f, ensure_ascii=False)
+        json.dump(o, f, ensure_ascii=False)
 
 
 def load_json(filename: str) -> Dict:

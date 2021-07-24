@@ -110,5 +110,5 @@ def find_missing_courses(source_years: Iterable[int], dest_years: Iterable[int])
 
 
 if __name__ == '__main__':
-    data_year = 2022
-    download_all(data_year)
+    download_all(2016)
+    download_all(2015)
