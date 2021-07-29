@@ -165,19 +165,18 @@ def _get_relevant_year():
     now = datetime.now()
     if now.month < 8:
         return now.year
-    else:
-        return now.year + 1  # next year
+    return now.year + 1  # next year
 
 
 def _compose_moon_url(track_id: int,
                       year: int = _get_relevant_year(),
                       faculty: int = 2,
-                      entity_id: int = 521,  # todo figure out if used
-                      chug_id: int = 521,  # todo figure out if used
-                      degree_code: int = 71  # todo figure out if used
+                      entity_id: int = 521,  # does not change the data we use
+                      chug_id: int = 521,  # does not change the data we use
+                      degree_code: int = 71  # does not change the data we use
                       ):
     """
-    :param faculty: Faculty code #todo list known codes
+    :param faculty: Faculty code, only `2` seems to work (?)
     :param entity_id: seems to be tied with chug_id
     :param track_id: the important part, seemingly the only one that matters.
      for extended CS major use 23010
