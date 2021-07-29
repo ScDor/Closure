@@ -18,14 +18,13 @@ from Parser.OfflineParser import TRACK_DUMP_FOLDER_PATH, GROUP_DUMP_FOLDER_PATH,
 from rest_api.models import Track, CourseGroup, Course
 from utils import load_json
 
-MAX_BATCH_SIZE=None
+MAX_BATCH_SIZE = None
 if settings.DATABASES['default']['ENGINE'] == "django.db.backends.sqlite3":
     MAX_BATCH_SIZE = 250
     print("Shrinking batch size because we're using SQLite")
 
 
 def import_tracks(folder: str = str(TRACK_DUMP_FOLDER_PATH)) -> None:
-
     track_file_paths = Path(folder).glob("*.json")
     track_dicts = [load_json(str(path)) for path in track_file_paths]
 
@@ -58,14 +57,13 @@ def import_course_groups(folder: str = str(GROUP_DUMP_FOLDER_PATH)):
     cg_dicts = [load_json(os.path.join(folder, cg_file)) for cg_file in os.listdir(folder)]
     print(f"Loaded {len(cg_dicts)} jsons")
 
-    
     with transaction.atomic():
         for cg_dict in tqdm(cg_dicts, desc="importing coursegroups to SQL"):
             import_course_group(cg_dict)
 
 
-
-def import_courses(only_add_new: bool, courses_json_file: str = str(COURSE_DUMP_FILE_PATH)) -> None:
+def import_courses(only_add_new: bool,
+                   courses_json_file: str = str(COURSE_DUMP_FILE_PATH)) -> None:
     print(f"loading parsed courses from {courses_json_file}")
 
     # noinspection PyTypeChecker
@@ -80,7 +78,8 @@ def import_courses(only_add_new: bool, courses_json_file: str = str(COURSE_DUMP_
     Course.objects.bulk_create(objects, batch_size=MAX_BATCH_SIZE)
 
 
-def update_corner_stone_status(corner_stone_id_file: str = str(CORNER_STONE_ID_FILE_PATH)) -> None:
+def update_corner_stone_status(
+        corner_stone_id_file: str = str(CORNER_STONE_ID_FILE_PATH)) -> None:
     """
     Updates the corner stone status of pre-existing courses via a file of corner stone course IDs.
     """
@@ -109,9 +108,9 @@ def load_everything(folder: Path = CURRENT_DIR):
     import_course_groups(folder=str(folder / PARSED_GROUPS_FOLDER_NAME))
 
 
-def load_from_zip(zip_file = PARSED_DATA_ZIP_PATH):
-    with zipfile.ZipFile(zip_file) as zipf,\
-         tempfile.TemporaryDirectory(prefix="parse_state") as temp_dir:
+def load_from_zip(zip_file=PARSED_DATA_ZIP_PATH):
+    with zipfile.ZipFile(zip_file) as zipf, \
+            tempfile.TemporaryDirectory(prefix="parse_state") as temp_dir:
         temp_dir = Path(temp_dir)
         print("Extracting zipped data")
         zipf.extractall(path=temp_dir)
@@ -123,6 +122,6 @@ def load_from_internet(url: str = PARSED_DATA_ZIP_URL):
     print("Downloading zipped data")
     res = requests.get(url)
     if not res.ok:
-        raise Exception(f"Couldn't retrieve zip_file from GCS bucket: {res.status_code} - {res.text}")
+        raise Exception(
+            f"Couldn't retrieve zip_file from GCS bucket: {res.status_code} - {res.text}")
     load_from_zip(io.BytesIO(res.content))
-
