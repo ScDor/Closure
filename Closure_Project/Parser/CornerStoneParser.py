@@ -69,10 +69,9 @@ def _parse_corner_stones(side_menu_url: str) -> List[int]:
     :param side_menu_url: url to a page representing corner stone courses given by some faculty
     :return: list of integer course identifiers
     """
-    side_menu_urls = _parse_side_menu_urls(side_menu_url)
     result = []
-    for side_menu_url in side_menu_urls:
-        result += _parse_corner_stone_page(side_menu_url)
+    for url in _parse_side_menu_urls(side_menu_url):
+        result += _parse_corner_stone_page(url)
     return result
 
 

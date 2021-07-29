@@ -329,7 +329,7 @@ def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
 
         if table.shape == (1, 1):  # one-cell table
             if txt in IGNORABLE_TITLES or 'סה"כ' in txt:
-                if txt in {'וגם', 'או'}:  # todo handle alternatives
+                if txt in {'וגם', 'או'}:
                     current_type = previous_type
                 continue
 
