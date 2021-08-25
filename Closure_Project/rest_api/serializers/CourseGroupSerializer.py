@@ -8,5 +8,5 @@ class CourseGroupSerializer(DynamicFieldsModelSerializer):
 
     class Meta:
         model = CourseGroup
-        fields = ('track', 'course_type', 'year_in_studies', 'index_in_track_year', 'courses',
+        fields = ('track', 'data_year', 'course_type', 'year_in_studies', 'index_in_track_year', 'courses',
                   'required_course_count', 'required_points', 'comment')
