@@ -166,6 +166,7 @@ class Track(models.Model):
 
 class CourseGroup(models.Model):
     track = models.ForeignKey(Track, on_delete=models.CASCADE)
+    data_year = models.IntegerField()
     course_type = models.TextField(choices=CourseType.choices)
     year_in_studies = models.IntegerField(choices=Year.choices)
     index_in_track_year = models.IntegerField(validators=[_validate_non_negative_number])
@@ -177,7 +178,7 @@ class CourseGroup(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['track', 'year_in_studies', 'course_type', 'index_in_track_year'],
+                fields=['track', 'data_year', 'year_in_studies', 'course_type', 'index_in_track_year'],
                 name='group_unique')]
 
     def __str__(self):
