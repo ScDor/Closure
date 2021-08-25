@@ -114,9 +114,10 @@ export default {
 }
 </script>
 
-<style scoped>
-  @import "bulma/css/bulma-rtl.css";
-  #courseScrapeRoot {
-    margin: 5vh 5vw 5vh 5vw;
-  }
+<style src="bulma/css/bulma-rtl.css"></style>
+
+<style>
+#courseScrapeRoot {
+  margin: 5vh 5vw 5vh 5vw;
+}
 </style>

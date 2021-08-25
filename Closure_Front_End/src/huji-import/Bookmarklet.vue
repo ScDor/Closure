@@ -23,8 +23,7 @@ export default {
       const url = encodeURI(`javascript:(async function() {
         console.log('attaching scrape script and vite HMR client(dev)')
         await import('${hmrURL}')
-        const { setupApp } = await import('${scrapeScriptFullURL}')
-        setupApp()
+        await import('${scrapeScriptFullURL}')
       })();`)
 
       return {
@@ -33,13 +32,13 @@ export default {
     } else {
       // TODO: rename `AUTH0_REDIRECT_URI' to something more informative
       const siteURL = import.meta.env.VITE_AUTH0_REDIRECT_URI
-      const scrapeScriptFullURL = new URL("course-scrape-prod.es.js", siteURL)
+      const scrapeScriptFullURL = new URL("course-scrape-prod.js", siteURL)
+      console.log(`non hardcoded url: ${scrapeScriptUrl}`)
       console.log(`Generating bookmarklet for production, scrape script: ${scrapeScriptFullURL}`)
 
       const url = encodeURI(`javascript:(async function() {
         console.log('attaching scrape script(production)')
-        const { setupApp } = await import('${scrapeScriptFullURL}')
-        setupApp()
+        await import('${scrapeScriptFullURL}')
       })();`)
       return {
         dev: false, url
