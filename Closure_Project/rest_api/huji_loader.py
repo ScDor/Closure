@@ -25,8 +25,13 @@ if settings.DATABASES['default']['ENGINE'] == "django.db.backends.sqlite3":
 
 
 def import_tracks(folder: str = str(TRACK_DUMP_FOLDER_PATH)) -> None:
-    track_file_paths = Path(folder).glob("*.json")
-    track_dicts = [load_json(str(path)) for path in track_file_paths]
+    track_dicts = []
+    year_folders = list(Path(folder).iterdir())
+    for year_folder in tqdm(year_folders, desc="Loading tracks JSONs from each year, into memory"):
+        assert year_folder.is_dir(), "parsed_tracks folder should consist of a folder of each year"
+        track_objects = [load_json(str(track_file)) for track_file in year_folder.iterdir()]
+        track_objects = [{**obj, "data_year": year_folder.name} for obj in track_objects]
+        track_dicts.extend(track_objects)
 
     tracks = [Track(**dic) for dic in track_dicts]
     Track.objects.bulk_create(tracks, batch_size=MAX_BATCH_SIZE)
@@ -34,7 +39,7 @@ def import_tracks(folder: str = str(TRACK_DUMP_FOLDER_PATH)) -> None:
 
 def import_course_group(group_values: Dict) -> None:
     track_id = group_values['track_id']
-    track = Track.objects.get(track_number=track_id)
+    track = Track.objects.get(track_number=track_id, data_year=group_values['data_year'])
     del group_values['track_id']
 
     group_values['track'] = track
@@ -54,7 +59,14 @@ def import_course_group(group_values: Dict) -> None:
 
 def import_course_groups(folder: str = str(GROUP_DUMP_FOLDER_PATH)):
     print(f"Loading course group JSONs")
-    cg_dicts = [load_json(os.path.join(folder, cg_file)) for cg_file in os.listdir(folder)]
+    cg_dicts = []
+    year_folders = list(Path(folder).iterdir())
+    for year_folder in tqdm(year_folders, desc="Loading course group JSONs from each year, into memory"):
+        assert year_folder.is_dir(), "parsed_groups folder should consist of a folder of each year"
+        cg_objects = [load_json(str(cg_file)) for cg_file in year_folder.iterdir()]
+        cg_objects = [{**obj, "data_year": year_folder.name} for obj in cg_objects]
+        cg_dicts.extend(cg_objects)
+
     print(f"Loaded {len(cg_dicts)} jsons")
 
     with transaction.atomic():
