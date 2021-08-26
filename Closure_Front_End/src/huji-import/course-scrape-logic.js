@@ -110,7 +110,7 @@ async function getDocumentsForAllYears(doc) {
                 "yearsafa": year
             });
             try {
-                const response = await fetch(doc.ziyunim.action, {
+                const response = await fetch(doc.forms["ziyunim"].action, {
                     method: 'POST',
                     body: urlData,
 
