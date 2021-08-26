@@ -1,4 +1,4 @@
-from rest_api.serializers.DynamicSerializer import *
+from rest_api.serializers.DynamicSerializer import DynamicFieldsModelSerializer
 from rest_api.models import CourseGroup
 from .CourseSerializer import CourseSerializer
 
