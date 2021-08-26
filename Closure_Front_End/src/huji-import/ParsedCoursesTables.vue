@@ -18,8 +18,7 @@ const processCourses = async (parsedCourses, http) => {
         const res = await http.get(`/courses`, {
           params: {
             course_id: course.course_id,
-            // TODO: do not hard-core years, scrape Shnaton for several years
-            data_year: 2021 //course.year
+            data_year: course.year
           }
         });
         if (res.data.count === 0) {
