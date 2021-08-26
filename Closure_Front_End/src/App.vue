@@ -8,6 +8,15 @@
     <div class="navbar-start is-hidden-mobile is-hidden-touch">
       <div class="navbar-item">
         <div class="buttons">
+          <router-link
+            class="button is-small is-dark"
+            to="/data-import"
+          >
+            <span> 
+              <i class="fas fa-upload"></i>
+              ייבוא נתונים מהאוניברסיטה
+            </span>
+          </router-link>
           <!-- Check that the SDK client is not currently loading before accessing is methods -->
           <router-link
             v-if="$auth.isAuthenticated.value"
@@ -43,7 +52,7 @@
 </template>
 
 <script>
-import ErrorNotification from "./components/ErrorNotification";
+import ErrorNotification from './components/ErrorNotification.vue';
 export default {
   name: "App",
   components: {ErrorNotification},
@@ -71,9 +80,10 @@ export default {
     // Log the user out
     logout() {
       this.$auth.logout({
-        returnTo: process.env.VUE_APP_AUTH0_REDIRECT_URI
+        returnTo: import.meta.env.VITE_AUTH0_REDIRECT_URI
       });
     },
   },
 };
 </script>
+<style src="bulma/css/bulma-rtl.css"></style>

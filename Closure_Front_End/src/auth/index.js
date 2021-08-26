@@ -140,16 +140,14 @@ export const setupAuth = async (options, callbackRedirect) => {
 
 
   let http = axios.create({
-      baseURL: process.env.VUE_APP_API_URL,
+      baseURL: import.meta.env.VITE_API_URL
   });
 
   http.interceptors.response.use((response) => response,
       function (error){
       errorHandler(error);
       return Promise.reject(error);
-    });
-
-
+  });
   window.closureAxios = http;
 
 
@@ -194,11 +192,13 @@ export const setupAuth = async (options, callbackRedirect) => {
   }
 
   return {
-      install: (app) => {
-          app.config.globalProperties.$auth = authPlugin;
-          app.config.globalProperties.$http = http;
-          app.provide("errorState", errorState);
-          app.provide("setErrorMessage", setErrorMessage);
-      },
+    install: (app) => {
+      app.config.globalProperties.$auth = authPlugin
+      app.config.globalProperties.$http = http
+      app.provide("auth", authPlugin)
+      app.provide("http", http)
+      app.provide("errorState", errorState);
+      app.provide("setErrorMessage", setErrorMessage);
+    }
   }
 }

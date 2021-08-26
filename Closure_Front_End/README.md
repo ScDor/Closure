@@ -52,9 +52,10 @@ You can run `npm run build` within the `Closure_Front_End` folder to create an o
 appear at the `dist` folder. 
 
  You can then serve this folder with any web-server. For quickly previewing the production build locally, 
- after having done the [appropriate configuration](#localProd), you can use Python's standard http-server module, by running:
+ after having done the [appropriate configuration](#localProd), you can then serve the build using a node based server,
+by running:
 
-`python -m http.server --directory dist 8080`
+`npm run preview`
 
 And then visting http://localhost:8080
 
