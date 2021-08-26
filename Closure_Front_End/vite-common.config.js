@@ -9,7 +9,7 @@ const commonConfig = {
   }), enforce: 'pre', apply: 'build'}],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, '/src')
+      '@': path.resolve(__dirname, 'src')
     }
   },
   server: {
