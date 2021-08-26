@@ -74,11 +74,25 @@ steps:
     name: 'gcr.io/cloud-builders/gsutil'
     args:
       [
-        "-m", "rsync", "-r",
+        "-m", 
+        # by default, do not cache anything
+        "-h", "Cache-Control:no-store, max-age=0, no-transform",
+        "rsync", "-r",
         "-d",
         "/workspace/dist",
         "gs://${_FRONTEND_BUCKET_NAME}"
       ]
+
+  - id: "enable caching for assets which have chunk-hashes"
+    name: 'gcr.io/cloud-builders/gsutil'
+    args:
+      [
+        "-m",
+        "setmeta",
+        "-h", "Cache-Control:public, max-age=31536000, immutable",
+        "gs://${_FRONTEND_BUCKET_NAME}/**.hash-*.*"
+      ]
+
 
 substitutions:
   _IMAGE_NAME: closure-frontend
