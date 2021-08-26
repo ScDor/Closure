@@ -9,7 +9,7 @@ import { ScrapeError } from "./course-scrape-errors.js"
 
 
 /** @type {string} */
-const FRONTEND_ORIGIN = import.meta.env.VITE_AUTH0_REDIRECT_URI
+export const FRONTEND_ORIGIN = import.meta.env.VITE_AUTH0_REDIRECT_URI
 
 
 const HOOKING_TIMEOUT_MS = 3000
