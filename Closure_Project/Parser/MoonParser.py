@@ -1,13 +1,14 @@
-import os
-from pathlib import Path
 import re
 from datetime import datetime
+from pathlib import Path
 from typing import List, Tuple, Dict
 
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from .utils import dump_json
+from utils import dump_json, setup_django_pycharm
+
+setup_django_pycharm()
 
 from rest_api.models import Semester, CourseType
 
@@ -97,10 +98,11 @@ MINOR = 'חטיבה'
 CURRENT_DIR = Path(__file__).parent
 
 PARSED_TRACKS_FOLDER_NAME = "parsed_tracks"
-PARSED_TRACKS_FOLDER_PATH = CURRENT_DIR / PARSED_TRACKS_FOLDER_NAME
+PARSED_TRACKS_FOLDER_ROOT = CURRENT_DIR / PARSED_TRACKS_FOLDER_NAME
 
 PARSED_GROUPS_FOLDER_NAME = "parsed_groups"
-PARSED_GROUPS_FOLDER_PATH = CURRENT_DIR / PARSED_GROUPS_FOLDER_NAME
+PARSED_GROUPS_FOLDER_ROOT = CURRENT_DIR / PARSED_GROUPS_FOLDER_NAME
+
 
 def parse_track_name(soup: BeautifulSoup) -> str:
     """
@@ -163,19 +165,18 @@ def _get_relevant_year():
     now = datetime.now()
     if now.month < 8:
         return now.year
-    else:
-        return now.year + 1  # next year
+    return now.year + 1  # next year
 
 
 def _compose_moon_url(track_id: int,
                       year: int = _get_relevant_year(),
                       faculty: int = 2,
-                      entity_id: int = 521,  # todo figure out if used
-                      chug_id: int = 521,  # todo figure out if used
-                      degree_code: int = 71  # todo figure out if used
+                      entity_id: int = 521,  # does not change the data we use
+                      chug_id: int = 521,  # does not change the data we use
+                      degree_code: int = 71  # does not change the data we use
                       ):
     """
-    :param faculty: Faculty code #todo list known codes
+    :param faculty: Faculty code, only `2` seems to work (?)
     :param entity_id: seems to be tied with chug_id
     :param track_id: the important part, seemingly the only one that matters.
      for extended CS major use 23010
@@ -271,9 +272,7 @@ class NoTrackParsedException(BaseException):
 
 
 def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
-        Tuple[Dict,
-              List[Dict],
-              List[int]]:
+        Tuple[Dict, List[Dict], List[int]]:
     """ parses a page from HUJI-MOON, see _compose_moon_url() """
     soup = BeautifulSoup(html_body, 'html.parser')
 
@@ -294,8 +293,12 @@ def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
     current_comment = None
     previous_type = None  # becomes current_type on 'וגם'
 
+    parsed_tracks_folder = PARSED_TRACKS_FOLDER_ROOT / str(data_year)
+    parsed_groups_folder = PARSED_GROUPS_FOLDER_ROOT / str(data_year)
+
     if dump:
-        for folder in [PARSED_TRACKS_FOLDER_PATH, PARSED_GROUPS_FOLDER_PATH]:
+        for folder in [PARSED_TRACKS_FOLDER_ROOT, PARSED_GROUPS_FOLDER_ROOT,
+                       parsed_tracks_folder, parsed_groups_folder]:
             folder.mkdir(parents=True, exist_ok=True)
 
     # parse track first
@@ -308,7 +311,9 @@ def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
                                                track_comment,
                                                data_year)
                 if dump:
-                    dump_json(track_values, str(PARSED_TRACKS_FOLDER_PATH / f"{track_id}.json"))
+                    dump_json(track_values,
+                              str(parsed_tracks_folder / f"{track_id}.json"),
+                              extend=True)
                 break
 
             except NotImplementedError as e:
@@ -324,7 +329,7 @@ def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
 
         if table.shape == (1, 1):  # one-cell table
             if txt in IGNORABLE_TITLES or 'סה"כ' in txt:
-                if txt in {'וגם', 'או'}:  # todo handle alternatives
+                if txt in {'וגם', 'או'}:
                     current_type = previous_type
                 continue
 
@@ -397,8 +402,8 @@ def parse_moon(html_body: str, track_id: int, data_year: int, dump: bool) -> \
             group_value_list.append(group_values)
             if dump:
                 dump_json(group_values,
-                                str(PARSED_GROUPS_FOLDER_PATH / 
-                                    f'{track_id}_y{current_year}_{index_in_track_year}.json'))
+                          str(parsed_groups_folder /
+                              f'{track_id}_y{current_year}_{index_in_track_year}.json'), True)
 
             current_comment = None  # reset after using in group_values
             index_in_track_year += 1
@@ -423,6 +428,9 @@ def parse_course_detail_page(html_body: str, data_year: int) -> Dict:
     :param data_year: year to which data is relevant
     :return: Course
     """
+    if html_body is None or len(html_body) == 0:
+        raise NothingToParseException("0-length html body")
+
     soup = BeautifulSoup(html_body, 'html5lib')
     try:
         raw_course_id = soup.find('span', {'id': 'lblCourseId'}).text
@@ -436,8 +444,10 @@ def parse_course_detail_page(html_body: str, data_year: int) -> Dict:
     try:
         points = float(soup.find('span', {'id': 'lblPoints'}).text)
     except AttributeError as e:
-        if course_id in {74101}:
+        if course_id in {74101, 71112, 71175}:  # courses know to have 0 points
             points = 0
+        elif course_id in {71923, 80875}:
+            points = 2
         else:
             raise e
 

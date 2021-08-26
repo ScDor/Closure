@@ -7,9 +7,9 @@ CURRENT_DIR = Path(__file__).parent
 import requests
 from bs4 import BeautifulSoup
 from urllib3.exceptions import NewConnectionError
-from .utils import dump_json
+from utils import dump_json
 
-CORNER_STONE_ID_FILENAME = "corner_stone_ids.json"
+CORNER_STONE_ID_FILENAME = "parsed_corner_stone_ids.json"
 CORNER_STONE_ID_FILE_PATH = CURRENT_DIR / CORNER_STONE_ID_FILENAME
 
 
@@ -64,14 +64,13 @@ def _parse_corner_stone_page(base_url: str, page_num: int = 0) -> List[int]:
     return course_ids
 
 
-def _parse_corner_stones(url: str) -> List[int]:
+def _parse_corner_stones(side_menu_url: str) -> List[int]:
     """
-    :param url: url to a page representing corner stone courses given by some faculty
+    :param side_menu_url: url to a page representing corner stone courses given by some faculty
     :return: list of integer course identifiers
     """
-    urls = _parse_side_menu_urls(url)
     result = []
-    for url in urls:
+    for url in _parse_side_menu_urls(side_menu_url):
         result += _parse_corner_stone_page(url)
     return result
 
@@ -95,7 +94,7 @@ def fetch_parse_corner_stones(id_file: Optional[str] = str(CORNER_STONE_ID_FILE_
     result.update(_parse_corner_stones(experimental))
     result.update(_parse_corner_stones(democracy))
 
-    dump_json(list(result), id_file)
+    dump_json(list(result), id_file, False)
 
 
 if __name__ == '__main__':

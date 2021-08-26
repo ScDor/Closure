@@ -108,7 +108,7 @@ class TrackViewSet(viewsets.ModelViewSet):
     queryset = Track.objects.all().order_by('track_number')
     serializer_class = TrackSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filter_fields = ('name', 'track_number')
+    filter_fields = ('name', 'data_year', 'track_number')
     pagination_class = ResultSetPagination
     search_fields = ('name', '^track_number')
 
