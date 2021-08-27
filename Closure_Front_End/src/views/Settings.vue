@@ -1,11 +1,11 @@
 <template>
   <div>
     <section class="section-style">
-      <div class="has-text-centered" v-if="loading">
-        <span>טוען נתונים</span>
-        <progress class="progress is-small is-primary" max="100">15%</progress>
-      </div>
 
+      <div class="has-text-centered" v-if="!student">
+        <h2 class="subtitle">טוען נתונים...</h2>
+        <progress class="progress is-primary max=100" >15%</progress>
+      </div>
       <div class="has-text-centered" v-if="error">
         <span>חלה שגיאה</span>
 
@@ -14,12 +14,17 @@
         </div>
       </div>
 
-      <!-- <span class="is-family-monospace" v-if="!loading">
-        ID Claims: {{ idClaims }}
-        Student: {{ student }}
-      </span> -->
+      <div v-if="idClaims">
+        <span>ID Claims:</span><br/>
+        <span class="is-family-monospace">{{ idClaims }}</span>
+      </div>
 
-      <div v-if="!loading && !error">
+      <div v-if="student">
+        <span>Student Object:</span><br/>
+        <span class="is-family-monospace">{{ student }}</span>
+      </div>
+      
+      <div v-if="!error && student">
         <user :idClaims="idClaims" :student="student" :saving="saving" @onSave="onSaveHandler"></user>
       </div>
     </section>
@@ -28,38 +33,21 @@
 
 <script>
 import User from "../components/User.vue";
-import { onMounted, reactive, inject, toRefs } from "vue";
+import { reactive, inject, toRefs } from "vue";
 
 export default {
   name: "Closure()",
   components: { User },
   setup() {
     const state = reactive({
-      loading: true,
       saving: false,
       error: null,
-      idClaims: null,
-      student: null
     });
 
     const http = inject("http");
-    const auth = inject("auth")
 
-    onMounted(async () => {
-      try {
-        const claims = await auth.getIdTokenClaims();
-        const student = (await http.get("student/me")).data;
-        window.student = student;
-        window.claims = claims;
-
-        state.idClaims = claims;
-        state.student = student;
-      } catch (exception) {
-        state.error = exception.toString();
-      } finally {
-        state.loading = false;
-      }
-    });
+    const { student, idClaims } = toRefs(inject("studentAndClaims"))
+    const setStudent = inject("setStudent");
 
     const onSaveHandler = async (event, newTrack) => {
       try {
@@ -69,7 +57,7 @@ export default {
           "courses": [],
           "track_pk": newTrack.pk
         });
-        state.student = response.data;
+        setStudent(response.data);
       } 
       catch (exception) {
         state.error = exception.toString();
@@ -79,7 +67,7 @@ export default {
       }
     };
 
-    return { ...toRefs(state), onSaveHandler}
+    return { ...toRefs(state), idClaims, student, onSaveHandler}
   }
 
 };
