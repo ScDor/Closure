@@ -28,8 +28,10 @@ export default {
 
   methods: {
     colorMatch() {
-      if (this.course.type == 1) return "must";
-      if (this.course.type == 2) return "choose_from_list";
+      if (this.course.type === "MUST") return "must";
+      if (this.course.type === "CHOOSE_FROM_LIST") return "choose_from_list";
+      if (this.course.type === "CORNER_STONE") return "corner_stone";
+      if (this.course.type === "SUPPLEMENTARY") return "supplementary";
       return "choice";
     },
   },
@@ -61,6 +63,14 @@ export default {
 
 .choose_from_list {
   color: #fbaf5d;
+}
+
+.corner_stone {
+  color: #69d85e;
+}
+
+.supplementary {
+  color: #bfbfbf;
 }
 
 .choice {

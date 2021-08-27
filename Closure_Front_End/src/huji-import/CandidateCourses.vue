@@ -17,12 +17,20 @@
     <strong>{{ambiguousCourses.length}}</strong>
     מהקורסים, יש לבחור ידנית את הסמסטר
   </div>
+  <div class="notification is-warning" v-if="!isTrackDefined">
+    לא הוגדר מסלול עבור המשתמש, אז סוגי הקורסים אינם מוגדרים.
+  </div>
+  <div class="notification" v-if="isTrackDefined">
+    סוגי הקורסים הם ביחס למסלול המוגדר אצל המשתמש, 
+    <strong>{{trackName}}</strong>
+  </div>
   <table class="table">
     <thead>
       <tr>
         <th>מספר קורס</th>
         <th>שם קורס</th>
         <th>נקודות זכות</th>
+        <th>סוג</th>
         <th>סמסטר</th>
       </tr>
     </thead>
@@ -32,6 +40,7 @@
         <td>{{ course.course_id }}</td>
         <td>{{ course.name }}</td>
         <td>{{ course.points }}</td>
+        <td>{{ displayCourseType(course) }}</td>
         <td>
             <div class="control">
             <label class="radio">
@@ -83,6 +92,15 @@
 
 <script>
 import { courses as currentCourses } from '@/course-store.js'
+
+const MODEL_COURSE_TYPE_TO_STRING = new Map([
+  ["MUST", "חובה"],
+  ["CHOICE", "בחירה"],
+  ["CHOOSE_FROM_LIST", "בחירה מרשימה"],
+  ["CORNER_STONE", "אבן פינה"],
+  ["SUPPLEMENTARY", "משלים"]
+])
+
 export default {
   props: {
     courses: Array,
@@ -105,8 +123,25 @@ export default {
      */
     currentlySavedCoursesCount() {
       return currentCourses.length
+    },
+
+    isTrackDefined() {
+      return !!this.studentAndClaims.student.track
+    },
+
+    trackName() {
+      return this.studentAndClaims.student.track?.name ?? "לא מוגדר"
     }
   },
+  methods: {
+    displayCourseType(course) {
+      if (!MODEL_COURSE_TYPE_TO_STRING.has(course.type)) {
+        return "לא ידוע";
+      }
+      return MODEL_COURSE_TYPE_TO_STRING.get(course.type);
+    }
+  },
+  inject: ['studentAndClaims'],
   data() { return {
     importMode: 'combine'
   }

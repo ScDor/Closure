@@ -30,7 +30,7 @@ const processCourses = async (parsedCourses, http) => {
             console.error(res.data.results)
         }
         const gottenCourse = res.data.results[0]
-        const finalCourse = { ... course, name: gottenCourse.name }
+        const finalCourse = { ... course, name: gottenCourse.name, type: gottenCourse.type }
         if (["FIRST", "SECOND"].includes(gottenCourse.semester)) {
             if (course.semester && course.semester !== gottenCourse.semester) {
               console.warn(`Course ${course.course_id} - ${course.name} at year ${course.year} is offered only in semester `
