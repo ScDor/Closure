@@ -18,10 +18,12 @@
     מהקורסים, יש לבחור ידנית את הסמסטר
   </div>
   <div class="notification is-warning" v-if="!isTrackDefined">
-    לא הוגדר מסלול עבור המשתמש, אז סוגי הקורסים אינם מוגדרים.
+    לא הגדרת מסלול לימודים, אז אנחנו לא יכולים להסיק את סוגי הקורסים (חובה, חובת בחירה..) - מומלץ לבחור מסלול 
+    <router-link to="/settings"> בהגדרות </router-link>
+    כדי לתכנן את הלימודים.
   </div>
   <div class="notification" v-if="isTrackDefined">
-    סוגי הקורסים הם ביחס למסלול המוגדר אצל המשתמש, 
+    סוגי הקורסים הם ביחס למסלול הלימודים שבחרת,
     <strong>{{trackName}}</strong>
   </div>
   <table class="table">
@@ -96,9 +98,9 @@ import { courses as currentCourses } from '@/course-store.js'
 const MODEL_COURSE_TYPE_TO_STRING = new Map([
   ["MUST", "חובה"],
   ["CHOICE", "בחירה"],
-  ["CHOOSE_FROM_LIST", "בחירה מרשימה"],
+  ["CHOOSE_FROM_LIST", "חובת בחירה"],
   ["CORNER_STONE", "אבן פינה"],
-  ["SUPPLEMENTARY", "משלים"]
+  ["SUPPLEMENTARY", "לימודים משלימים"]
 ])
 
 export default {

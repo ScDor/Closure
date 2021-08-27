@@ -24,7 +24,7 @@
 
         <li>
 
-          <label class="menu-label">מחזור(שנתון)</label>
+          <label class="menu-label">שנת תחילת לימודים</label>
           <year-selection v-model="selectedYear" @update:modelValue="() => newTrack = null"/>
         </li>
 
@@ -43,7 +43,9 @@
 
         <li>
           <div class="control">
-            <button :disabled="!newTrack" class="button menu-label is-dark" :class="{'is-loading': saving}" @click="$emit('onSave', $event, newTrack)">שמור</button>
+            <button :disabled="!newTrack" class="button menu-label is-dark" :class="{'is-loading': saving}" @click="$emit('onSave', $event, newTrack)">
+              שמירה
+            </button>
           </div>
         </li>
       </ul>

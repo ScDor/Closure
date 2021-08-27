@@ -2,14 +2,14 @@
 <template>
   <year-selection label="גרסת שנתון" v-model="selectedYear" />
   <search-bar
-    :placeholder="'חפש מסלול'"
+    placeholder="חיפוש מסלול"
     :url="`tracks/?limit=6&offset=15&data_year=${selectedYear}&search=`"
     v-model="selectedTrack"
     :resultToString="track => track.name"
   ></search-bar>
 
   <search-bar
-    :placeholder="'חפש קורס'"
+    placeholder="חיפוש קורס"
     :url="`tracks/${selectedTrack?.pk ?? 'null'}/courses/?limit=6&offset=15&data_year=${selectedYear}&search=`"
     @update:modelValue="emitCourseClick"
     :resultToString="course => course.name"
