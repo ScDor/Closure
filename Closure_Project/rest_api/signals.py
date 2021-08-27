@@ -10,4 +10,5 @@ from django.contrib.auth.models import User
 @receiver(post_save, sender=User)
 def create_student(sender, instance: User, created, **kwargs):
     if created:
-        Student.objects.create(user=instance)
+        student = Student.objects.create(user=instance)
+        student.save()
