@@ -1,16 +1,19 @@
   <!-- we will bind every key movement to the searchCourses method so it will update immediately -->
 <template>
-  <year-selection v-model="selectedYear" />
+  <year-selection label="גרסת שנתון" v-model="selectedYear" />
   <search-bar
     :placeholder="'חפש מסלול'"
     :url="`tracks/?limit=6&offset=15&data_year=${selectedYear}&search=`"
-    @clicksuggestion="emitTrackClick"
+    v-model="selectedTrack"
+    :resultToString="track => track.name"
   ></search-bar>
 
   <search-bar
     :placeholder="'חפש קורס'"
     :url="`courses/?limit=6&offset=15&data_year=${selectedYear}&search=`"
-    @clicksuggestion="emitCourseClick"
+    @update:modelValue="emitCourseClick"
+    :resultToString="course => course.name"
+    :clearOnSelect="true"
   ></search-bar>
 
   
@@ -26,19 +29,16 @@ export default {
   components: { YearSelection, SearchBar, ProgressBox },
   data() {
     return {
-      "selectedYear": 2022
+      "selectedYear": 2022,
+      "selectedTrack": null
     }
   },
-  emits: ["clickcourse"],
+  emits: ["clickCourse"],
   props: ["allcourses"],
 
   methods: {
-    emitCourseClick(event, course) {
-      this.$emit("clickcourse", event, course);
-    },
-
-    emitTrackClick(event, track) {
-      this.$emit("clicktrack", event, track);
+    emitCourseClick(course) {
+      this.$emit("clickCourse", course);
     },
   },
 };

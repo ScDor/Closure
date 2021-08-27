@@ -1,6 +1,6 @@
 <template>
   <div class="field">
-    <label class="label">גרסאת שנתון</label>
+    <label class="label" v-if="label">{{label}}</label>
     <div class="control">
       <div class="select">
         <select
@@ -16,7 +16,7 @@
 
 <script>
 export default {
-  props: ["modelValue"],
+  props: ["modelValue", "label"],
   emits: ["update:modelValue"],
   data() {
     return {
