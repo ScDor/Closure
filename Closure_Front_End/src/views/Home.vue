@@ -44,66 +44,13 @@ export default {
         { id: 3, name: "שנה ג" },
         { id: 4, name: "שנה ד" }
       ],
-      username: "placehoder",
-      student: {
-        username: "string",
-        track_pk: 28,
-        year_in_studies: 1,
-        courses: [
-          {
-            pk: 0,
-            year_in_studies: 1,
-            semester: "FIRST"
-          }
-        ]
-      },
       courses
     };
-  },
-
-  created() {
-    if (this.$auth.isAuthenticated.value) {
-      this.$auth.getIdTokenClaims().then(console.log, console.error);
-      this.$http.get("tracks/?track_number=3010").then(response => {
-        this.track = response.data.results[0];
-      });
-    }
   },
   methods: {
     moveCourse,
     deleteCourse,
     addCourse,
-    getUsername() {
-      return this.$auth.getIdTokenClaims().then(response => response.nickname);
-    },
-
-    /** fetch all student's courses from the DB and store them in allcourses */
-    createAllCourses(student) {
-      for (const course of student.courses) {
-        const course_info = course.course;
-        this.allcourses.push({
-          pk: course.pk,
-          course_id: course_info.course_id,
-          name: course_info.name,
-          semester: this.getSemester(course_info),
-          year: course.year_in_studies,
-          points: course.course.points,
-          type: this.getType(course)
-        });
-      }
-    },
-
-    getSemester(course) {
-      if (course.semester == "FIRST") return 1;
-      return 2;
-    },
-
-    getType(course) {
-      console.log(course);
-      if (course.type == "MUST") return 1;
-      if (course.type == "CHOOSE_FROM_LIST") return 2;
-      return 3;
-    }
   }
 };
 </script>
