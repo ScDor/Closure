@@ -9,7 +9,7 @@ import { ScrapeError } from "./course-scrape-errors.js"
 
 
 /** @type {string} */
-export const FRONTEND_ORIGIN = import.meta.env.VITE_AUTH0_REDIRECT_URI
+export const FRONTEND_ORIGIN = new URL(import.meta.env.VITE_AUTH0_REDIRECT_URI).origin
 
 
 const HOOKING_TIMEOUT_MS = 3000
@@ -94,7 +94,7 @@ export function install() {
     const hookedPromise = new Promise(resolve => {
         /** @type {(event: MessageEvent) => void }*/
         const messageHandler = (event) => {
-            if (event.origin != FRONTEND_ORIGIN) {
+            if (new URL(event.origin).origin !== FRONTEND_ORIGIN) {
                 console.warn(`got a message from an unknown origin ${event.origin}, expected origin ${FRONTEND_ORIGIN}`)
                 return
             }

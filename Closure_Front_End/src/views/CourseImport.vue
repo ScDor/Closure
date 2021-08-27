@@ -56,8 +56,8 @@ import { API_SEMESTER_TO_PROP_INT } from "@/utils.js";
 const HUJI_ORIGIN = "https://www.huji.ac.il";
 
 const ALLOWED_MESSAGE_ORIGINS = [
-  HUJI_ORIGIN,
-  `${location.protocol}//${location.host}`
+  new URL(HUJI_ORIGIN).origin,
+  new URL(`${location.protocol}//${location.host}`).origin
 ];
 
 
@@ -90,7 +90,7 @@ export default {
 
     },
     handleEvent(event) {
-      if (!ALLOWED_MESSAGE_ORIGINS.includes(event.origin)) {
+      if (!ALLOWED_MESSAGE_ORIGINS.includes(new URL(event.origin).origin)) {
         console.warn(
           `Received window event ${JSON.stringify(
             event

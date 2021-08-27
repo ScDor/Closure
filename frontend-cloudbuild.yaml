@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-
 # !!!!! WARNING !!!!!
 # Running this build script WILL DELETE all bucket contents
 # passed within $FRONTEND_BUCKET_NAME
@@ -21,14 +19,21 @@
 # !!!!!!!!!!!!!!!!!!!
 
 steps:
+  - id: "Set CORS for frontend bucket"
+    name: "gcr.io/cloud-builders/gsutil"
+    args:
+      [
+        "cors",
+        "set",
+        "./Closure_Front_End/cors.json",
+        "gs://${_FRONTEND_BUCKET_NAME}",
+      ]
+
   - id: "pull cached image"
     name: "gcr.io/cloud-builders/docker"
     entrypoint: "bash"
     args:
-      [
-        "-c",
-        "docker pull gcr.io/${PROJECT_ID}/${_IMAGE_NAME}:latest || exit 0",
-      ]
+      ["-c", "docker pull gcr.io/${PROJECT_ID}/${_IMAGE_NAME}:latest || exit 0"]
 
   - id: "build image"
     name: "gcr.io/cloud-builders/docker"
@@ -49,7 +54,7 @@ steps:
   # see https://stackoverflow.com/questions/22049212/docker-copying-files-from-docker-container-to-host
   # for explanation about the following 2 steps
   - id: "create container for export"
-    name: "gcr.io/cloud-builders/docker" 
+    name: "gcr.io/cloud-builders/docker"
     args:
       [
         "create",
@@ -57,27 +62,36 @@ steps:
         "--name",
         "tempContainer",
         "gcr.io/${PROJECT_ID}/${_IMAGE_NAME}:$COMMIT_SHA",
-        "bash"
+        "bash",
       ]
 
   - id: "copy build artifacts from docker to cloudrun workspace"
-    name: "gcr.io/cloud-builders/docker" 
-    args:
-      [
-        "cp",
-        "tempContainer:/app/dist",
-        "/workspace/dist"
-      ]
-    
+    name: "gcr.io/cloud-builders/docker"
+    args: ["cp", "tempContainer:/app/dist", "/workspace/dist"]
 
   - id: "copy site artifacts to GCS, overwriting previous contents"
-    name: 'gcr.io/cloud-builders/gsutil'
-    args:
-      [
-        "-m", "rsync", "-r",
+    name: "gcr.io/cloud-builders/gsutil"
+    args: [
+        "-m",
+        # by default, do not cache anything
+        "-h",
+        "Cache-Control:no-store, max-age=0, no-transform",
+        "rsync",
+        "-r",
         "-d",
         "/workspace/dist",
-        "gs://${_FRONTEND_BUCKET_NAME}"
+        "gs://${_FRONTEND_BUCKET_NAME}",
+      ]
+
+  - id: "enable caching for assets which have chunk-hashes"
+    name: "gcr.io/cloud-builders/gsutil"
+    args:
+      [
+        "-m",
+        "setmeta",
+        "-h",
+        "Cache-Control:public, max-age=31536000, immutable",
+        "gs://${_FRONTEND_BUCKET_NAME}/**.hash-*.*",
       ]
 
 substitutions:
@@ -86,4 +100,3 @@ substitutions:
 
 images:
   - "gcr.io/${PROJECT_ID}/${_IMAGE_NAME}:$COMMIT_SHA"
-
