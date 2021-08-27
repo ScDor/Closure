@@ -2,6 +2,7 @@
   <div class="control has-icons-right">
     <input
       class="input is-dark"
+      :disabled="disabled"
       :placeholder="placeholder"
       v-model="query"
       @keyup="search"
@@ -37,6 +38,10 @@ export default {
     resultToString: {
       type: Function,
       default: obj => obj.toString()
+    },
+    disabled: {
+      type: Boolean,
+      default: false
     },
     // if set, this will clear the query(and the backed model) upon selection.
     // This effectivelly disables two-way dataflow, requiring you to use "update:modelValue" event only,

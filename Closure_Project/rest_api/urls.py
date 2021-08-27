@@ -1,6 +1,7 @@
 from django.urls import include, path
 from drf_yasg.views import get_schema_view
 from rest_framework import routers, permissions
+from rest_framework_nested import routers
 from drf_yasg import openapi
 from django.conf.urls import url
 from . import views
@@ -10,6 +11,10 @@ router.register(r'courses', views.CourseViewSet)
 router.register(r'course_groups', views.CourseGroupViewSet)
 router.register(r'students', views.StudentGroupViewSet)
 router.register(r'tracks', views.TrackViewSet)
+
+course_tracks_router = routers.NestedSimpleRouter(router, r'tracks', lookup='track')
+course_tracks_router.register(r'courses', views.TrackCoursesViewSet)
+
 router.register(r'student/me', views.StudentMeViewSet, basename='Student')
 router.register(r'track_courses', views.MyTrackCourses, basename='Course')
 
@@ -30,6 +35,7 @@ schema_view = get_schema_view(
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
     path('api/v1/', include(router.urls)),
+    path('api/v1/', include(course_tracks_router.urls)),
     url(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     url(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     url(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),

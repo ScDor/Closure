@@ -10,10 +10,11 @@
 
   <search-bar
     :placeholder="'חפש קורס'"
-    :url="`courses/?limit=6&offset=15&data_year=${selectedYear}&search=`"
+    :url="`tracks/${selectedTrack?.pk ?? 'null'}/courses/?limit=6&offset=15&data_year=${selectedYear}&search=`"
     @update:modelValue="emitCourseClick"
     :resultToString="course => course.name"
     :clearOnSelect="true"
+    :disabled="!selectedTrack"
   ></search-bar>
 
   

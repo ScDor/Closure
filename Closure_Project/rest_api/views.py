@@ -7,7 +7,9 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 
-from .models import Course, Student, CourseGroup, Track, Take
+
+from rest_framework_nested.viewsets import NestedViewSetMixin
+from .models import Course, CourseType, Student, CourseGroup, Track, Take
 from .pagination import ResultSetPagination
 
 from .serializers.CourseSerializer import CourseSerializer
@@ -26,6 +28,15 @@ class CourseViewSet(viewsets.ModelViewSet):
     pagination_class = ResultSetPagination
     search_fields = ('name', '^course_id')
 
+class TrackCoursesViewSet(CourseViewSet, NestedViewSetMixin):
+    filter_fields = CourseViewSet.filter_fields + ('coursegroup__course_type', )
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            relevant_cgs = CourseGroup.objects.all()
+        else:
+            relevant_cgs = CourseGroup.objects.filter(track=self.kwargs['track_pk'])
+        courses = Course.objects.filter(coursegroup__in=relevant_cgs)
+        return courses
 
 class MyTrackCourses(viewsets.ModelViewSet):
     def _get_queryset(self, only_must: bool):
