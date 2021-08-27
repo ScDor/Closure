@@ -31,7 +31,7 @@
         <li>
           <label class="menu-label">בחר מסלול מרשימה</label>
           <div class="control" >
-            <Multiselect
+            <multiselect
               placeholder="חיפוש מסלול"
               v-model="newTrack"
               searchable

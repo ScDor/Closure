@@ -4,7 +4,7 @@
   <div class="field">
     <label class="label">מסלול</label>
     <div class="control" dir="rtl">
-      <Multiselect
+      <multiselect
         placeholder="חיפוש מסלול"
         v-model="selectedTrack"
         searchable
@@ -19,16 +19,15 @@
   <div class="field">
     <label class="label">קורס</label>
     <div class="control" dir="rtl">
-      <Multiselect
+      <multiselect
         placeholder="חיפוש קורס"
         searchable
-        @update:modelValue="selectCourseHandler"
+        @update:modelValue="selectCourse"
         :disabled="!selectedTrack"
         :delay="0"
         :minChars="1"
         :resolveOnLoad="false"
         :options="fetchCourses"
-        ref="courseMultiselect"
       />
     </div>
   </div>
@@ -62,10 +61,6 @@ export default {
       const url = `tracks/${this.selectedTrack?.pk ?? 'null'}/courses/?limit=6&offset=15&data_year=${this.selectedYear}&search=${query}`;
       return await fetchDjangoListIntoSelectOptions(this.http, url, course => course.name);
     },
-    selectCourseHandler(course) {
-      // this.$refs.courseMultiselect.clear();
-      this.selectCourse(course);
-    }
   }
 };
 </script>

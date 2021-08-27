@@ -7,8 +7,8 @@
             <navigation
               :allcourses="courses"
             />
-            <CourseDetail :course="selectedCourse" v-if="selectedCourse" />
-            <ProgressBox :allcourses="courses" />
+            <course-detail :course="selectedCourse" v-if="selectedCourse" />
+            <progress-box :allcourses="courses" />
           </div>
           <div class="column" v-for="year in years" :key="year">
             <year :year="year" />
