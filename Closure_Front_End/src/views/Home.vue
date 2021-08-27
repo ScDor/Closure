@@ -6,7 +6,7 @@
           <div class="column is-2 is-right is-hidden-mobile is-hidden-touch">
             <navigation
               :allcourses="courses"
-              @clickCourse="addCourse"
+              @selectCourse="addCourse"
             ></navigation>
           </div>
           <div class="column" v-for="year in years" :key="year">

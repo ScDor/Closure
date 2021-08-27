@@ -1,46 +1,74 @@
-  <!-- we will bind every key movement to the searchCourses method so it will update immediately -->
 <template>
+  <h2 class="subtitle is-2">הוספת קורסים</h2>
   <year-selection label="גרסת שנתון" v-model="selectedYear" />
-  <search-bar
-    placeholder="חיפוש מסלול"
-    :url="`tracks/?limit=6&offset=15&data_year=${selectedYear}&search=`"
-    v-model="selectedTrack"
-    :resultToString="track => track.name"
-  ></search-bar>
+  <div class="field">
+    <label class="label">מסלול</label>
+    <div class="control" dir="rtl">
+      <Multiselect
+        placeholder="חיפוש מסלול"
+        v-model="selectedTrack"
+        searchable
+        :delay="0"
+        :minChars="1"
+        :resolveOnLoad="false"
+        :options="fetchTracks"
+      />
+    </div>
+  </div>
 
-  <search-bar
-    placeholder="חיפוש קורס"
-    :url="`tracks/${selectedTrack?.pk ?? 'null'}/courses/?limit=6&offset=15&data_year=${selectedYear}&search=`"
-    @update:modelValue="emitCourseClick"
-    :resultToString="course => course.name"
-    :clearOnSelect="true"
-    :disabled="!selectedTrack"
-  ></search-bar>
+  <div class="field">
+    <label class="label">קורס</label>
+    <div class="control" dir="rtl">
+      <Multiselect
+        placeholder="חיפוש קורס"
+        v-model="selectedCourse"
+        searchable
+        :disabled="!selectedTrack"
+        :delay="0"
+        :minChars="1"
+        :resolveOnLoad="false"
+        :options="fetchCourses"
+        @update:modelValue="course => $emit('selectCourse', course)"
+      />
+    </div>
+  </div>
 
-  
   <ProgressBox :allcourses = "allcourses"/>
 </template>
 
 <script>
 import YearSelection from './YearSelection.vue'
-import SearchBar from "./SearchBar.vue";
 import ProgressBox from "./ProgressBox.vue";
+import Multiselect from '@vueform/multiselect';
+import { fetchDjangoListIntoSelectOptions } from '@/utils.js';
 
 export default {
-  components: { YearSelection, SearchBar, ProgressBox },
+  components: { YearSelection, ProgressBox, Multiselect },
   data() {
     return {
       "selectedYear": 2022,
-      "selectedTrack": null
+      "selectedTrack": null,
+      "selectedCourse": null,
+      "value": null
     }
   },
-  emits: ["clickCourse"],
+  emits: ["selectCourse"],
   props: ["allcourses"],
+  inject: ["http"],
 
   methods: {
     emitCourseClick(course) {
       this.$emit("clickCourse", course);
     },
-  },
+    async fetchTracks(query) {
+      const url = `tracks/?limit=6&offset=15&data_year=${this.selectedYear}&search=${query}`;
+      return await fetchDjangoListIntoSelectOptions(this.http, url, track => track.name);
+    },
+    async fetchCourses(query) {
+      const url = `tracks/${this.selectedTrack?.pk ?? 'null'}/courses/?limit=6&offset=15&data_year=${this.selectedYear}&search=${query}`;
+      return await fetchDjangoListIntoSelectOptions(this.http, url, course => course.name);
+    }
+  }
 };
 </script>
+<style src="@vueform/multiselect/themes/default.css"></style>

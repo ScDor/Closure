@@ -29,15 +29,17 @@
         </li>
 
         <li>
-
           <label class="menu-label">בחר מסלול מרשימה</label>
-          <div class="control">
-            <!-- <input class="input is-dark" type="text" /> -->
-            <search-bar
-              :url="`http://127.0.0.1:8000/api/v1/tracks/?limit=6&offset=15&data_year=${selectedYear}&search=`"
-              :resultToString="track => track.name"
+          <div class="control" >
+            <Multiselect
+              placeholder="חיפוש מסלול"
               v-model="newTrack"
-            ></search-bar>
+              searchable
+              :delay="0"
+              :minChars="1"
+              :resolveOnLoad="false"
+              :options="fetchTracks"
+            />
           </div>
         </li>
 
@@ -54,8 +56,9 @@
 </template>
 
 <script>
-import SearchBar from "./SearchBar.vue";
 import YearSelection from './YearSelection.vue'
+import Multiselect from '@vueform/multiselect';
+import { fetchDjangoListIntoSelectOptions } from '@/utils.js';
 
 export default {
   props: {
@@ -64,7 +67,8 @@ export default {
     saving: Boolean
   },
   emits: [ "onSave" ],
-  components: { SearchBar, YearSelection },
+  components: { YearSelection, Multiselect},
+  inject: [ "http"],
 
   data() {
     return {
@@ -79,6 +83,13 @@ export default {
         return this.student.track.name;
       }
       return "לא ידוע";
+    }
+  },
+
+  methods: {
+    async fetchTracks(query) {
+      const url = `tracks/?limit=6&offset=15&data_year=${this.selectedYear}&search=${query}`;
+      return await fetchDjangoListIntoSelectOptions(this.http, url, track => track.name);
     }
   }
 };
@@ -126,3 +137,4 @@ export default {
   margin: 0.75rem;
 }
 </style>
+<style src="@vueform/multiselect/themes/default.css"></style>

@@ -1,8 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-
-
 import { setupAuth } from './auth'
 
 let app = createApp(App).use(router)
