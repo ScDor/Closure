@@ -94,14 +94,7 @@
 
 <script>
 import { courses as currentCourses } from '@/course-store.js'
-
-const MODEL_COURSE_TYPE_TO_STRING = new Map([
-  ["MUST", "חובה"],
-  ["CHOICE", "בחירה"],
-  ["CHOOSE_FROM_LIST", "חובת בחירה"],
-  ["CORNER_STONE", "אבן פינה"],
-  ["SUPPLEMENTARY", "לימודים משלימים"]
-])
+import { MODEL_COURSE_TYPE_TO_STRING } from '@/utils.js'
 
 export default {
   props: {

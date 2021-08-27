@@ -25,6 +25,26 @@ export function groupBy(xs, key) {
   }, {});
 }
 
+export const MODEL_COURSE_TYPE_TO_STRING = new Map([
+  ["MUST", "חובה"],
+  ["CHOICE", "בחירה"],
+  ["CHOOSE_FROM_LIST", "חובת בחירה"],
+  ["CORNER_STONE", "אבן פינה"],
+  ["SUPPLEMENTARY", "לימודים משלימים"]
+]);
+
+export const MODEL_SEMESTER_TO_STRING = new Map([
+    ['FIRST', "ראשון"],
+    ['SECOND', "שני"],
+    ['SUMMER', "קיץ"],
+    ['EITHER', "כל"],
+    ['ANNUAL', "שנתי"],
+    // TODO: standardize model types in the code to avoid this
+    // duplictation
+    [1, "ראשון"],
+    [2, "שני"]
+]);
+
 /**
  * A function used to query a list endpoint from Django Rest Framework(DRF), 
  * and return an array of objects suitable for passing into Multiselect component 'options'.

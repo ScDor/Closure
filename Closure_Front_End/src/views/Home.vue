@@ -6,8 +6,9 @@
           <div class="column is-2 is-right is-hidden-mobile is-hidden-touch">
             <navigation
               :allcourses="courses"
-              @selectCourse="addCourse"
-            ></navigation>
+            />
+            <CourseDetail :course="selectedCourse" v-if="selectedCourse" />
+            <ProgressBox :allcourses="courses" />
           </div>
           <div class="column" v-for="year in years" :key="year">
             <year :year="year" />
@@ -26,6 +27,8 @@
 <script>
 import Year from "../components/Year.vue";
 import Navigation from "../components/Navigation.vue";
+import CourseDetail from '../components/CourseDetail.vue';
+import ProgressBox from "../components/ProgressBox.vue";
 import {
   courses,
   moveCourse,
@@ -35,7 +38,7 @@ import {
 
 export default {
   name: "Closure()",
-  components: { Navigation, Year },
+  components: { Year, Navigation, CourseDetail, ProgressBox },
   data() {
     return {
       years: [
@@ -44,13 +47,21 @@ export default {
         { id: 3, name: "שנה ג" },
         { id: 4, name: "שנה ד" }
       ],
-      courses
+      courses,
+      selectedCourse: null
     };
   },
   methods: {
     moveCourse,
     deleteCourse,
     addCourse,
+  },
+  provide() {
+    return {
+      selectCourse: (course) => {
+        this.selectedCourse = course;
+      }
+    };
   }
 };
 </script>

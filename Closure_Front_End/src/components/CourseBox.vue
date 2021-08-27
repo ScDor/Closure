@@ -25,7 +25,7 @@
 <script>
 export default {
   props: ["course"],
-
+  emits: ['clickclose'],
   methods: {
     colorMatch() {
       if (this.course.type === "MUST") return "must";

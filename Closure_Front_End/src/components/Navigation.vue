@@ -21,41 +21,35 @@
     <div class="control" dir="rtl">
       <Multiselect
         placeholder="חיפוש קורס"
-        v-model="selectedCourse"
         searchable
+        @update:modelValue="selectCourseHandler"
         :disabled="!selectedTrack"
         :delay="0"
         :minChars="1"
         :resolveOnLoad="false"
         :options="fetchCourses"
-        @update:modelValue="course => $emit('selectCourse', course)"
+        ref="courseMultiselect"
       />
     </div>
   </div>
-
-  <ProgressBox :allcourses = "allcourses"/>
 </template>
 
 <script>
 import YearSelection from './YearSelection.vue'
-import ProgressBox from "./ProgressBox.vue";
 import Multiselect from '@vueform/multiselect';
 import { fetchDjangoListIntoSelectOptions } from '@/utils.js';
 
 export default {
-  components: { YearSelection, ProgressBox, Multiselect },
+  components: { YearSelection, Multiselect },
   data() {
     return {
       "selectedYear": 2022,
       "selectedTrack": null,
-      "selectedCourse": null,
       "value": null
     }
   },
-  emits: ["selectCourse"],
   props: ["allcourses"],
-  inject: ["http"],
-
+  inject: ["http", "selectCourse"],
   methods: {
     emitCourseClick(course) {
       this.$emit("clickCourse", course);
@@ -67,6 +61,10 @@ export default {
     async fetchCourses(query) {
       const url = `tracks/${this.selectedTrack?.pk ?? 'null'}/courses/?limit=6&offset=15&data_year=${this.selectedYear}&search=${query}`;
       return await fetchDjangoListIntoSelectOptions(this.http, url, course => course.name);
+    },
+    selectCourseHandler(course) {
+      // this.$refs.courseMultiselect.clear();
+      this.selectCourse(course);
     }
   }
 };
