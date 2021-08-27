@@ -13,8 +13,8 @@ describe('App.vue', () => {
 
   const mountOptions = {
       global: {
-        mocks: {
-          $auth: authMock
+        provide: {
+          auth: authMock
         }
       }
   }

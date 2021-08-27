@@ -1,6 +1,6 @@
 from django.urls import include, path
 from drf_yasg.views import get_schema_view
-from rest_framework import routers, permissions
+from rest_framework import permissions
 from rest_framework_nested import routers
 from drf_yasg import openapi
 from django.conf.urls import url
