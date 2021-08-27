@@ -68,7 +68,7 @@ export default {
       this.$auth
         .getIdTokenClaims()
         .then((response) => (this.username = response.nickname));
-      this.$http.get(`students/${this.username}`)
+      this.$http.get(`student/me`)
         .then((response) => this.student = response);
     }
   },

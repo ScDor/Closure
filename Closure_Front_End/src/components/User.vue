@@ -1,12 +1,19 @@
 <template>
   <div class="user" dir="rtl">
     <div class="notification has-text-centered">
+      <figure class="image container is-128x128" v-if="idClaims.picture">
+        <img class="is-rounded" :src="idClaims.picture">
+      </figure>
       <label class="menu-label"><b>הגדרות</b></label>
       <ul class="menu-list">
         <li>
           <label class="menu-label">שם משתמש</label>
+          <div class="field">{{ student.username }}</div>
+        </li>
 
-          <div class="field">{{ username }}</div>
+        <li>
+          <label class="menu-label">שם</label>
+          <div class="field">{{ idClaims.name }}</div>
         </li>
 
         <li>
@@ -14,19 +21,29 @@
           <div class="field">מסלול</div>
         </li>
 
+
         <li>
+
+          <label class="menu-label">מחזור(שנתון)</label>
+          <year-selection v-model="selectedYear" @update:modelValue="() => newTrack = null"/>
+        </li>
+
+        <li>
+
           <label class="menu-label">בחר מסלול מרשימה</label>
           <div class="control">
             <!-- <input class="input is-dark" type="text" /> -->
             <search-bar
-              :url="'http://127.0.0.1:8000/api/v1/courses/?limit=6&offset=15&search='"
+              :url="`http://127.0.0.1:8000/api/v1/tracks/?limit=6&offset=15&data_year=${selectedYear}&search=`"
+              :resultToString="track => track.name"
+              v-model="newTrack"
             ></search-bar>
           </div>
         </li>
 
         <li>
           <div class="control">
-            <button class="button menu-label is-dark">שמור</button>
+            <button :disabled="!newTrack" class="button menu-label is-dark" :class="{'is-loading': saving}" @click="$emit('onSave', $event, newTrack)">שמור</button>
           </div>
         </li>
       </ul>
@@ -36,14 +53,22 @@
 
 <script>
 import SearchBar from "./SearchBar.vue";
+import YearSelection from './YearSelection.vue'
 
 export default {
-  props: ["username"],
-
-  components: { SearchBar },
+  props: {
+    idClaims: Object,
+    student: Object,
+    saving: Boolean
+  },
+  emits: [ "onSave" ],
+  components: { SearchBar, YearSelection },
 
   data() {
-    return {};
+    return {
+      newTrack: null,
+      selectedYear: 2022
+    };
   },
 };
 </script>

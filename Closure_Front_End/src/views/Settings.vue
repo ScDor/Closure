@@ -1,45 +1,86 @@
 <template>
   <div>
     <section class="section-style">
-      <user :username="name"></user>
+      <div class="has-text-centered" v-if="loading">
+        <span>טוען נתונים</span>
+        <progress class="progress is-small is-primary" max="100">15%</progress>
+      </div>
+
+      <div class="has-text-centered" v-if="error">
+        <span>חלה שגיאה</span>
+
+        <div class="notification is-danger">
+          <p>{{error}}</p>
+        </div>
+      </div>
+
+      <!-- <span class="is-family-monospace" v-if="!loading">
+        ID Claims: {{ idClaims }}
+        Student: {{ student }}
+      </span> -->
+
+      <div v-if="!loading && !error">
+        <user :idClaims="idClaims" :student="student" :saving="saving" @onSave="onSaveHandler"></user>
+      </div>
     </section>
   </div>
 </template>
 
 <script>
 import User from "../components/User.vue";
+import { onMounted, reactive, inject, toRefs } from "vue";
 
 export default {
   name: "Closure()",
   components: { User },
-  data() {
-    return {
-      username: "",
-      name: "placeholder",
+  setup() {
+    const state = reactive({
+      loading: true,
+      saving: false,
+      error: null,
+      idClaims: null,
+      student: null
+    });
+
+    const http = inject("http");
+    const auth = inject("auth")
+
+    onMounted(async () => {
+      try {
+        const claims = await auth.getIdTokenClaims();
+        const student = (await http.get("student/me")).data;
+        window.student = student;
+        window.claims = claims;
+
+        state.idClaims = claims;
+        state.student = student;
+      } catch (exception) {
+        state.error = exception.toString();
+      } finally {
+        state.loading = false;
+      }
+    });
+
+    const onSaveHandler = async (event, newTrack) => {
+      try {
+        state.saving = true;
+        console.log('new track', newTrack)
+        // const res = await http.post("student/me", {
+        //   ...state.student, newTrack
+        // });
+        // console.log("post response", res)
+      } 
+      catch (exception) {
+        state.error = exception.toString();
+      }
+      finally {
+        state.saving = false;
+      }
     };
-  },
-  created() {
-    if (this.$auth.isAuthenticated.value) {
-      this.$auth.getIdTokenClaims().then((response) => this.name = response.nickname);
 
-    //   this.username = this.$auth
-    //     .getIdTokenClaims()
-    //     .then((response) => JSON.json(response));
-    //   this.name = this.$auth
-    //     .getIdTokenClaims()
-    //     .then((response) => response.name);
-    //   console.log(this.username);
+    return { ...toRefs(state), onSaveHandler}
+  }
 
-      /**get username */
-      //   axios
-      //     .get("http://127.0.0.1:8000/api/v1/tracks/?track_number=3010", {
-      //       headers: {
-      //         Authorization: "Token 425fa39de10f02351c7043d0dbe34a4b31be7a27",
-      //       },
-      //     })
-      //     .then((response) => (this.track = response.data.results[0]));
-    }
-  },
 };
 </script>
 
