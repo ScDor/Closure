@@ -65,10 +65,11 @@ export default {
       try {
         state.saving = true;
         console.log('new track', newTrack)
-        // const res = await http.post("student/me", {
-        //   ...state.student, newTrack
-        // });
-        // console.log("post response", res)
+        const response = await http.post("student/me/", {
+          "courses": [],
+          "track_pk": newTrack.pk
+        });
+        state.student = response.data;
       } 
       catch (exception) {
         state.error = exception.toString();

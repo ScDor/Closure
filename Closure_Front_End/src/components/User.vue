@@ -18,7 +18,7 @@
 
         <li>
           <label class="menu-label">מסלול נוכחי</label>
-          <div class="field">מסלול</div>
+          <div class="field">{{ track }} </div>
         </li>
 
 
@@ -70,6 +70,15 @@ export default {
       selectedYear: 2022
     };
   },
+
+  computed: {
+    track() {
+      if (this.student.track) {
+        return this.student.track.name;
+      }
+      return "לא ידוע";
+    }
+  }
 };
 </script>
 
