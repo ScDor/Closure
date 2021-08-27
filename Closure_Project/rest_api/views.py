@@ -13,7 +13,7 @@ from .pagination import ResultSetPagination
 from .serializers.CourseSerializer import CourseSerializer
 from .serializers.CourseGroupSerializer import CourseGroupSerializer
 from .serializers.StudentSerializer import StudentSerializer
-from .serializers.TrackSerializer import TrackSerializer
+from .serializers.TrackSerializer import TrackSerializer, TrackSerializerWithCourseGroups
 from .serializers.TakeSerializer import TakeSerializer
 
 
@@ -112,6 +112,10 @@ class TrackViewSet(viewsets.ModelViewSet):
     pagination_class = ResultSetPagination
     search_fields = ('name', '^track_number')
 
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return TrackSerializer
+        return TrackSerializerWithCourseGroups
 
 class TakeGroupViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
