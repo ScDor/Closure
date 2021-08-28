@@ -1,22 +1,25 @@
 # Create your views here
-from django.db.models import Case, When
+from django.db.models import Case, When, Q
+from django.utils.timezone import make_aware
 from rest_framework import filters
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.request import HttpRequest
 from rest_framework.response import Response
-
+from datetime import datetime
 
 from rest_framework_nested.viewsets import NestedViewSetMixin
-from .models import Course, CourseType, Student, CourseGroup, Track, Take
+from .permissions import CoursePlanPermission
+from .models import Course, CourseType, Student, CourseGroup, Track, Take, CoursePlan
 from .pagination import ResultSetPagination
 
 from .serializers.CourseSerializer import CourseSerializer
 from .serializers.CourseGroupSerializer import CourseGroupSerializer
 from .serializers.StudentSerializer import StudentSerializer
 from .serializers.TrackSerializer import TrackSerializer, TrackSerializerWithCourseGroups
-from .serializers.TakeSerializer import TakeSerializer
+from .serializers.CoursePlanSerializer import TakeSerializer, CoursePlanSerializer
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -107,11 +110,15 @@ class StudentGroupViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all().order_by('user__username')
     serializer_class = StudentSerializer
     filter_backends = (filters.SearchFilter, DjangoFilterBackend)
-    filter_fields = ('user__username', 'year_in_studies', 'track__track_number',
-                     'courses__course_id')
+    # filter_fields = ('user__username', 'year_in_studies', 'track__track_number',
+    filter_fields = ('user__username', 'track__track_number',
+                    #  'courses__course_id')
+                    )
     pagination_class = ResultSetPagination
-    search_fields = ('user__username', 'year_in_studies', '^track__track_number',
-                     '^courses__course_id')
+    # search_fields = ('user__username', 'year_in_studies', '^track__track_number',
+    search_fields = ('user__username', '^track__track_number',
+                    #  '^courses__course_id')
+                    )
 
 
 class TrackViewSet(viewsets.ModelViewSet):
@@ -129,6 +136,31 @@ class TrackViewSet(viewsets.ModelViewSet):
         return TrackSerializerWithCourseGroups
 
 class TakeGroupViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAdminUser,)
     queryset = Take.objects.all().order_by('course')
     serializer_class = TakeSerializer
+
+class CoursePlanViewSet(viewsets.ModelViewSet):
+    permission_classes = (CoursePlanPermission,)
+    serializer_class = CoursePlanSerializer
+
+    def get_queryset(self):
+
+        public_plans = Q(public=True)
+
+        if not self.request.user or not self.request.user.is_authenticated:
+            return CoursePlan.objects.filter(public_plans)
+        student = Student.objects.get(user=self.request.user.id)
+        student = get_request_student(self.request)
+        return CoursePlan.objects.filter(Q(owner=student) | public_plans)
+    
+    def perform_create(self, serializer):
+        student = get_request_student(self.request)
+        serializer.save(owner=student)
+
+    def perform_update(self, serializer):
+        serializer.save(modified_at=make_aware(datetime.now()))
+
+
+def get_request_student(req: HttpRequest) -> Student:
+    return Student.objects.get(user=req.user.id)

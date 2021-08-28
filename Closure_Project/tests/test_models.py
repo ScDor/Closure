@@ -13,3 +13,11 @@ def test_can_create_course():
 
     course2 = models.Course.objects.get(course_id=13371337)
     assert course2.name == "Software Testing"
+
+@pytest.mark.django_db
+def test_user_creation_creates_student():
+    user = models.User(username="Dummy")
+    user.save()
+    owner = models.Student.objects.filter(user=user)
+    assert len(owner) == 1
+    print(owner)

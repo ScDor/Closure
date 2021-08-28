@@ -1,7 +1,7 @@
 # Create your models here.
 import uuid
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from django.core.exceptions import ValidationError
 
@@ -205,77 +205,87 @@ ALL_COURSE_TYPES = REQUIRED_COURSE_TYPES + (CourseType.CORNER_STONE, CourseType.
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     track = models.ForeignKey(Track, on_delete=models.CASCADE, null=True)
-    year_in_studies = models.IntegerField(choices=Year.choices, null=True)
-    courses = models.ManyToManyField(Course, through='Take', blank=True)
+    # courses = models.ManyToManyField(Course, through='Take', blank=True)
 
     def __str__(self):
         return ', '.join((self.user.username,
                           self.user.get_full_name(),
                           f'year={self.year_in_studies}',
                           f'track={self.track.track_number}' if self.track else 'לא הוגדר מסלול',
-                          f'took {len(self.courses.all())} courses'))
+                          f'has {len(self.courseplan_set.all())} course plans'))
 
     @property
-    def remaining(self):
-        track = self.track
-        groups = track.coursegroup_set.all()
-        required_by_type = {k: set() for k in REQUIRED_COURSE_TYPES}
-        required_courses = set()
+    def year_in_studies(self) -> Optional[int]:
+        return self.track.data_year if self.track else None
 
-        for group in groups:
-            group_courses = list(group.courses.all())
+    # @property
+    # def remaining(self):
+    #     track = self.track
+    #     groups = track.coursegroup_set.all()
+    #     required_by_type = {k: set() for k in REQUIRED_COURSE_TYPES}
+    #     required_courses = set()
 
-            required_by_type[group.course_type].update(group_courses)
-            required_courses.update(group_courses)
+    #     for group in groups:
+    #         group_courses = list(group.courses.all())
 
-        done = {t: 0 for t in ALL_COURSE_TYPES}
-        counted = set()
+    #         required_by_type[group.course_type].update(group_courses)
+    #         required_courses.update(group_courses)
 
-        for take in self.take_set.all():
-            course = take.course
-            if course not in counted:
-                counted.add(course)
-                done[take.type] += course.points
+    #     done = {t: 0 for t in ALL_COURSE_TYPES}
+    #     counted = set()
 
-        result = {CourseType.MUST.name: {'required': track.points_must,
-                                         'done': done[CourseType.MUST]},
+    #     for take in self.take_set.all():
+    #         course = take.course
+    #         if course not in counted:
+    #             counted.add(course)
+    #             done[take.type] += course.points
 
-                  CourseType.FROM_LIST.name: {'required': track.points_from_list,
-                                              'done': done[CourseType.FROM_LIST]},
+    #     result = {CourseType.MUST.name: {'required': track.points_must,
+    #                                      'done': done[CourseType.MUST]},
 
-                  CourseType.CHOICE.name: {'required': track.points_choice,
-                                           'done': done[CourseType.CHOICE]},
+    #               CourseType.FROM_LIST.name: {'required': track.points_from_list,
+    #                                           'done': done[CourseType.FROM_LIST]},
 
-                  CourseType.CORNER_STONE.name: {'required': track.points_corner_stones,
-                                                 'done': done[CourseType.CORNER_STONE]},
+    #               CourseType.CHOICE.name: {'required': track.points_choice,
+    #                                        'done': done[CourseType.CHOICE]},
 
-                  CourseType.SUPPLEMENTARY.name: {'required': track.points_complementary,
-                                                  'done': done[CourseType.SUPPLEMENTARY]}}
+    #               CourseType.CORNER_STONE.name: {'required': track.points_corner_stones,
+    #                                              'done': done[CourseType.CORNER_STONE]},
 
-        def trickle_down(trickle_from: CourseType, trickle_to: CourseType) -> None:
-            """
-            moves extra points between groups, for example, a student taking too many
-            FROM_LIST courses will have those points counted as CHOICE instead.
+    #               CourseType.SUPPLEMENTARY.name: {'required': track.points_complementary,
+    #                                               'done': done[CourseType.SUPPLEMENTARY]}}
 
-            :param trickle_from: category from which points are moved
-            :param trickle_to:category to which points are moved
-            :return: None
-            """
-            extra = result[trickle_from.name]['done'] - result[trickle_from.name]['required']
-            if extra > 0:
-                result[trickle_from.name]['done'] -= extra
-                result[trickle_to.name]['done'] += extra
+    #     def trickle_down(trickle_from: CourseType, trickle_to: CourseType) -> None:
+    #         """
+    #         moves extra points between groups, for example, a student taking too many
+    #         FROM_LIST courses will have those points counted as CHOICE instead.
 
-        trickle_down(CourseType.MUST, CourseType.CHOICE)
-        trickle_down(CourseType.FROM_LIST, CourseType.CHOICE)
-        trickle_down(CourseType.CHOICE, CourseType.SUPPLEMENTARY)
-        trickle_down(CourseType.CORNER_STONE, CourseType.SUPPLEMENTARY)
+    #         :param trickle_from: category from which points are moved
+    #         :param trickle_to:category to which points are moved
+    #         :return: None
+    #         """
+    #         extra = result[trickle_from.name]['done'] - result[trickle_from.name]['required']
+    #         if extra > 0:
+    #             result[trickle_from.name]['done'] -= extra
+    #             result[trickle_to.name]['done'] += extra
 
-        return result
+    #     trickle_down(CourseType.MUST, CourseType.CHOICE)
+    #     trickle_down(CourseType.FROM_LIST, CourseType.CHOICE)
+    #     trickle_down(CourseType.CHOICE, CourseType.SUPPLEMENTARY)
+    #     trickle_down(CourseType.CORNER_STONE, CourseType.SUPPLEMENTARY)
+
+    #     return result
+
+class CoursePlan(models.Model):
+    owner = models.ForeignKey(Student, on_delete=models.CASCADE)
+    name = models.TextField(null=True, max_length=50)
+    public = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
 
 
 class Take(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    course_plan = models.ForeignKey(CoursePlan, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     year_in_studies = models.IntegerField(choices=Year.choices)
     semester = models.TextField(choices=Semester.choices)

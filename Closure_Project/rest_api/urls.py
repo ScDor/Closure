@@ -17,6 +17,7 @@ course_tracks_router.register(r'courses', views.TrackCoursesViewSet)
 
 router.register(r'student/me', views.StudentMeViewSet, basename='Student')
 router.register(r'track_courses', views.MyTrackCourses, basename='Course')
+router.register(r'course_plans', views.CoursePlanViewSet, basename='CoursePlans')
 
 schema_view = get_schema_view(
     openapi.Info(
