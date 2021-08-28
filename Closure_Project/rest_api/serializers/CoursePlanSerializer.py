@@ -13,10 +13,12 @@ class CoursePlanSerializer(DynamicFieldsModelSerializer):
     takes = TakeSerializer(many=True, source="take_set", partial=True)
     owner = serializers.ReadOnlyField(source="owner.id")
 
+    remaining = serializers.JSONField(read_only=True)
+
     class Meta:
         model = CoursePlan
-        fields = ('id', 'owner', 'name', 'public', 'created_at', 'modified_at', 'takes')
-        read_only_fields = ('id', 'owner', 'created_at', 'modified_at')
+        fields = ('id', 'owner', 'name', 'track', 'public', 'remaining', 'created_at', 'modified_at', 'takes')
+        read_only_fields = ('id', 'created_at', 'modified_at')
 
 
     def create(self, validated_data):

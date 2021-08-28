@@ -110,15 +110,9 @@ class StudentGroupViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all().order_by('user__username')
     serializer_class = StudentSerializer
     filter_backends = (filters.SearchFilter, DjangoFilterBackend)
-    # filter_fields = ('user__username', 'year_in_studies', 'track__track_number',
-    filter_fields = ('user__username', 'track__track_number',
-                    #  'courses__course_id')
-                    )
+    filter_fields = ('user__username',)
     pagination_class = ResultSetPagination
-    # search_fields = ('user__username', 'year_in_studies', '^track__track_number',
-    search_fields = ('user__username', '^track__track_number',
-                    #  '^courses__course_id')
-                    )
+    search_fields = ('user__username',)
 
 
 class TrackViewSet(viewsets.ModelViewSet):
