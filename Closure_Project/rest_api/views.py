@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from datetime import datetime
 
 from rest_framework_nested.viewsets import NestedViewSetMixin
-from .permissions import CoursePlanPermission
+from .permissions import CoursePlanPermission, IsAdminOrAuthenticatedReadOnly
 from .models import Course, CourseType, Student, CourseGroup, Track, Take, CoursePlan
 from .pagination import ResultSetPagination
 
@@ -23,7 +23,7 @@ from .serializers.CoursePlanSerializer import TakeSerializer, CoursePlanSerializ
 
 
 class CourseViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAdminOrAuthenticatedReadOnly,)
     queryset = Course.objects.all().order_by('course_id')
     serializer_class = CourseSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
@@ -116,7 +116,7 @@ class StudentGroupViewSet(viewsets.ModelViewSet):
 
 
 class TrackViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAdminOrAuthenticatedReadOnly,)
     queryset = Track.objects.all().order_by('track_number')
     serializer_class = TrackSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)

@@ -23,3 +23,12 @@ class CoursePlanPermission(permissions.BasePermission):
             return belongs_to_requester or obj.public
 
         return belongs_to_requester
+
+class IsAdminOrAuthenticatedReadOnly(permissions.IsAdminUser):
+    """ Allows read-only access to authenticated users, and update access
+        to admins only. """
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return request_is_authenticated(request)
+        
+        return super().has_permission(request, view)
