@@ -295,6 +295,8 @@ class Take(models.Model):
                           f'semester={self.semester.lower()}'))
 
     @property
-    def type(self) -> CourseType:
+    def type(self) -> Optional[CourseType]:
         from rest_api.rest_utils import get_course_type
-        return get_course_type(self.student.track, self.course)
+        if self.course_plan.track:
+            return get_course_type(self.course_plan.track, self.course)
+        return None
