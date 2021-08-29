@@ -15,7 +15,7 @@ from .permissions import CoursePlanPermission, IsAdminOrAuthenticatedReadOnly
 from .models import Course, CourseType, Student, CourseGroup, Track, Take, CoursePlan
 from .pagination import ResultSetPagination
 
-from .serializers.CourseSerializer import CourseSerializer
+from .serializers.CourseSerializer import CourseSerializer, CourseOfTrackSerializer
 from .serializers.CourseGroupSerializer import CourseGroupSerializer
 from .serializers.StudentSerializer import StudentSerializer
 from .serializers.TrackSerializer import TrackSerializer, TrackSerializerWithCourseGroups
@@ -33,6 +33,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 class TrackCoursesViewSet(CourseViewSet, NestedViewSetMixin):
     filter_fields = CourseViewSet.filter_fields + ('coursegroup__course_type', )
+    serializer_class = CourseOfTrackSerializer
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             relevant_cgs = CourseGroup.objects.all()
