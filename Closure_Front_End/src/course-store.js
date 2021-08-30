@@ -28,8 +28,8 @@ export const moveCourse = ({course, newYear, newSemester}) => {
     if (!course) {
         throw new Error("Course must not be undefined/null")
     }
-    course.year = newYear
-    course.semester = newSemester
+    course.take.year = newYear
+    course.take.semester = newSemester
 }
 
 export const deleteCourse = (course) => {

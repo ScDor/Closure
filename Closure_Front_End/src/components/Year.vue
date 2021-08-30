@@ -26,8 +26,8 @@ export default {
   data() {
     return {
       semesters: [
-        { id: 1, name: "סמסטר א" },
-        { id: 2, name: "סמסטר ב" },
+        { id: "FIRST", name: "סמסטר א" },
+        { id: "SECOND", name: "סמסטר ב" },
       ]
     };
   },

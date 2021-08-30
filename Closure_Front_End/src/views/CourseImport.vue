@@ -51,7 +51,6 @@ import Instructions from "@/huji-import/Instructions.vue";
 import { default as INITIAL_COURSES } from "@/huji-import/example-parsed-courses.js";
 import { TRY_HOOK_MESSAGE_TYPE, HOOKED_MESSAGE_TYPE, STARTED_MESSAGE_TYPE, GOT_COURSE_MESSAGE_TYPE, FINISHED_PARSING_MESSAGE_TYPE } from '@/huji-import/course-scrape-communication.js'
 import ParsedCoursesTables from "@/huji-import/ParsedCoursesTables.vue";
-import { API_SEMESTER_TO_PROP_INT } from "@/utils.js";
 
 const HUJI_ORIGIN = "https://www.huji.ac.il";
 
@@ -119,12 +118,15 @@ export default {
       this.courses.push({ ...course, key: this.courses.length });
     },
     onImportCourses({ courses, importMode }) {
-      const firstYear = Math.min(...courses.map(course => course.year));
+      console.log('onImportCourses', courses)
+      const firstYear = Math.min(...courses.map(course => course.take.year));
       const coursesForDisplay = courses.map(course => {
         return {
           ...course,
-          year: course.year - firstYear + 1,
-          semester: API_SEMESTER_TO_PROP_INT.get(course.semester)
+          take: {
+            year: course.take.year - firstYear + 1,
+            semester: course.take.semester
+          }
         };
       });
       addCourses(coursesForDisplay, importMode === 'overwrite');

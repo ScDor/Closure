@@ -50,7 +50,7 @@ export default {
       return this.courses
         .filter(
           (course) =>
-            course.year == this.year.id && course.semester == this.semester.id
+            course.take.year === this.year.id && course.take.semester === this.semester.id
         )
         .sort((c1, c2) => c1.type - c2.type);
     },

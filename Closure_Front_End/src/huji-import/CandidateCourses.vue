@@ -46,11 +46,11 @@
         <td>
             <div class="control">
             <label class="radio">
-                <input type="radio" id="one" value="FIRST" v-model="course.semester">
+                <input type="radio" id="one" value="FIRST" v-model="course.take.semester">
                 א'
             </label>
             <label class="radio">
-                <input type="radio" id="two" value="SECOND" v-model="course.semester">
+                <input type="radio" id="two" value="SECOND" v-model="course.take.semester">
                 ב'
             </label>
             </div>
@@ -110,7 +110,7 @@ export default {
 
     /** The semester must be set for all courses in order to begin the import */
     canImport() {
-      return this.courses.every(course => course.semester)
+      return this.courses.every(course => course.take.semester)
     },
 
     /** If the user has already inserted courses before beginning import, 
