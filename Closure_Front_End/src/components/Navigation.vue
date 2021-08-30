@@ -58,7 +58,7 @@ export default {
       return await fetchDjangoListIntoSelectOptions(this.http, url, track => track.name);
     },
     async fetchCourses(query) {
-      const url = `tracks/${this.selectedTrack?.pk ?? 'null'}/courses/?limit=6&offset=15&data_year=${this.selectedYear}&search=${query}`;
+      const url = `tracks/${this.selectedTrack?.id ?? 'null'}/courses/?limit=6&offset=15&data_year=${this.selectedYear}&search=${query}`;
       return await fetchDjangoListIntoSelectOptions(this.http, url, course => course.name);
     },
   }

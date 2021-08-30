@@ -5,12 +5,11 @@ from rest_api.rest_utils import get_course_type
 
 
 class CourseSerializer(DynamicFieldsModelSerializer):
-    pk = serializers.PrimaryKeyRelatedField(source='id', read_only=True)
-
     class Meta:
         model = Course
-        fields = ('pk', 'course_id', 'data_year', 'name', 'semester', 'points', 'is_given_this_year',
+        fields = ('id', 'course_id', 'data_year', 'name', 'semester', 'points', 'is_given_this_year',
                   'is_corner_stone', 'comment')
+        read_only_fields = ('id',)
 
 class CourseOfTrackSerializer(CourseSerializer):
     type = serializers.SerializerMethodField(method_name='get_type')
