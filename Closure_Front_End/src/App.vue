@@ -6,6 +6,14 @@
       <router-link class="navbar-item" to="/"><b>Closure()</b></router-link>
     </div>
     <div class="navbar-start is-hidden-mobile is-hidden-touch">
+
+      <div v-if="currentCourseplan" class="navbar-item">
+        <span>שם תכנית:
+          {{ currentCourseplan.name}}
+        </span>
+      </div>
+      <save-menu/>
+
       <div class="navbar-item">
         <div class="buttons">
           <router-link
@@ -50,15 +58,19 @@
   </nav>
 
   <router-view />
+
+  <save-state-footer />
 </template>
 
 <script>
 import ErrorNotification from './components/ErrorNotification.vue';
-
-import { toRefs, reactive, onMounted, provide, inject, readonly } from 'vue';
+import SaveMenu from './components/SaveMenu.vue';
+import SaveStateFooter from './components/SaveStateFooter.vue';
+import { toRefs, reactive, onMounted, provide, inject, readonly} from 'vue';
+import { currentCourseplan } from '@/course-store.js'
 export default {
   name: "App",
-  components: {ErrorNotification},
+  components: {ErrorNotification, SaveMenu, SaveStateFooter},
   setup() {
     const state = reactive({
       student: null,
@@ -95,7 +107,7 @@ export default {
     });
 
     return {
-      ...toRefs(state), login, logout, auth
+      ...toRefs(state), login, logout, auth, currentCourseplan
     }
 
   }
