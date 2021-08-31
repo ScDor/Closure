@@ -32,7 +32,7 @@ import { currentCourseplan, isDirty } from '@/course-store'
 export default {
   setup() {
     const lastSaved = computed(() => {
-      if (currentCourseplan.value.modified_at) {
+      if (currentCourseplan.value?.modified_at) {
         const date = new Date(currentCourseplan.value.modified_at)
         return `נשמר לאחרונה ב${date.toLocaleString()}`
       }
