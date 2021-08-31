@@ -3,7 +3,7 @@
     <a class="navbar-link"> קובץ </a>
 
     <div class="navbar-dropdown">
-      <a class="navbar-item"> טעינה </a>
+      <a class="navbar-item" @click="openLoadMenu"> טעינה </a>
       <a v-if="!saving" class="navbar-item" :class="{'is-disabled': !canSave}" @click="onSave"> שמירה </a>
       <div class="navbar-item" v-if="saving">
         <button class="navbar-item button is-loading" v-if="saving" disabled>
@@ -17,38 +17,38 @@
       <a class="navbar-item"> שיתוף </a>
     </div>
   </div>
-  <div class="modal" :class="{ 'is-active': showSaveAsMenu }">
-    <div class="modal-background" @click="closeSaveAsMenu"></div>
-    <div class="modal-content">
+
+
+  <modal :active="showingSaveAsMenu" @close="closeSaveAsMenu">
       <save-as-modal @close="closeSaveAsMenu" />
-    </div>
-    <button
-      class="modal-close is-large"
-      aria-label="close"
-      @click="closeSaveAsMenu"
-    ></button>
-  </div>
+  </modal>
+
+  <modal :active="showingLoadMenu" @close="closeLoadMenu">
+      <load-modal @close="closeLoadMenu" />
+  </modal>
 </template>
 
 <script>
 import { computed, ref } from "vue";
+import Modal from "@/components/Modal.vue";
 import SaveAsModal from "@/components/SaveAsModal.vue";
+import LoadModal from "@/components/LoadModal.vue";
 import { currentCourseplan, isDirty, save } from "@/course-store.js";
 export default {
-  components: { SaveAsModal },
+  components: { SaveAsModal, LoadModal, Modal },
   setup() {
     const canSave = isDirty;
     const canSaveAs = computed(() => currentCourseplan.value !== null);
-    const showSaveAsMenu = ref(false);
+    const showingSaveAsMenu = ref(false);
 
     const displaySaveAs = () => {
-      showSaveAsMenu.value = true;
+      showingSaveAsMenu.value = true;
     };
-    const closeSaveAsMenu = () => (showSaveAsMenu.value = false);
+    const closeSaveAsMenu = () => (showingSaveAsMenu.value = false);
 
     const saving = ref(false);
     const onSave = async () => {
-      if (currentCourseplan == null) {
+      if (currentCourseplan.value === null) {
         displaySaveAs();
       } else {
         saving.value = true;
@@ -60,14 +60,19 @@ export default {
       }
     };
 
+    const showingLoadMenu = ref(false)
+    const openLoadMenu = () => showingLoadMenu.value = true;
+    const closeLoadMenu = () => (showingLoadMenu.value = false);
+
     return {
       canSave,
       canSaveAs,
-      showSaveAsMenu,
+      showingSaveAsMenu,
       onSave,
       displaySaveAs,
       closeSaveAsMenu,
       saving,
+      showingLoadMenu, openLoadMenu, closeLoadMenu
     };
   },
 };

@@ -16,7 +16,7 @@
     <div class="field">
       <div class="control">
         <label class="checkbox">
-          <input type="checkbox" v-model="publicize" />
+          <input type="checkbox" v-model="publicize" :disabled="saving"/>
           ציבורי
         </label>
       </div>
@@ -52,13 +52,14 @@ export default {
       name: "",
       publicize: false,
       saving: false,
+      savedPlan: null
     });
 
     const onSubmit = async () => {
       state.saving = true;
       try {
-        await saveAs({ name: state.name, publicize: state.publicize });
-        emit("close");
+        state.savedPlan = await saveAs({ name: state.name, publicize: state.publicize });
+        // emit("close");
       } finally {
         state.saving = false;
       }

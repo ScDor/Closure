@@ -58,6 +58,33 @@ const onSavedSuccessfully = (newPlan) => {
   return newPlan;
 };
 
+export const deletePlan = async (plan) => {
+  const res = await http.delete(`/course_plans/${plan.id}`)
+  console.log("deleted plan", plan, "result:", res)
+  if (plan.id === state.courseplan?.id) {
+    console.log("deleting own plan")
+    state.courseplan = null
+    state.dirty = true
+  }
+}
+
+export const loadPlan = async (planId) => {
+  console.assert(typeof(planId) === "number", "loadPlan() - planId must be a number")
+  const res = await http.get(`/course_plans/${planId}`)
+  const plan = res.data
+  console.log("loaded plan", plan)
+  state.courseplan = plan
+  state.track = plan.track ?? null
+  const loadedCourses = plan.takes.map(take => ({
+    ...take.course, take: {
+      semester: take.semester,
+      year: take.year_in_studies
+    }
+  }))
+  addCourses(loadedCourses, true)
+  state.dirty = false
+}
+
 watch(state, (newState) => {
   localStorage.setItem(LS_PATH, JSON.stringify(newState));
 });
