@@ -31,8 +31,8 @@
 <script>
 import { computed, ref } from "vue";
 import Modal from "@/components/Modal.vue";
-import SaveAsModal from "@/components/SaveAsModal.vue";
-import LoadModal from "@/components/LoadModal.vue";
+import SaveAsModal from "@/save-load/SaveAsModal.vue";
+import LoadModal from "@/save-load/LoadModal.vue";
 import { currentCourseplan, isDirty, save } from "@/course-store.js";
 export default {
   components: { SaveAsModal, LoadModal, Modal },

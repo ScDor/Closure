@@ -27,7 +27,7 @@
 
 <script>
 import { inject } from 'vue'
-import LoadableCoursePlan from "@/components/LoadableCoursePlan.vue"
+import LoadableCoursePlan from "@/save-load/LoadableCoursePlan.vue"
 import useSWRV from 'swrv'
 
 

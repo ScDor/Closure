@@ -64,7 +64,7 @@
 
 <script>
 import ErrorNotification from './components/ErrorNotification.vue';
-import SaveMenu from './components/SaveMenu.vue';
+import SaveMenu from './save-load/SaveMenu.vue';
 import SaveStateFooter from './components/SaveStateFooter.vue';
 import { toRefs, reactive, onMounted, provide, inject, readonly} from 'vue';
 import { currentCourseplan } from '@/course-store.js'
