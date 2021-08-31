@@ -19,7 +19,7 @@ from .serializers.CourseSerializer import CourseSerializer, CourseOfTrackSeriali
 from .serializers.CourseGroupSerializer import CourseGroupSerializer
 from .serializers.StudentSerializer import StudentSerializer
 from .serializers.TrackSerializer import TrackSerializer, TrackSerializerWithCourseGroups
-from .serializers.CoursePlanSerializer import TakeSerializer, CoursePlanSerializer
+from .serializers.CoursePlanSerializer import TakeSerializer, DetailTakeSerializer, CoursePlanSerializer, DetailCoursePlanSerializer
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -133,11 +133,19 @@ class TrackViewSet(viewsets.ModelViewSet):
 class TakeGroupViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminUser,)
     queryset = Take.objects.all().order_by('course')
-    serializer_class = TakeSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return DetailTakeSerializer
+        return TakeSerializer
 
 class CoursePlanViewSet(viewsets.ModelViewSet):
     permission_classes = (CoursePlanPermission,)
-    serializer_class = CoursePlanSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return DetailCoursePlanSerializer
+        return CoursePlanSerializer
 
     def get_queryset(self):
 

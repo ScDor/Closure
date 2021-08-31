@@ -1,13 +1,20 @@
 from rest_api.serializers.DynamicSerializer import DynamicFieldsModelSerializer, serializers
 from rest_api.models import Take, CoursePlan
-
-
+from rest_api.serializers.CourseSerializer import CourseSerializer
 class TakeSerializer(DynamicFieldsModelSerializer):
     type = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Take
         fields = ('course', 'course_plan_id', 'year_in_studies', 'semester', 'type')
+
+class DetailTakeSerializer(TakeSerializer):
+    course = CourseSerializer(read_only=True)
+
+    class Meta:
+        model = Take
+        fields = TakeSerializer.Meta.fields
+
 
 class CoursePlanSerializer(DynamicFieldsModelSerializer):
     takes = TakeSerializer(many=True, source="take_set", partial=True)
@@ -39,3 +46,11 @@ class CoursePlanSerializer(DynamicFieldsModelSerializer):
             for take in takes:
                 Take.objects.create(course_plan=instance, **take)
         return CoursePlan.objects.get(id=instance.id)
+
+class DetailCoursePlanSerializer(CourseSerializer):
+    takes = DetailTakeSerializer(many=True, source="take_set", partial=True)
+
+    class Meta:
+        model = CoursePlan
+        fields = CoursePlanSerializer.Meta.fields
+        read_only_fields = CoursePlanSerializer.Meta.read_only_fields
