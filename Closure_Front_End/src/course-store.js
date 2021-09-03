@@ -19,6 +19,13 @@ const getInitialState = () => {
 
 const state = reactive(getInitialState());
 
+/*   */
+watch(state, (newState) => {
+  localStorage.setItem(LS_PATH, JSON.stringify(newState));
+});
+
+/* course-plan operations */
+
 const getCoursesAsTakes = () => {
   return state.courses.map((course) => ({
     course: course.id,
@@ -69,7 +76,7 @@ export const deletePlan = async (plan) => {
 }
 
 export const loadPlan = async (planId) => {
-  console.assert(typeof(planId) === "number", "loadPlan() - planId must be a number")
+  // console.assert(typeof(planId) === "number", "loadPlan() - planId must be a number")
   const res = await http.get(`/course_plans/${planId}`)
   const plan = res.data
   console.log("loaded plan", plan)
@@ -85,9 +92,7 @@ export const loadPlan = async (planId) => {
   state.dirty = false
 }
 
-watch(state, (newState) => {
-  localStorage.setItem(LS_PATH, JSON.stringify(newState));
-});
+/* course  operations */
 
 export const addCourse = (course) => {
   if (!course) {
@@ -126,6 +131,16 @@ export const addCourses = (courses, overwrite) => {
   state.courses.push(...courses);
   state.dirty = true;
 };
+
+/* track operations */
+
+export const setTrack = (newTrack) => {
+  console.log("Changing track, from", state.track, "to", newTrack);
+  state.track = newTrack;
+  state.dirty = true;
+}
+
+/* store state getters */
 
 export const courses = shallowReadonly(state.courses);
 export const currentTrack = computed(() => state.track);

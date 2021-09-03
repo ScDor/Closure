@@ -1,4 +1,5 @@
 <template>
+  <course-plan-settings />
   <h2 class="subtitle is-2">הוספת קורסים</h2>
   <year-selection label="גרסת שנתון" v-model="selectedYear" />
   <div class="field">
@@ -35,11 +36,12 @@
 
 <script>
 import YearSelection from './YearSelection.vue'
+import CoursePlanSettings from './CoursePlanSettings.vue'
 import Multiselect from '@vueform/multiselect';
 import { fetchDjangoListIntoSelectOptions } from '@/utils.js';
 
 export default {
-  components: { YearSelection, Multiselect },
+  components: { YearSelection, Multiselect, CoursePlanSettings },
   data() {
     return {
       "selectedYear": 2022,
