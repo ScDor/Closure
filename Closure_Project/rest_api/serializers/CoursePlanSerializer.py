@@ -1,6 +1,8 @@
 from rest_api.serializers.DynamicSerializer import DynamicFieldsModelSerializer, serializers
 from rest_api.models import Take, CoursePlan
-from rest_api.serializers.CourseSerializer import CourseSerializer
+from rest_api.serializers.CourseSerializer import CourseOfTrackSerializer
+from rest_api.serializers.TrackSerializer import TrackSerializer
+
 class TakeSerializer(DynamicFieldsModelSerializer):
     type = serializers.StringRelatedField(read_only=True)
 
@@ -9,7 +11,7 @@ class TakeSerializer(DynamicFieldsModelSerializer):
         fields = ('course', 'course_plan_id', 'year_in_studies', 'semester', 'type')
 
 class DetailTakeSerializer(TakeSerializer):
-    course = CourseSerializer(read_only=True)
+    course = CourseOfTrackSerializer(read_only=True)
 
     class Meta:
         model = Take
@@ -47,8 +49,15 @@ class CoursePlanSerializer(DynamicFieldsModelSerializer):
                 Take.objects.create(course_plan=instance, **take)
         return CoursePlan.objects.get(id=instance.id)
 
-class DetailCoursePlanSerializer(CourseSerializer):
-    takes = DetailTakeSerializer(many=True, source="take_set", partial=True)
+class DetailCoursePlanSerializer(CoursePlanSerializer):
+    takes = DetailTakeSerializer(many=True, source="take_set")
+    track = TrackSerializer()
+
+
+    def to_representation(self, instance):
+        track = self.fields["track"].get_attribute(instance)
+        self.context["track_pk"] = track.id if track else None
+        return super().to_representation(instance)
 
     class Meta:
         model = CoursePlan
