@@ -1,12 +1,15 @@
 <template>
   <div class="card content">
     <header class="card-header">
-      <p class="card-header-title">{{ plan.name }}</p>
+      <p class="card-header-title">
+        <bold>[{{ plan.id }}]</bold>&nbsp;
+        {{ plan.name }}
+      </p>
     </header>
 
     <div class="card-content">
       <div v-if="!plan.track">לא מוגדר מסלול</div>
-      <div v-if="plan.track">מסלול: {{ plan.track.name }}</div>
+      <div v-if="plan.track">מסלול: {{ plan.track_name }}</div>
 
       <div class="level">
         <div class="level-left">

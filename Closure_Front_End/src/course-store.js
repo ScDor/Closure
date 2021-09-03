@@ -24,7 +24,7 @@ watch(state, (newState) => {
   localStorage.setItem(LS_PATH, JSON.stringify(newState));
 });
 
-/* course-plan operations */
+/* course-plan save/load operations */
 
 const getCoursesAsTakes = () => {
   return state.courses.map((course) => ({
@@ -60,7 +60,6 @@ export const saveAs = async ({ name, publicize }) => {
 
 const onSavedSuccessfully = (newPlan) => {
   state.courseplan = newPlan;
-  state.track = newPlan.track;
   state.dirty = false;
   return newPlan;
 };
