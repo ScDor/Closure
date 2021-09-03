@@ -153,7 +153,6 @@ class CoursePlanViewSet(viewsets.ModelViewSet):
 
         if not self.request.user or not self.request.user.is_authenticated:
             return CoursePlan.objects.filter(public_plans)
-        student = Student.objects.get(user=self.request.user.id)
         student = get_request_student(self.request)
         return CoursePlan.objects.filter(Q(owner=student) | public_plans)
     
