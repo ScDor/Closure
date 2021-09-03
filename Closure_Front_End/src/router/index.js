@@ -21,6 +21,11 @@ const routes = [
     name: 'Scrape',
     component: CourseImport,
     beforeEnter: routeGuard
+  },
+  {
+    path: '/plans/:plan_id',
+    name: 'Course Plan',
+    component: Home
   }
 ]
 
