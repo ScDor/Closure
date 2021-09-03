@@ -4,9 +4,9 @@ import { http } from "./auth";
 const LS_PATH = "course-store-state-v1";
 
 const getInitialState = () => {
-  const storedJstate = localStorage.getItem(LS_PATH);
-  if (storedJstate !== null) {
-    return JSON.parse(storedJstate);
+  const storedLSState = localStorage.getItem(LS_PATH);
+  if (storedLSState !== null) {
+    return JSON.parse(storedLSState);
   } else {
     return {
       courses: [],
