@@ -16,7 +16,7 @@
     <div class="field">
       <div class="control">
         <label class="checkbox">
-          <input type="checkbox" v-model="publicize" :disabled="saving"/>
+          <input type="checkbox" v-model="publicize" :disabled="saving" />
           ציבורי
         </label>
       </div>
@@ -26,14 +26,18 @@
       <div class="control">
         <button
           class="button is-link"
-          :class="{ 'is-loading': saving }"
+          :class="{ 'is-loading': saving, 'is-success': savedPlan }"
           @click="onSubmit"
           :disabled="!canSave || saving"
         >
-          שמירה
+          <span v-if="savedPlan">
+            <i class="fas fa-check" />
+            סיום 
+          </span>
+          <span v-else>שמירה</span>
         </button>
       </div>
-      <div class="control">
+      <div class="control" v-if="!savedPlan">
         <button class="button is-link is-light" @click="$emit('close')">
           ביטול
         </button>
@@ -52,14 +56,20 @@ export default {
       name: "",
       publicize: false,
       saving: false,
-      savedPlan: null
+      savedPlan: null,
     });
 
     const onSubmit = async () => {
+      if (state.savedPlan !== null) {
+        emit("close");
+        return;
+      }
       state.saving = true;
       try {
-        state.savedPlan = await saveAs({ name: state.name, publicize: state.publicize });
-        // emit("close");
+        state.savedPlan = await saveAs({
+          name: state.name,
+          publicize: state.publicize,
+        });
       } finally {
         state.saving = false;
       }
@@ -69,7 +79,7 @@ export default {
     return {
       ...toRefs(state),
       canSave,
-      onSubmit,
+      onSubmit
     };
   },
 };
