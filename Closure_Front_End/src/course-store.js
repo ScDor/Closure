@@ -43,7 +43,8 @@ export const save = async () => {
   });
   const plan = res.data;
   console.log(`save() course plan, gotten: `, plan);
-  return onSavedSuccessfully(plan);
+  onSavedSuccessfully(plan);
+  return plan
 };
 
 export const saveAs = async ({ name, publicize }) => {
@@ -55,13 +56,13 @@ export const saveAs = async ({ name, publicize }) => {
   });
   const plan = res.data;
   console.log(`saveAs() course plan, gotten: `, plan);
-  return onSavedSuccessfully(plan);
+  onSavedSuccessfully(plan);
+  return plan
 };
 
 const onSavedSuccessfully = (newPlan) => {
   state.courseplan = newPlan;
   state.dirty = false;
-  return newPlan;
 };
 
 export const deletePlan = async (plan) => {
@@ -71,13 +72,24 @@ export const deletePlan = async (plan) => {
     console.log("deleting own plan")
     state.courseplan = null
     state.dirty = true
+    return { deletedOwnPlan: true }
   }
+  return { deletedOwnPlan: false }
 }
 
-export const loadPlan = async (planId) => {
-  // console.assert(typeof(planId) === "number", "loadPlan() - planId must be a number")
-  const res = await http.get(`/course_plans/${planId}`)
-  const plan = res.data
+/**
+ * Loads a course plan
+ * @param {object | string} planIdOrPlan Either the ID of a plan to
+ * be fetched from network, or a pre-existing plan object.
+ */
+export const loadPlan = async (planIdOrPlan) => {
+  let plan
+  if (planIdOrPlan instanceof Object) {
+    plan = planIdOrPlan
+  } else {
+    const res = await http.get(`/course_plans/${planIdOrPlan}`)
+    plan = res.data
+  }
   console.log("loaded plan", plan)
   state.courseplan = plan
   state.track = plan.track ?? null

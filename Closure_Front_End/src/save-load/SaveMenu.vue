@@ -4,13 +4,24 @@
 
     <div class="navbar-dropdown">
       <a class="navbar-item" @click="openLoadMenu"> טעינה </a>
-      <a v-if="!saving" class="navbar-item" :class="{'is-disabled': !canSave}" @click="onSave"> שמירה </a>
+      <a
+        v-if="!saving"
+        class="navbar-item"
+        :class="{ 'is-disabled': !canSave }"
+        @click="onSave"
+      >
+        שמירה
+      </a>
       <div class="navbar-item" v-if="saving">
         <button class="navbar-item button is-loading" v-if="saving" disabled>
           שמירה
         </button>
       </div>
-      <a class="navbar-item" :class="{'is-disabled': !canSaveAs}" @click="displaySaveAs">
+      <a
+        class="navbar-item"
+        :class="{ 'is-disabled': !canSaveAs }"
+        @click="displaySaveAs"
+      >
         שמירה בשם
       </a>
       <hr class="navbar-divider" />
@@ -18,13 +29,12 @@
     </div>
   </div>
 
-
   <modal :active="showingSaveAsMenu" @close="closeSaveAsMenu">
-      <save-as-modal @close="closeSaveAsMenu" />
+    <save-as-modal @close="closeSaveAsMenu" />
   </modal>
 
   <modal :active="showingLoadMenu" @close="closeLoadMenu">
-      <load-modal @close="closeLoadMenu" />
+    <load-modal @close="closeLoadMenu" />
   </modal>
 </template>
 
@@ -34,6 +44,7 @@ import Modal from "@/components/Modal.vue";
 import SaveAsModal from "@/save-load/SaveAsModal.vue";
 import LoadModal from "@/save-load/LoadModal.vue";
 import { currentCourseplan, isDirty, save } from "@/course-store.js";
+
 export default {
   components: { SaveAsModal, LoadModal, Modal },
   setup() {
@@ -60,8 +71,8 @@ export default {
       }
     };
 
-    const showingLoadMenu = ref(false)
-    const openLoadMenu = () => showingLoadMenu.value = true;
+    const showingLoadMenu = ref(false);
+    const openLoadMenu = () => (showingLoadMenu.value = true);
     const closeLoadMenu = () => (showingLoadMenu.value = false);
 
     return {
@@ -72,7 +83,9 @@ export default {
       displaySaveAs,
       closeSaveAsMenu,
       saving,
-      showingLoadMenu, openLoadMenu, closeLoadMenu
+      showingLoadMenu,
+      openLoadMenu,
+      closeLoadMenu,
     };
   },
 };
@@ -81,6 +94,6 @@ export default {
 <style scoped>
 a.is-disabled {
   pointer-events: none;
-  opacity: .65;
+  opacity: 0.65;
 }
 </style>

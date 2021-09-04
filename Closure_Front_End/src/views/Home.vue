@@ -23,13 +23,12 @@
 </template>
 
 <script>
-import { ref, inject, provide, watch } from "vue";
-import { useRoute } from "vue-router";
+import { ref, inject, provide } from "vue";
 import Year from "../components/Year.vue";
 import Navigation from "../components/Navigation.vue";
 import CourseDetail from "../components/CourseDetail.vue";
 import ProgressBox from "../components/ProgressBox.vue";
-import { courses, loadPlan } from "@/course-store.js";
+import { courses } from "@/course-store.js";
 
 const years = [
   { id: 1, name: "שנה א" },
@@ -45,43 +44,12 @@ export default {
     const selectedCourse = ref(null);
     provide("selectCourse", (course) => (selectedCourse.value = course));
     const auth = inject("auth");
-    const loadingPlan = ref(false);
-    const failDueToAuth = ref(false);
-
-    const onEnter = async (to) => {
-      if (to.name === "Course Plan" && to.params.plan_id !== undefined) {
-        console.log("loadPlan due to route change, target params:", to);
-        loadingPlan.value = true;
-        try {
-          await loadPlan(to.params.plan_id);
-        } catch (ex) {
-          if (ex.response?.status == 404) {
-            console.log("not found")
-            failDueToAuth.value = true
-          }
-          
-        } finally {
-          loadingPlan.value = false;
-        }
-      }
-    };
-    const route = useRoute();
-    onEnter(route);
-
-    watch(
-      () => route.params.plan_id,
-      async (to) => {
-        await onEnter(to);
-      }
-    );
 
     return {
       years,
       selectedCourse,
       courses,
       auth,
-      failDueToAuth,
-      loadingPlan
     };
   },
 };

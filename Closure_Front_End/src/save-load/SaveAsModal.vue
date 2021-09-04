@@ -32,7 +32,7 @@
         >
           <span v-if="savedPlan">
             <i class="fas fa-check" />
-            סיום 
+            סיום
           </span>
           <span v-else>שמירה</span>
         </button>
@@ -49,6 +49,8 @@
 <script>
 import { reactive, computed, toRefs } from "vue";
 import { saveAs } from "@/course-store.js";
+import router from "@/router";
+
 export default {
   emits: ["close"],
   setup(_props, { emit }) {
@@ -70,6 +72,10 @@ export default {
           name: state.name,
           publicize: state.publicize,
         });
+        router.push({
+          name: "Course Plan",
+          params: { plan_id: state.savedPlan.id },
+        });
       } finally {
         state.saving = false;
       }
@@ -79,7 +85,7 @@ export default {
     return {
       ...toRefs(state),
       canSave,
-      onSubmit
+      onSubmit,
     };
   },
 };

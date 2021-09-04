@@ -2,7 +2,7 @@
   <div class="card content">
     <header class="card-header">
       <p class="card-header-title">
-        <bold>[{{ plan.id }}]</bold>&nbsp;
+        <strong>[{{ plan.id }}]</strong>&nbsp;
         {{ plan.name }}
       </p>
     </header>
@@ -24,20 +24,20 @@
 
       <div class="field is-grouped">
         <p class="control">
-          <button
-            class="button is-link"
-            :class="{ 'is-loading': loading }"
-            :disabled="deleting || loading"
+          <router-link
+            class="button is-info"
+            :to="{ name: 'Course Plan', params: { plan_id: plan.id } }"
+            :disabled="deleting || undefined"
             @click="onLoadPlan"
           >
             טעינה
-          </button>
+          </router-link>
         </p>
         <p class="control">
           <button
             class="button is-danger"
             :class="{ 'is-loading': deleting }"
-            :disabled="deleting || loading"
+            :disabled="deleting"
             @click="onDeleteClick"
           >
             מחיקה
@@ -50,44 +50,46 @@
 
 <script>
 import { ref } from "vue";
-import { deletePlan, loadPlan } from "@/course-store.js";
+import router from "@/router";
+import { deletePlan } from "@/course-store.js";
 export default {
   props: {
     plan: Object,
   },
-  emits: ["deletedPlan", "loadedPlan"],
+  emits: ["deletedPlan", "loadingPlan"],
   setup(props, { emit }) {
     const deleting = ref(false);
-    const loading = ref(false);
     const onDeleteClick = async () => {
       deleting.value = true;
       try {
-        await deletePlan(props.plan);
+        const { deletedOwnPlan } = await deletePlan(props.plan);
         emit("deletedPlan", props.plan);
+        if (deletedOwnPlan) {
+          router.push({
+            name: "Course Plan",
+            params: { plan_id: "unsaved" },
+          });
+        }
       } finally {
         deleting.value = false;
       }
     };
 
     const onLoadPlan = async () => {
-      loading.value = true
-      try {
-        const fullPlan = await loadPlan(props.plan.id)
-        emit("loadedPlan", fullPlan);
-      } finally {
-        loading.value = false;
-      }
+      emit("loadingPlan");
     };
 
     return {
       onDeleteClick,
       deleting,
       onLoadPlan,
-      loading
     };
   },
 };
 </script>
 
 <style>
+.field a.button[disabled] {
+  pointer-events: none;
+}
 </style>
