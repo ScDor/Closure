@@ -34,7 +34,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .full-height {
   height: max-content;
   overflow: auto;

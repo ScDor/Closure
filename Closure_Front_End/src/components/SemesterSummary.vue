@@ -24,7 +24,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .semester-summary-style {
   padding: 0.25rem;
   margin: 0.25rem;
