@@ -16,11 +16,22 @@
     <div class="field">
       <div class="control">
         <label class="checkbox">
-          <input type="checkbox" v-model="publicize" :disabled="saving" />
+          <input
+            type="checkbox"
+            v-model="publicize"
+            :disabled="saving || savedPlan"
+          />
           ציבורי
         </label>
       </div>
     </div>
+
+    <copyable-link
+      v-if="savedPlan"
+      routeName="Course Plan"
+      :routeParams="{ plan_id: savedPlan.id }"
+      label="כתובת"
+    />
 
     <div class="field is-grouped">
       <div class="control">
@@ -49,9 +60,11 @@
 <script>
 import { reactive, computed, toRefs } from "vue";
 import { saveAs } from "@/course-store.js";
+import CopyableLink from "@/components/CopyableLink.vue";
 import router from "@/router";
 
 export default {
+  components: { CopyableLink },
   emits: ["close"],
   setup(_props, { emit }) {
     const state = reactive({
