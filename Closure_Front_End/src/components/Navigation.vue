@@ -4,66 +4,36 @@
   <year-selection label="גרסת שנתון" v-model="selectedYear" />
   <div class="field">
     <label class="label">מסלול</label>
-    <div class="control" dir="rtl">
-      <multiselect
-        placeholder="חיפוש מסלול"
-        v-model="selectedTrack"
-        searchable
-        :delay="0"
-        :minChars="1"
-        :resolveOnLoad="false"
-        :options="fetchTracks"
-      />
+    <div class="control">
+      <track-selection v-model="selectedTrack" :year="selectedYear" />
     </div>
   </div>
 
   <div class="field">
     <label class="label">קורס</label>
-    <div class="control" dir="rtl">
-      <multiselect
-        placeholder="חיפוש קורס"
-        searchable
-        @update:modelValue="selectCourse"
-        :disabled="!selectedTrack"
-        :delay="0"
-        :minChars="1"
-        :resolveOnLoad="false"
-        :options="fetchCourses"
-      />
+    <div class="control">
+      <course-selection @update:modelValue="course => $emit('clickCourse', course)" :track="selectedTrack"  />
     </div>
   </div>
 </template>
 
 <script>
 import YearSelection from './YearSelection.vue'
+import TrackSelection from './TrackSelection.vue'
+import CourseSelection from './CourseSelection.vue'
 import CoursePlanSettings from './CoursePlanSettings.vue'
-import Multiselect from '@vueform/multiselect';
-import { fetchDjangoListIntoSelectOptions } from '@/utils.js';
-
+import { reactive, toRefs } from "vue";
 export default {
-  components: { YearSelection, Multiselect, CoursePlanSettings },
-  data() {
-    return {
-      "selectedYear": 2022,
-      "selectedTrack": null,
-      "value": null
-    }
-  },
-  props: ["allcourses"],
-  inject: ["http", "selectCourse"],
-  methods: {
-    emitCourseClick(course) {
-      this.$emit("clickCourse", course);
-    },
-    async fetchTracks(query) {
-      const url = `tracks/?limit=6&offset=15&data_year=${this.selectedYear}&search=${query}`;
-      return await fetchDjangoListIntoSelectOptions(this.http, url, track => track.name);
-    },
-    async fetchCourses(query) {
-      const url = `tracks/${this.selectedTrack?.id ?? 'null'}/courses/?limit=6&offset=15&data_year=${this.selectedYear}&search=${query}`;
-      return await fetchDjangoListIntoSelectOptions(this.http, url, course => course.name);
-    },
+  components: { YearSelection, TrackSelection, CourseSelection, CoursePlanSettings },
+  emits: [ "clickCourse"],
+  setup() {
+    const data = reactive({
+      selectedYear: 2022,
+      selectedTrack: null
+    })
+
+    return { ...toRefs(data) }
   }
 };
 </script>
-<style src="@vueform/multiselect/themes/default.css"></style>
+<style src="vue-multiselect/dist/vue-multiselect.css"></style>

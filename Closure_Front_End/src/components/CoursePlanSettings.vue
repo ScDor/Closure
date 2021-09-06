@@ -5,57 +5,50 @@
   </div>
   <div class="field">
     <label class="label">מסלול לימודים</label>
-    <div class="control" dir="rtl">
-      <multiselect
-        placeholder="חיפוש מסלול"
-        class="is-loading"
-        v-model="selectedTrack"
-        searchable
-        :delay="0"
-        :minChars="1"
-        :resolveOnLoad="false"
-        :options="fetchTracks"
-      />
+    <div class="control">
+      <track-selection v-model="selectedTrack" :year="selectedYear" />
     </div>
   </div>
-
 </template>
 
 <script>
 import YearSelection from "./YearSelection.vue";
-import Multiselect from "@vueform/multiselect";
-import { fetchDjangoListIntoSelectOptions } from "@/utils.js";
+import TrackSelection from "./TrackSelection.vue";
 import { currentTrack, setTrack } from "@/course-store.js";
-import { reactive, toRefs, inject, computed } from "vue";
+import { reactive, toRefs, computed, watch } from "vue";
 
 export default {
-  components: { YearSelection, Multiselect },
+  components: { YearSelection, TrackSelection },
   setup() {
     console.log("setup tracksettings");
     const state = reactive({
-      selectedYear: 2022,
+      selectedYear: currentTrack.value?.data_year,
+      loading: false,
       saving: false,
     });
 
-    const http = inject("http");
-    const fetchTracks = async (query) => {
-      const url = `tracks/?limit=10&data_year=${state.selectedYear}&search=${query}`;
-      return await fetchDjangoListIntoSelectOptions(
-        http,
-        url,
-        (track) => track.name
-      );
-    };
-
     const selectedTrack = computed({
-      get() { return currentTrack },
-      set(newVal) { setTrack(newVal) }
-    })
+      get() {
+        return currentTrack.value;
+      },
+      set(newVal) {
+        setTrack(newVal);
+      },
+    });
 
-    return { ...toRefs(state), selectedTrack, fetchTracks };
+    watch(
+      () => state.selectedYear,
+      (newYear, oldYear) => {
+        if (newYear !== oldYear) {
+          selectedTrack.value = null;
+        }
+      }
+    );
+
+    return { ...toRefs(state), selectedTrack };
   },
 };
 </script>
 
-<style src="@vueform/multiselect/themes/default.css">
+<style src="vue-multiselect/dist/vue-multiselect.css">
 </style>

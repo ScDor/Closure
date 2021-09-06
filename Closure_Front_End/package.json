@@ -15,12 +15,12 @@
   },
   "dependencies": {
     "@auth0/auth0-spa-js": "^1.15.0",
-    "@vueform/multiselect": "^2.1.2",
     "axios": "^0.21.1",
     "bulma": "^0.9.3",
     "core-js": "^3.6.5",
     "swrv": "^1.0.0-beta.8",
     "vue": "^3.0.0",
+    "vue-multiselect": "^3.0.0-alpha.2",
     "vue-router": "^4.0.0-0"
   },
   "devDependencies": {

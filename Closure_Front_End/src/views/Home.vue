@@ -4,7 +4,7 @@
       <section class="section section-style">
         <div class="columns is-variable is-2">
           <div class="column is-2 is-right is-hidden-mobile is-hidden-touch">
-            <navigation :allcourses="courses" />
+            <navigation />
             <course-detail :course="selectedCourse" v-if="selectedCourse" />
             <progress-box :allcourses="courses" />
           </div>

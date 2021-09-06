@@ -29,21 +29,3 @@ export const MODEL_SEMESTER_TO_STRING = new Map([
     [1, "ראשון"],
     [2, "שני"]
 ]);
-
-/**
- * A function used to query a list endpoint from Django Rest Framework(DRF), 
- * and return an array of objects suitable for passing into Multiselect component 'options'.
- * 
- * @param {import("axios").AxiosInstance} http used to create requests
- * @param {string} url URL of a DRF 'list' retrieval endpoint
- * @param {(obj: any) => string} objToLabel Extracts the label(shown in Select) of a model object
- * @returns {[any]} Array of multiselect options
- */
-export async function fetchDjangoListIntoSelectOptions(http, url, objToLabel) {
-      console.log('multiselect fetching from', url);
-      const response = await http.get(url);
-      const values = response.data.results;
-      return values.map(value => { return {
-        value, label: objToLabel(value)
-      }});
-}
