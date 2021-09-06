@@ -20,7 +20,6 @@ import { reactive, toRefs, computed, watch } from "vue";
 export default {
   components: { YearSelection, TrackSelection },
   setup() {
-    console.log("setup tracksettings");
     const state = reactive({
       selectedYear: currentTrack.value?.data_year,
       loading: false,

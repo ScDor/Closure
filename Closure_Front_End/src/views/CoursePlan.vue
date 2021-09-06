@@ -67,18 +67,32 @@ export default {
     });
 
     const http = inject("http");
-    const onNavigateToPlan = async (planId) => {
-      console.log("onNavigateToPlan: planId:", planId);
-      if (currentCourseplan.value?.id === planId) {
-        console.log("onNavigateToPlan: plan unchanged");
-        return;
-      }
-      if (planId === "unsaved") {
+    const onNavigateToPlan = async (planIdString) => {
+      console.log(
+        "onNavigateToPlan: planIdString:",
+        planIdString,
+        "currentCourseplan id:",
+        currentCourseplan.value?.id
+      );
+
+      if (planIdString === "unsaved") {
         console.log("onNavigateToPlan: unsaved plan");
         console.assert(
           currentCourseplan.value?.owner === undefined,
           "Can go to unsaved plan only if the current plan isn't saved"
         );
+        state.state = States.LOADED;
+        return;
+      }
+
+      const planId = Number.parseInt(planIdString);
+      console.assert(
+        !Number.isNaN(planId),
+        "planId must be either 'unsaved' or a valid integer"
+      );
+
+      if (currentCourseplan.value?.id == planId) {
+        console.log("onNavigateToPlan: plan unchanged");
         state.state = States.LOADED;
         return;
       }
@@ -118,7 +132,11 @@ export default {
 
     watch(
       () => route.params["plan_id"],
-      (planId) => onNavigateToPlan(planId)
+      (planId) => {
+        if (route.name === "Course Plan") {
+          onNavigateToPlan(planId);
+        }
+      }
     );
 
     return {
@@ -126,6 +144,7 @@ export default {
       ...toRefs(state),
       States,
       isDirty,
+      currentCourseplan,
     };
   },
 };
