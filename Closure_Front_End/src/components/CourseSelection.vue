@@ -19,11 +19,17 @@
     <template #noResult>
         לא נמצא מסלול עם השם הנ"ל
     </template>
+
+    <template #option="{ option }">
+      <course-color-circle :courseType="option.type" /> 
+      {{ option.name }}
+    </template>
   </vue-multiselect>
 </template>
 
 <script>
 import VueMultiselect from "vue-multiselect";
+import CourseColorCircle from '@/components/CourseColorCircle.vue'
 import { reactive, toRefs, inject } from "vue";
 export default {
   props: {
@@ -38,7 +44,7 @@ export default {
     }
   },
   emits: ["update:modelValue"],
-  components: { VueMultiselect },
+  components: { VueMultiselect, CourseColorCircle },
   setup(props) {
     const state = reactive({
       loading: false,

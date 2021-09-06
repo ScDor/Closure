@@ -1,9 +1,7 @@
 <template>
   <div class="box box-style">
     <div class="media">
-      <span class="icon is-small is-right is-size-7">
-        <i class="fas fa-circle" :class="colorMatch()"></i>
-      </span>
+      <course-color-circle :courseType="course.type" />
 
       <div class="media-content">
         {{ course.name }}
@@ -23,19 +21,16 @@
 </template>
 
 <script>
+import CourseColorCircle from './CourseColorCircle.vue'
+
 export default {
-  props: ["course"],
-  emits: ['clickclose'],
-  methods: {
-    colorMatch() {
-      if (this.course.type === "MUST") return "must";
-      if (this.course.type === "CHOICE") return "choice";
-      if (this.course.type === "CHOOSE_FROM_LIST") return "choose_from_list";
-      if (this.course.type === "CORNER_STONE") return "corner_stone";
-      if (this.course.type === "SUPPLEMENTARY") return "supplementary";
-      return "supplementary";
-    },
+  props: {
+    course: {
+      type: Object, required: true
+    }
   },
+  emits: ['clickclose'],
+  components: { CourseColorCircle },
 };
 </script>
 
@@ -56,25 +51,5 @@ export default {
 
 .fa-times-circle:hover {
   cursor: pointer;
-}
-
-.must {
-  color: #bc87d0;
-}
-
-.choose_from_list {
-  color: #fbaf5d;
-}
-
-.corner_stone {
-  color: #69d85e;
-}
-
-.supplementary {
-  color: #bfbfbf;
-}
-
-.choice {
-  color: #f06eaa;
 }
 </style>
