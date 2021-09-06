@@ -16,82 +16,18 @@
           <div class="field">{{ idClaims.name }}</div>
         </li>
 
-        <li>
-          <label class="menu-label">מסלול נוכחי</label>
-          <div class="field">{{ track }} </div>
-        </li>
-
-
-        <li>
-
-          <label class="menu-label">שנת תחילת לימודים</label>
-          <year-selection v-model="selectedYear" @update:modelValue="() => newTrack = null"/>
-        </li>
-
-        <li>
-          <label class="menu-label">בחר מסלול מרשימה</label>
-          <div class="control" >
-            <multiselect
-              placeholder="חיפוש מסלול"
-              v-model="newTrack"
-              searchable
-              :delay="0"
-              :minChars="1"
-              :resolveOnLoad="false"
-              :options="fetchTracks"
-            />
-          </div>
-        </li>
-
-        <li>
-          <div class="control">
-            <button :disabled="!newTrack" class="button menu-label is-dark" :class="{'is-loading': saving}" @click="$emit('onSave', $event, newTrack)">
-              שמירה
-            </button>
-          </div>
-        </li>
       </ul>
     </div>
   </div>
 </template>
 
 <script>
-import YearSelection from './YearSelection.vue'
-import Multiselect from '@vueform/multiselect';
-import { fetchDjangoListIntoSelectOptions } from '@/utils.js';
 
 export default {
   props: {
     idClaims: Object,
-    student: Object,
-    saving: Boolean
+    student: Object
   },
-  emits: [ "onSave" ],
-  components: { YearSelection, Multiselect},
-  inject: [ "http"],
-
-  data() {
-    return {
-      newTrack: null,
-      selectedYear: 2022
-    };
-  },
-
-  computed: {
-    track() {
-      if (this.student.track) {
-        return this.student.track.name;
-      }
-      return "לא ידוע";
-    }
-  },
-
-  methods: {
-    async fetchTracks(query) {
-      const url = `tracks/?limit=6&offset=15&data_year=${this.selectedYear}&search=${query}`;
-      return await fetchDjangoListIntoSelectOptions(this.http, url, track => track.name);
-    }
-  }
 };
 </script>
 
@@ -137,4 +73,3 @@ export default {
   margin: 0.75rem;
 }
 </style>
-<style src="@vueform/multiselect/themes/default.css"></style>
