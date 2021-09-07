@@ -1,6 +1,6 @@
 <template>
-  <span class="icon is-small is-right is-size-7">
-    <i class="fas fa-circle" :class="colorClass"></i>
+  <span class="icon is-small is-right is-size-7" :class="colorClass">
+    <i class="fas fa-circle" ></i>
   </span>
 </template>
 
