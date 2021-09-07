@@ -19,13 +19,14 @@ export const MODEL_COURSE_TYPE_TO_STRING = new Map([
 ]);
 
 export const MODEL_SEMESTER_TO_STRING = new Map([
-    ['FIRST', "ראשון"],
-    ['SECOND', "שני"],
-    ['SUMMER', "קיץ"],
-    ['EITHER', "כל"],
-    ['ANNUAL', "שנתי"],
+    ['FIRST', "סמסטר א'"],
+    ['SECOND', "סמסטר ב'"],
+    ['SUMMER', "קורס קיץ"],
+    ['EITHER', "סמסטר א'/ב'"],
+    ['ANNUAL', "קורס שנתי"],
     // TODO: standardize model types in the code to avoid this
     // duplictation
-    [1, "ראשון"],
-    [2, "שני"]
+    [1, "סמסטר א'"],
+    [2, "סמסטר ב'"]
 ]);
+
