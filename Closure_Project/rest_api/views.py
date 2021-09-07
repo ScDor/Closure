@@ -24,22 +24,30 @@ from .serializers.CoursePlanSerializer import TakeSerializer, DetailTakeSerializ
 
 class CourseViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrAuthenticatedReadOnly,)
-    queryset = Course.objects.all().order_by('course_id')
+    queryset = Course.objects.all().order_by('course_id').distinct()
     serializer_class = CourseSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filter_fields = ('course_id', 'data_year', 'points')
+    filter_fields = {
+        'id': ['exact', 'in'],
+        'course_id': ['exact', 'in'],
+        'data_year': ['exact', 'in'],
+        'points': ['exact', 'in']
+    }
     pagination_class = ResultSetPagination
     search_fields = ('name', '^course_id')
 
 class TrackCoursesViewSet(CourseViewSet, NestedViewSetMixin):
-    filter_fields = CourseViewSet.filter_fields + ('coursegroup__course_type', )
+    filter_backends = (DjangoFilterBackend, )
+    filter_fields = {**CourseViewSet.filter_fields, 'coursegroup__course_type': ['exact', 'in']}
+    pagination_class = ResultSetPagination
+
     serializer_class = CourseOfTrackSerializer
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             relevant_cgs = CourseGroup.objects.all()
         else:
             relevant_cgs = CourseGroup.objects.filter(track=self.kwargs['track_pk'])
-        courses = Course.objects.filter(coursegroup__in=relevant_cgs)
+        courses = Course.objects.filter(coursegroup__in=relevant_cgs).distinct()
         return courses
 
 class MyTrackCourses(viewsets.ModelViewSet):
