@@ -35,7 +35,7 @@ def get_course_type(track: Track, course: Course) -> Optional[CourseType]:
 
 
 def jwt_get_username_from_payload_handler(payload):
-    username = payload.get('nickname')
+    username = payload.get('sub').replace('|', '.')
     authenticate(remote_user=username)
     return username
 

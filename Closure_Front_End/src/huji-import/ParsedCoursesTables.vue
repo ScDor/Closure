@@ -30,19 +30,22 @@ const processCourses = async (parsedCourses, http) => {
             console.error(res.data.results)
         }
         const gottenCourse = res.data.results[0]
-        const finalCourse = { ... course, name: gottenCourse.name }
+        const finalCourse = { ...gottenCourse,
+                              take: { year: course.year, semester: course.semester }, 
+                              statistics_url: course.statistics_url
+                            };
         if (["FIRST", "SECOND"].includes(gottenCourse.semester)) {
             if (course.semester && course.semester !== gottenCourse.semester) {
               console.warn(`Course ${course.course_id} - ${course.name} at year ${course.year} is offered only in semester `
                           +`${gottenCourse.semester}, but student took it in ${course.semester}`)
-              finalCourse.semester = course.semester
+              finalCourse.take.semester  = course.semester
             } else {
-              finalCourse.semester = gottenCourse.semester
+              finalCourse.take.semester = gottenCourse.semester
             }
         } else if (gottenCourse.semester === "EITHER") {
           finalCourse.ambiguous = !course.semester
         } else if (["ANNUAL", "SUMMER"].includes(gottenCourse.semester)) {
-          finalCourse.semester = 'FIRST'
+          finalCourse.take.semester = 'FIRST'
           console.warn(`Course ${course.course_id} - ${course.name} at year ${course.year} which is offered at unsupported period `
                         +`${gottenCourse.semester}, will be considered as part of the first semester`)
         }
@@ -65,8 +68,9 @@ export default {
     const finishedProcessing = ref(false)
     
     onMounted(async () => {
-      console.log(`processing ${parsedCourses.value.length} courses`);
+      console.log(`processing ${parsedCourses.value.length} courses scraped from HUJI site:`, parsedCourses.value);
       const processedCourses = await processCourses(parsedCourses, http)
+      console.log(`processed courses`, processedCourses)
 
       processedCourses.sort((a, b) => {
         if (a.ambiguous === b.ambiguous) {

@@ -17,6 +17,7 @@
           :course="course"
           class="drag-el"
           draggable="true"
+          @click="selectCourse(course)"
           @dragstart="startDrag($event, course)"
           @clickclose="deleteCourse(course)"
         ></course-box>
@@ -36,7 +37,7 @@ import { courses, moveCourse, deleteCourse} from '@/course-store.js'
 
 export default {
   props: ["year", "semester" ],
-
+  inject: [ "selectCourse"],
   components: { CourseBox, SemesterSummary },
   data() {
     return {
@@ -49,7 +50,7 @@ export default {
       return this.courses
         .filter(
           (course) =>
-            course.year == this.year.id && course.semester == this.semester.id
+            course.take.year === this.year.id && course.take.semester === this.semester.id
         )
         .sort((c1, c2) => c1.type - c2.type);
     },
@@ -75,7 +76,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .half-height {
   min-height: 36vh;
 }

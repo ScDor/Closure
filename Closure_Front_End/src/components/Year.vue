@@ -26,15 +26,15 @@ export default {
   data() {
     return {
       semesters: [
-        { id: 1, name: "סמסטר א" },
-        { id: 2, name: "סמסטר ב" },
+        { id: "FIRST", name: "סמסטר א" },
+        { id: "SECOND", name: "סמסטר ב" },
       ]
     };
   },
 };
 </script>
 
-<style>
+<style scoped>
 .full-height {
   height: max-content;
   overflow: auto;

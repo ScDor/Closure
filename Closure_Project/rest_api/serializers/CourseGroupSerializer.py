@@ -4,7 +4,7 @@ from .CourseSerializer import CourseSerializer
 
 
 class CourseGroupSerializer(DynamicFieldsModelSerializer):
-    courses = CourseSerializer(fields=('pk', 'course_id', 'name', 'semester', 'points'), many=True, read_only=True)
+    courses = CourseSerializer(fields=('id', 'course_id', 'name', 'semester', 'points'), many=True, read_only=True)
 
     class Meta:
         model = CourseGroup

@@ -17,12 +17,22 @@
     <strong>{{ambiguousCourses.length}}</strong>
     מהקורסים, יש לבחור ידנית את הסמסטר
   </div>
+  <div class="notification is-warning" v-if="!isTrackDefined">
+    לא הגדרת מסלול לימודים, אז אנחנו לא יכולים להסיק את סוגי הקורסים (חובה, חובת בחירה..) - מומלץ לבחור מסלול 
+    <router-link to="/settings"> בהגדרות </router-link>
+    כדי לתכנן את הלימודים.
+  </div>
+  <div class="notification" v-if="isTrackDefined">
+    סוגי הקורסים הם ביחס למסלול הלימודים שבחרת,
+    <strong>{{trackName}}</strong>
+  </div>
   <table class="table">
     <thead>
       <tr>
         <th>מספר קורס</th>
         <th>שם קורס</th>
         <th>נקודות זכות</th>
+        <th>סוג</th>
         <th>סמסטר</th>
       </tr>
     </thead>
@@ -32,14 +42,15 @@
         <td>{{ course.course_id }}</td>
         <td>{{ course.name }}</td>
         <td>{{ course.points }}</td>
+        <td>{{ displayCourseType(course) }}</td>
         <td>
             <div class="control">
             <label class="radio">
-                <input type="radio" id="one" value="FIRST" v-model="course.semester">
+                <input type="radio" id="one" value="FIRST" v-model="course.take.semester">
                 א'
             </label>
             <label class="radio">
-                <input type="radio" id="two" value="SECOND" v-model="course.semester">
+                <input type="radio" id="two" value="SECOND" v-model="course.take.semester">
                 ב'
             </label>
             </div>
@@ -83,6 +94,8 @@
 
 <script>
 import { courses as currentCourses } from '@/course-store.js'
+import { MODEL_COURSE_TYPE_TO_STRING } from '@/utils.js'
+
 export default {
   props: {
     courses: Array,
@@ -97,7 +110,7 @@ export default {
 
     /** The semester must be set for all courses in order to begin the import */
     canImport() {
-      return this.courses.every(course => course.semester)
+      return this.courses.every(course => course.take.semester)
     },
 
     /** If the user has already inserted courses before beginning import, 
@@ -105,8 +118,25 @@ export default {
      */
     currentlySavedCoursesCount() {
       return currentCourses.length
+    },
+
+    isTrackDefined() {
+      return !!this.studentAndClaims.student.track
+    },
+
+    trackName() {
+      return this.studentAndClaims.student.track?.name ?? "לא מוגדר"
     }
   },
+  methods: {
+    displayCourseType(course) {
+      if (!MODEL_COURSE_TYPE_TO_STRING.has(course.type)) {
+        return "לא ידוע";
+      }
+      return MODEL_COURSE_TYPE_TO_STRING.get(course.type);
+    }
+  },
+  inject: ['studentAndClaims'],
   data() { return {
     importMode: 'combine'
   }

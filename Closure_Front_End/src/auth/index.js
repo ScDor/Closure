@@ -133,14 +133,14 @@ export const routeGuard = (to, from, next) => {
   })
 }
 
+export const http = axios.create({
+    baseURL: import.meta.env.VITE_API_URL
+});
+window.closureAxios = http;
+
 export const setupAuth = async (options, callbackRedirect) => {
   client = await createAuth0Client({
       ...options,
-  });
-
-
-  let http = axios.create({
-      baseURL: import.meta.env.VITE_API_URL
   });
 
   http.interceptors.response.use((response) => response,
@@ -148,7 +148,6 @@ export const setupAuth = async (options, callbackRedirect) => {
       errorHandler(error);
       return Promise.reject(error);
   });
-  window.closureAxios = http;
 
 
   watchEffect(async () => {

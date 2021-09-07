@@ -1,7 +1,6 @@
 # Create your models here.
-import uuid
 from enum import Enum
-from typing import List
+from typing import Any, List, Dict, Optional
 
 from django.core.exceptions import ValidationError
 
@@ -204,20 +203,30 @@ ALL_COURSE_TYPES = REQUIRED_COURSE_TYPES + (CourseType.CORNER_STONE, CourseType.
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    track = models.ForeignKey(Track, on_delete=models.CASCADE, null=True)
-    year_in_studies = models.IntegerField(choices=Year.choices, null=True)
-    courses = models.ManyToManyField(Course, through='Take', blank=True)
 
     def __str__(self):
         return ', '.join((self.user.username,
                           self.user.get_full_name(),
-                          f'year={self.year_in_studies}',
-                          f'track={self.track.track_number}' if self.track else 'לא הוגדר מסלול',
-                          f'took {len(self.courses.all())} courses'))
+                          f'has {len(self.courseplan_set.all())} course plans'))
+
+class CoursePlan(models.Model):
+    owner = models.ForeignKey(Student, on_delete=models.CASCADE)
+    name = models.TextField(null=True, max_length=50)
+    public = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    track = models.ForeignKey(Track, on_delete=models.CASCADE, null=True)
+    courses = models.ManyToManyField(Course, through='Take', blank=True)
 
     @property
-    def remaining(self):
+    def year_in_studies(self) -> Optional[int]:
+        return self.track.data_year if self.track else None
+
+    @property
+    def remaining(self) -> Optional[Dict[str, Any]]:
         track = self.track
+        if not track:
+            return None
         groups = track.coursegroup_set.all()
         required_by_type = {k: set() for k in REQUIRED_COURSE_TYPES}
         required_courses = set()
@@ -272,10 +281,10 @@ class Student(models.Model):
         trickle_down(CourseType.CORNER_STONE, CourseType.SUPPLEMENTARY)
 
         return result
-
+    
 
 class Take(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    course_plan = models.ForeignKey(CoursePlan, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     year_in_studies = models.IntegerField(choices=Year.choices)
     semester = models.TextField(choices=Semester.choices)
@@ -286,6 +295,8 @@ class Take(models.Model):
                           f'semester={self.semester.lower()}'))
 
     @property
-    def type(self) -> CourseType:
+    def type(self) -> Optional[CourseType]:
         from rest_api.rest_utils import get_course_type
-        return get_course_type(self.student.track, self.course)
+        if self.course_plan.track:
+            return get_course_type(self.course_plan.track, self.course)
+        return None

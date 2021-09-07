@@ -2,6 +2,7 @@
   <div class="control has-icons-right">
     <input
       class="input is-dark"
+      :disabled="disabled"
       :placeholder="placeholder"
       v-model="query"
       @keyup="search"
@@ -21,7 +22,7 @@
           :key="sugg"
           @click="emitClick($event, sugg)"
         >
-          {{ sugg.name }}
+          {{ resultToString(sugg) }}
         </li>
       </div>
     </div>
@@ -30,8 +31,27 @@
 
 <script>
 export default {
-  props: ["placeholder", "url"],
-  emits: ["clicksuggestion"],
+  props: {
+    placeholder: String,
+    url: String,
+    modelValue: Object,
+    resultToString: {
+      type: Function,
+      default: obj => obj.toString()
+    },
+    disabled: {
+      type: Boolean,
+      default: false
+    },
+    // if set, this will clear the query(and the backed model) upon selection.
+    // This effectivelly disables two-way dataflow, requiring you to use "update:modelValue" event only,
+    // as "modelValue" would always be null.
+    clearOnSelect: {
+      type: Boolean,
+      default: false
+    }
+  },
+  emits: ["update:modelValue"],
 
   data() {
     return {
@@ -56,8 +76,11 @@ export default {
 
     emitClick(event, sugg) {
       this.hide = true;
-      this.query = "";
-      this.$emit("clicksuggestion", event, sugg);
+      this.query = this.resultToString(sugg)
+      if (this.clearOnSelect) {
+        this.query = ""
+      }
+      this.$emit("update:modelValue", sugg)
     },
   },
 };

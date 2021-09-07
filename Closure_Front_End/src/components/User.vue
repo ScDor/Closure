@@ -1,49 +1,32 @@
 <template>
   <div class="user" dir="rtl">
     <div class="notification has-text-centered">
+      <figure class="image container is-128x128" v-if="idClaims.picture">
+        <img class="is-rounded" :src="idClaims.picture">
+      </figure>
       <label class="menu-label"><b>הגדרות</b></label>
       <ul class="menu-list">
         <li>
           <label class="menu-label">שם משתמש</label>
-
-          <div class="field">{{ username }}</div>
+          <div class="field">{{ student.username }}</div>
         </li>
 
         <li>
-          <label class="menu-label">מסלול נוכחי</label>
-          <div class="field">מסלול</div>
+          <label class="menu-label">שם</label>
+          <div class="field">{{ idClaims.name }}</div>
         </li>
 
-        <li>
-          <label class="menu-label">בחר מסלול מרשימה</label>
-          <div class="control">
-            <!-- <input class="input is-dark" type="text" /> -->
-            <search-bar
-              :url="'http://127.0.0.1:8000/api/v1/courses/?limit=6&offset=15&search='"
-            ></search-bar>
-          </div>
-        </li>
-
-        <li>
-          <div class="control">
-            <button class="button menu-label is-dark">שמור</button>
-          </div>
-        </li>
       </ul>
     </div>
   </div>
 </template>
 
 <script>
-import SearchBar from "./SearchBar.vue";
 
 export default {
-  props: ["username"],
-
-  components: { SearchBar },
-
-  data() {
-    return {};
+  props: {
+    idClaims: Object,
+    student: Object
   },
 };
 </script>

@@ -6,9 +6,18 @@
       <router-link class="navbar-item" to="/"><b>Closure()</b></router-link>
     </div>
     <div class="navbar-start is-hidden-mobile is-hidden-touch">
+
+      <div v-if="currentCourseplan" class="navbar-item">
+        <span>שם תכנית:
+          {{ currentCourseplan.name}}
+        </span>
+      </div>
+      <save-menu/>
+
       <div class="navbar-item">
         <div class="buttons">
           <router-link
+            v-if="auth.isAuthenticated.value"
             class="button is-small is-dark"
             to="/data-import"
           >
@@ -19,7 +28,7 @@
           </router-link>
           <!-- Check that the SDK client is not currently loading before accessing is methods -->
           <router-link
-            v-if="$auth.isAuthenticated.value"
+            v-if="auth.isAuthenticated.value"
             class="button is-small is-dark"
             to="/settings"
           >
@@ -27,17 +36,17 @@
               <i class="fas fa-user-cog"></i>
             </span>
           </router-link>
-          <div v-if="!$auth.loading.value">
+          <div v-if="!auth.loading.value">
             <button
               class="button is-small is-dark menu-label"
-              v-if="!$auth.isAuthenticated.value"
+              v-if="!auth.isAuthenticated.value"
               @click="login"
             >
               Log in
             </button>
             <button
               class="button is-small is-dark menu-label"
-              v-if="$auth.isAuthenticated.value"
+              v-if="auth.isAuthenticated.value"
               @click="logout"
             >
               Log out
@@ -49,41 +58,59 @@
   </nav>
 
   <router-view />
+
+  <save-state-footer />
 </template>
 
 <script>
 import ErrorNotification from './components/ErrorNotification.vue';
+import SaveMenu from './save-load/SaveMenu.vue';
+import SaveStateFooter from './components/SaveStateFooter.vue';
+import { toRefs, reactive, onMounted, provide, inject, readonly} from 'vue';
+import { currentCourseplan } from '@/course-store.js'
 export default {
   name: "App",
-  components: {ErrorNotification},
-  data() {
-    return {
-      username: "",
+  components: {ErrorNotification, SaveMenu, SaveStateFooter},
+  setup() {
+    const state = reactive({
       student: null,
-    };
-  },
-  created() {
-    /** if the user is loged in, then fetching his data from DB, else doing nothing */
-    if (this.$auth.isAuthenticated.value) {
-      this.$auth
-        .getIdTokenClaims()
-        .then((response) => (this.username = response.nickname));
-      this.$http.get(`students/${this.username}`)
-        .then((response) => this.student = response);
-    }
-  },
-  methods: {
-    // Log the user in
-    login() {
-      this.$auth.loginWithRedirect();
-    },
-    // Log the user out
-    logout() {
-      this.$auth.logout({
+      idClaims: null
+    });
+
+    provide("studentAndClaims", readonly(state))
+    provide("setStudent", (newStudent) => {
+      state.student = newStudent;
+    });
+
+
+    const http = inject("http");
+    const auth = inject("auth");
+
+
+    onMounted(async () => {
+      if (auth.isAuthenticated.value) {
+        const claims = await auth.getIdTokenClaims();
+        const student = (await http.get("student/me")).data;
+        window.student = student;
+        window.claims = claims;
+
+        state.idClaims = claims;
+        state.student = student;
+
+        console.log(`Authenticated, got claims and student profile`)
+      }
+    });
+
+    const login = () => auth.loginWithRedirect();
+    const logout = () => auth.logout({
         returnTo: import.meta.env.VITE_AUTH0_REDIRECT_URI
-      });
-    },
-  },
+    });
+
+    return {
+      ...toRefs(state), login, logout, auth, currentCourseplan
+    }
+
+  }
 };
 </script>
 <style src="bulma/css/bulma-rtl.css"></style>

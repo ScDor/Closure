@@ -1,45 +1,39 @@
-  <!-- we will bind every key movement to the searchCourses method so it will update immediately -->
 <template>
-  <year-selection v-model="selectedYear" />
-  <search-bar
-    :placeholder="'חפש מסלול'"
-    :url="`tracks/?limit=6&offset=15&data_year=${selectedYear}&search=`"
-    @clicksuggestion="emitTrackClick"
-  ></search-bar>
+  <course-plan-settings />
+  <h2 class="subtitle is-2">הוספת קורסים</h2>
+  <year-selection label="גרסת שנתון" v-model="selectedYear" />
+  <div class="field">
+    <label class="label">מסלול</label>
+    <div class="control">
+      <track-selection v-model="selectedTrack" :year="selectedYear" />
+    </div>
+  </div>
 
-  <search-bar
-    :placeholder="'חפש קורס'"
-    :url="`courses/?limit=6&offset=15&data_year=${selectedYear}&search=`"
-    @clicksuggestion="emitCourseClick"
-  ></search-bar>
-
-  
-  <ProgressBox :allcourses = "allcourses"/>
+  <div class="field">
+    <label class="label">קורס</label>
+    <div class="control">
+      <course-selection @update:modelValue="course => $emit('clickCourse', course)" :track="selectedTrack"  />
+    </div>
+  </div>
 </template>
 
 <script>
 import YearSelection from './YearSelection.vue'
-import SearchBar from "./SearchBar.vue";
-import ProgressBox from "./ProgressBox.vue";
-
+import TrackSelection from './TrackSelection.vue'
+import CourseSelection from './CourseSelection.vue'
+import CoursePlanSettings from './CoursePlanSettings.vue'
+import { reactive, toRefs } from "vue";
 export default {
-  components: { YearSelection, SearchBar, ProgressBox },
-  data() {
-    return {
-      "selectedYear": 2022
-    }
-  },
-  emits: ["clickcourse"],
-  props: ["allcourses"],
+  components: { YearSelection, TrackSelection, CourseSelection, CoursePlanSettings },
+  emits: [ "clickCourse"],
+  setup() {
+    const data = reactive({
+      selectedYear: 2022,
+      selectedTrack: null
+    })
 
-  methods: {
-    emitCourseClick(event, course) {
-      this.$emit("clickcourse", event, course);
-    },
-
-    emitTrackClick(event, track) {
-      this.$emit("clicktrack", event, track);
-    },
-  },
+    return { ...toRefs(data) }
+  }
 };
 </script>
+<style src="vue-multiselect/dist/vue-multiselect.css"></style>

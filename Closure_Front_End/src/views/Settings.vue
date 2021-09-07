@@ -1,45 +1,43 @@
 <template>
   <div>
     <section class="section-style">
-      <user :username="name"></user>
+
+      <div class="has-text-centered" v-if="!student">
+        <h2 class="subtitle">טוען נתונים...</h2>
+        <progress class="progress is-primary max=100" >15%</progress>
+      </div>
+
+      <div v-if="idClaims && showDebug">
+        <span>ID Claims:</span><br/>
+        <span class="is-family-monospace">{{ idClaims }}</span>
+      </div>
+
+      <div v-if="student && showDebug">
+        <span>Student Object:</span><br/>
+        <span class="is-family-monospace">{{ student }}</span>
+      </div>
+      
+      <div v-if="student">
+        <user :idClaims="idClaims" :student="student" />
+      </div>
     </section>
   </div>
 </template>
 
 <script>
 import User from "../components/User.vue";
+import { inject, toRefs } from "vue";
 
 export default {
   name: "Closure()",
   components: { User },
-  data() {
-    return {
-      username: "",
-      name: "placeholder",
-    };
-  },
-  created() {
-    if (this.$auth.isAuthenticated.value) {
-      this.$auth.getIdTokenClaims().then((response) => this.name = response.nickname);
+  setup() {
+    const showDebug = false
+    const { student, idClaims } = toRefs(inject("studentAndClaims"))
 
-    //   this.username = this.$auth
-    //     .getIdTokenClaims()
-    //     .then((response) => JSON.json(response));
-    //   this.name = this.$auth
-    //     .getIdTokenClaims()
-    //     .then((response) => response.name);
-    //   console.log(this.username);
+    return { idClaims, student, showDebug }
+  }
 
-      /**get username */
-      //   axios
-      //     .get("http://127.0.0.1:8000/api/v1/tracks/?track_number=3010", {
-      //       headers: {
-      //         Authorization: "Token 425fa39de10f02351c7043d0dbe34a4b31be7a27",
-      //       },
-      //     })
-      //     .then((response) => (this.track = response.data.results[0]));
-    }
-  },
 };
 </script>
 

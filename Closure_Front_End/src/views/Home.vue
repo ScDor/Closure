@@ -1,13 +1,24 @@
 <template>
-  <div v-if="$auth.isAuthenticated.value">
+  <div v-if="auth.isAuthenticated.value">
     <div dir="rtl">
       <section class="section section-style">
+        <div class="notification is-danger" v-if="error">
+          חלה שגיאה בהסקת סוגי קורסים:
+          <p> {{ error }}</p>
+        </div>
+
+
+        <template v-if="loading">
+          מחשב סוגי קורסים בהתאם למסלול הנחבר
+          ...
+          <progress class="progress is-small is-primary" max="100">15%</progress>
+        </template>
+
         <div class="columns is-variable is-2">
           <div class="column is-2 is-right is-hidden-mobile is-hidden-touch">
-            <navigation
-              :allcourses="courses"
-              @clickcourse="(event, course) => addCourse(course)"
-            ></navigation>
+            <navigation />
+            <course-detail v-model:course="selectedCourse" v-if="selectedCourse" :track="currentTrack" />
+            <progress-box :allcourses="courses" />
           </div>
           <div class="column" v-for="year in years" :key="year">
             <year :year="year" />
@@ -24,87 +35,40 @@
 </template>
 
 <script>
+import { ref, inject, provide } from "vue";
 import Year from "../components/Year.vue";
 import Navigation from "../components/Navigation.vue";
-import {
-  courses,
-  moveCourse,
-  deleteCourse,
-  addCourse
-} from "@/course-store.js";
+import CourseDetail from "../components/CourseDetail.vue";
+import ProgressBox from "../components/ProgressBox.vue";
+import { courses, currentTrack } from "@/course-store.js";
+import { syncCourseTypesToTrack } from "@/hooks"
+const years = [
+  { id: 1, name: "שנה א" },
+  { id: 2, name: "שנה ב" },
+  { id: 3, name: "שנה ג" },
+  { id: 4, name: "שנה ד" },
+];
 
 export default {
   name: "Closure()",
-  components: { Navigation, Year },
-  data() {
+  components: { Year, Navigation, CourseDetail, ProgressBox },
+  setup() {
+    const selectedCourse = ref(null);
+    provide("selectCourse", (course) => (selectedCourse.value = course));
+    const auth = inject("auth");
+
+    const { error, loading } = syncCourseTypesToTrack(courses, currentTrack)
+
     return {
-      years: [
-        { id: 1, name: "שנה א" },
-        { id: 2, name: "שנה ב" },
-        { id: 3, name: "שנה ג" },
-        { id: 4, name: "שנה ד" }
-      ],
-      username: "placehoder",
-      student: {
-        username: "string",
-        track_pk: 28,
-        year_in_studies: 1,
-        courses: [
-          {
-            pk: 0,
-            year_in_studies: 1,
-            semester: "FIRST"
-          }
-        ]
-      },
-      courses
+      years,
+      selectedCourse,
+      courses,
+      auth,
+      currentTrack,
+      error,
+      loading
     };
   },
-
-  created() {
-    if (this.$auth.isAuthenticated.value) {
-      this.$auth.getIdTokenClaims().then(console.log, console.error);
-      this.$http.get("tracks/?track_number=3010").then(response => {
-        this.track = response.data.results[0];
-      });
-    }
-  },
-  methods: {
-    moveCourse,
-    deleteCourse,
-    addCourse,
-    getUsername() {
-      return this.$auth.getIdTokenClaims().then(response => response.nickname);
-    },
-
-    /** fetch all student's courses from the DB and store them in allcourses */
-    createAllCourses(student) {
-      for (const course of student.courses) {
-        const course_info = course.course;
-        this.allcourses.push({
-          pk: course.pk,
-          course_id: course_info.course_id,
-          name: course_info.name,
-          semester: this.getSemester(course_info),
-          year: course.year_in_studies,
-          points: course.course.points,
-          type: this.getType(course)
-        });
-      }
-    },
-
-    getSemester(course) {
-      if (course.semester == "FIRST") return 1;
-      return 2;
-    },
-
-    getType(course) {
-      console.log(course);
-      if (course.type == "MUST") return 1;
-      if (course.type == "CHOOSE_FROM_LIST") return 2;
-      return 3;
-    }
-  }
 };
 </script>
 
