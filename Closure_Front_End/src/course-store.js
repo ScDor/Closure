@@ -1,5 +1,6 @@
 import { reactive, shallowReadonly, computed, watch } from "vue";
 import { http } from "./auth";
+import { cacheCourses } from "@/services/course-service"
 
 const LS_PATH = "course-store-state-v1";
 
@@ -141,6 +142,7 @@ export const addCourses = (courses, overwrite) => {
   }
   state.courses.push(...courses);
   state.dirty = true;
+  cacheCourses(courses)
 };
 
 /* track operations */
